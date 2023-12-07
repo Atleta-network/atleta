@@ -43,6 +43,6 @@ COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node
 # 9933 for RPC call
 # 9944 for Websocket
 # 9615 for Prometheus (metrics)
-EXPOSE 30333 9933 9944 9615
+# EXPOSE 30333 9933 9944 9615
 
 ENTRYPOINT ["/app/target/release/sportchain-node"]
