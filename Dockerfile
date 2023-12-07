@@ -1,25 +1,43 @@
-# Note: This is currently designed to simplify development
-# To get a smaller docker image, there should be 2 images generated, in 2 stages.
+# Stage 1: Build the application
 
-FROM rustlang/rust:nightly
-
+FROM rust:latest as builder
 
 ARG PROFILE=release
-WORKDIR /frontier
+WORKDIR /app
 
-# Upcd dates core parts
-RUN apt-get update -y && \
-	apt-get install -y cmake pkg-config libssl-dev git gcc build-essential clang libclang-dev protobuf-compiler
+# Update system packages and install build dependencies
+RUN apt update -y && \
+    apt install -y \
+    cmake \
+    pkg-config \
+    libssl-dev \
+    git \
+    gcc \
+    build-essential \
+    clang \
+    libclang-dev \
+    protobuf-compiler \
+    jq \
+    libpq-dev
 
 # Install rust wasm. Needed for substrate wasm engine
 RUN rustup target add wasm32-unknown-unknown
 
-# Download Frontier repo
-RUN git clone https://github.com/paritytech/frontier /frontier
-RUN cd /frontier && git submodule init && git submodule update
+# Copy the project files
+COPY . .
 
-# Download rust dependencies and build the rust binary
-RUN cargo build "--$PROFILE"
+# Build the application
+RUN cargo build --locked "--$PROFILE"
+
+#Stage 2: Create the final image
+FROM ubuntu:latest
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built binary from the builder stage
+COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node /app/target/release/
+
 
 # 30333 for p2p traffic
 # 9933 for RPC call
@@ -27,10 +45,4 @@ RUN cargo build "--$PROFILE"
 # 9615 for Prometheus (metrics)
 EXPOSE 30333 9933 9944 9615
 
-
-ENV PROFILE ${PROFILE}
-
-# The execution will re-compile the project to run it
-# This allows to modify the code and not have to re-compile the
-# dependencies.
-CMD cargo run --bin frontier-template-node "--$PROFILE" -- --dev
+ENTRYPOINT ["/app/target/release/sportchain-node"]
