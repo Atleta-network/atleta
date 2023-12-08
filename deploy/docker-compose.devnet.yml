@@ -2,9 +2,6 @@ version: "3"
 
 services:
   archive_node:
-    build:
-      context: ..
-      dockerfile: Dockerfile
     image: sportchain-node
     container_name: sportchain-archive-node
     restart: always
