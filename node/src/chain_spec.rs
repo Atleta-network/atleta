@@ -9,11 +9,16 @@ use sp_consensus_grandpa::AuthorityId as GrandpaId;
 #[allow(unused_imports)]
 use sp_core::ecdsa;
 use sp_core::{storage::Storage, Pair, Public, H160, U256};
-use sp_runtime::traits::{IdentifyAccount, Verify};
+use sp_runtime::{
+    traits::{IdentifyAccount, Verify},
+    Perbill,
+};
 use sp_state_machine::BasicExternalities;
 // Frontier
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sportchain_runtime::{
-    AccountId, Balance, EnableManualSeal, RuntimeGenesisConfig, SS58Prefix, Signature, WASM_BINARY,
+    constants::currency::*, opaque::SessionKeys, AccountId, Balance, EnableManualSeal,
+    MaxNominations, RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, WASM_BINARY,
 };
 
 // The URL for the telemetry server.
@@ -65,9 +70,15 @@ where
     AccountPublic::from(get_from_seed::<TPublic>(seed)).into_account()
 }
 
-/// Generate an Aura authority key.
-pub fn authority_keys_from_seed(s: &str) -> (AuraId, GrandpaId) {
-    (get_from_seed::<AuraId>(s), get_from_seed::<GrandpaId>(s))
+/// Generate authority keys
+pub fn authority_keys_from_seed(s: &str) -> (AccountId, AccountId, AuraId, GrandpaId, ImOnlineId) {
+    (
+        get_account_id_from_seed::<ecdsa::Public>(&format!("{}//stash", s)),
+        get_account_id_from_seed::<ecdsa::Public>(s),
+        get_from_seed::<AuraId>(s),
+        get_from_seed::<GrandpaId>(s),
+        get_from_seed::<ImOnlineId>(s),
+    )
 }
 
 fn properties() -> Properties {
@@ -78,7 +89,9 @@ fn properties() -> Properties {
     properties
 }
 
-const UNITS: Balance = 1_000_000_000_000_000_000;
+fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
+    SessionKeys { aura, grandpa, im_online }
+}
 
 pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
     let wasm_binary = WASM_BINARY.expect("WASM not available");
@@ -105,7 +118,9 @@ pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
                         AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
                     ],
                     // Initial PoA authorities
-                    vec![authority_keys_from_seed("Alice")],
+                    vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+                    // Initial nominators
+                    vec![],
                     // Ethereum chain ID
                     SS58Prefix::get() as u64,
                 ),
@@ -152,6 +167,7 @@ pub fn local_testnet_config() -> ChainSpec {
                     AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
                 ],
                 vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+                vec![],
                 42,
             )
         },
@@ -174,14 +190,46 @@ pub fn local_testnet_config() -> ChainSpec {
 fn testnet_genesis(
     wasm_binary: &[u8],
     sudo_key: AccountId,
-    endowed_accounts: Vec<AccountId>,
-    initial_authorities: Vec<(AuraId, GrandpaId)>,
+    mut endowed_accounts: Vec<AccountId>,
+    initial_authorities: Vec<(AccountId, AccountId, AuraId, GrandpaId, ImOnlineId)>,
+    initial_nominators: Vec<AccountId>,
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
     use sportchain_runtime::{
-        AuraConfig, BalancesConfig, EVMChainIdConfig, EVMConfig, GrandpaConfig, SudoConfig,
-        SystemConfig,
+        AuraConfig, BalancesConfig, EVMChainIdConfig, EVMConfig, GrandpaConfig, ImOnlineConfig,
+        SessionConfig, StakingConfig, SudoConfig, SystemConfig,
     };
+
+    // endow all authorities and nominators.
+    initial_authorities
+        .iter()
+        .map(|x| &x.0)
+        .chain(initial_nominators.iter())
+        .for_each(|x| {
+            if !endowed_accounts.contains(x) {
+                endowed_accounts.push(*x)
+            }
+        });
+
+    // stakers: all validators and nominators.
+    const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
+    const STASH: Balance = ENDOWMENT / 1000;
+    let mut rng = rand::thread_rng();
+    let stakers = initial_authorities
+        .iter()
+        .map(|x| (x.0, x.1, STASH, StakerStatus::Validator))
+        .chain(initial_nominators.iter().map(|x| {
+            use rand::{seq::SliceRandom, Rng};
+            let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
+            let count = rng.gen::<usize>() % limit;
+            let nominations = initial_authorities
+                .as_slice()
+                .choose_multiple(&mut rng, count)
+                .map(|choice| choice.0)
+                .collect::<Vec<_>>();
+            (*x, *x, STASH, StakerStatus::Nominator(nominations))
+        }))
+        .collect::<Vec<_>>();
 
     RuntimeGenesisConfig {
         // System
@@ -197,18 +245,34 @@ fn testnet_genesis(
 
         // Monetary
         balances: BalancesConfig {
-            balances: endowed_accounts.iter().cloned().map(|k| (k, 1_000_000 * UNITS)).collect(),
+            // Configure endowed accounts with initial balance of 1 << 60.
+            balances: endowed_accounts.iter().cloned().map(|k| (k, 1 << 60)).collect(),
         },
         transaction_payment: Default::default(),
 
         // Consensus
         aura: AuraConfig {
-            authorities: initial_authorities.iter().map(|x| (x.0.clone())).collect(),
+            authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
         },
         grandpa: GrandpaConfig {
-            authorities: initial_authorities.iter().map(|x| (x.1.clone(), 1)).collect(),
+            authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
             ..Default::default()
         },
+        session: SessionConfig {
+            keys: initial_authorities
+                .iter()
+                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
+                .collect::<Vec<_>>(),
+        },
+        staking: StakingConfig {
+            validator_count: initial_authorities.len() as u32,
+            minimum_validator_count: initial_authorities.len() as u32,
+            invulnerables: initial_authorities.iter().map(|x| x.0).collect(),
+            slash_reward_fraction: Perbill::from_percent(10),
+            stakers,
+            ..Default::default()
+        },
+        im_online: ImOnlineConfig { keys: vec![] },
 
         // EVM compatibility
         evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },

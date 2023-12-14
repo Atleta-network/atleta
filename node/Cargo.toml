@@ -17,10 +17,12 @@ futures = { workspace = true }
 hex-literal = { workspace = true }
 jsonrpsee = { workspace = true, features = ["server", "macros"] }
 log = { workspace = true }
+rand = { workspace = true }
 scale-codec = { package = "parity-scale-codec", workspace = true }
 serde = { workspace = true }
 
 # Substrate
+pallet-im-online = { workspace = true, features = ["std"] }
 prometheus-endpoint = { package = "substrate-prometheus-endpoint", workspace = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
@@ -83,31 +85,23 @@ sportchain-runtime = { workspace = true, features = ["std"] }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = [
-	"with-rocksdb-weights",
-	"rocksdb",
-	"sql",
-	"txpool",
-]
+default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool"]
 rocksdb = [
-	"sc-cli/rocksdb",
-	"sc-service/rocksdb",
-	"fc-cli/rocksdb",
-	"fc-db/rocksdb",
-	"fc-mapping-sync/rocksdb",
-	"fc-rpc/rocksdb",
+    "sc-cli/rocksdb",
+    "sc-service/rocksdb",
+    "fc-cli/rocksdb",
+    "fc-db/rocksdb",
+    "fc-mapping-sync/rocksdb",
+    "fc-rpc/rocksdb",
 ]
-sql = [
-	"fc-db/sql",
-	"fc-mapping-sync/sql",
-]
+sql = ["fc-db/sql", "fc-mapping-sync/sql"]
 with-rocksdb-weights = ["sportchain-runtime/with-rocksdb-weights"]
 with-paritydb-weights = ["sportchain-runtime/with-paritydb-weights"]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
 runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks",
-	"frame-benchmarking-cli/runtime-benchmarks",
-	"sc-service/runtime-benchmarks",
-	"sportchain-runtime/runtime-benchmarks",
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-benchmarking-cli/runtime-benchmarks",
+    "sc-service/runtime-benchmarks",
+    "sportchain-runtime/runtime-benchmarks",
 ]
