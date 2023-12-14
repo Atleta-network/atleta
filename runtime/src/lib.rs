@@ -78,6 +78,9 @@ pub use pallet_balances::Call as BalancesCall;
 pub use pallet_timestamp::Call as TimestampCall;
 use pallet_transaction_payment::Multiplier;
 
+#[cfg(any(feature = "std", test))]
+pub use pallet_staking::StakerStatus;
+
 mod precompiles;
 use precompiles::FrontierPrecompiles;
 

@@ -16,7 +16,7 @@ use sp_api::ConstructRuntimeApi;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_core::U256;
 // Runtime
-use sportchain_runtime::{opaque::Block, Hash, TransactionConverter};
+use sportchain_runtime::{opaque::Block, Hash, TransactionConverter, constants::time::*};
 
 use crate::{
     cli::Sealing,
@@ -614,7 +614,7 @@ where
             inherent_data: &mut sp_inherents::InherentData,
         ) -> Result<(), sp_inherents::Error> {
             TIMESTAMP.with(|x| {
-                *x.borrow_mut() += sportchain_runtime::SLOT_DURATION;
+                *x.borrow_mut() += SLOT_DURATION;
                 inherent_data.put_data(sp_timestamp::INHERENT_IDENTIFIER, &*x.borrow())
             })
         }
