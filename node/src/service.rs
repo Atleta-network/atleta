@@ -16,7 +16,7 @@ use sp_api::ConstructRuntimeApi;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_core::U256;
 // Runtime
-use sportchain_runtime::{opaque::Block, Hash, TransactionConverter, constants::time::*};
+use sportchain_runtime::{constants::time::*, opaque::Block, Hash, TransactionConverter};
 
 use crate::{
     cli::Sealing,

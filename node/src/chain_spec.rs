@@ -207,7 +207,7 @@ fn testnet_genesis(
         .chain(initial_nominators.iter())
         .for_each(|x| {
             if !endowed_accounts.contains(x) {
-                endowed_accounts.push(x.clone())
+                endowed_accounts.push(*x)
             }
         });
 
@@ -217,7 +217,7 @@ fn testnet_genesis(
     let mut rng = rand::thread_rng();
     let stakers = initial_authorities
         .iter()
-        .map(|x| (x.0.clone(), x.1.clone(), STASH, StakerStatus::Validator))
+        .map(|x| (x.0, x.1, STASH, StakerStatus::Validator))
         .chain(initial_nominators.iter().map(|x| {
             use rand::{seq::SliceRandom, Rng};
             let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
@@ -225,10 +225,9 @@ fn testnet_genesis(
             let nominations = initial_authorities
                 .as_slice()
                 .choose_multiple(&mut rng, count)
-                .into_iter()
-                .map(|choice| choice.0.clone())
+                .map(|choice| choice.0)
                 .collect::<Vec<_>>();
-            (x.clone(), x.clone(), STASH, StakerStatus::Nominator(nominations))
+            (*x, *x, STASH, StakerStatus::Nominator(nominations))
         }))
         .collect::<Vec<_>>();
 
@@ -262,15 +261,13 @@ fn testnet_genesis(
         session: SessionConfig {
             keys: initial_authorities
                 .iter()
-                .map(|x| {
-                    (x.1.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone()))
-                })
+                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
                 .collect::<Vec<_>>(),
         },
         staking: StakingConfig {
             validator_count: initial_authorities.len() as u32,
             minimum_validator_count: initial_authorities.len() as u32,
-            invulnerables: initial_authorities.iter().map(|x| x.0.clone()).collect(),
+            invulnerables: initial_authorities.iter().map(|x| x.0).collect(),
             slash_reward_fraction: Perbill::from_percent(10),
             stakers,
             ..Default::default()
