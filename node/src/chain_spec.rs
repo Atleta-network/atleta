@@ -196,8 +196,8 @@ fn testnet_genesis(
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
     use sportchain_runtime::{
-        AuraConfig, BalancesConfig, EVMChainIdConfig, EVMConfig, GrandpaConfig, ImOnlineConfig,
-        SessionConfig, StakingConfig, SudoConfig, SystemConfig,
+        BalancesConfig, EVMChainIdConfig, EVMConfig, ImOnlineConfig, SessionConfig, StakingConfig,
+        SudoConfig, SystemConfig,
     };
 
     // endow all authorities and nominators.
@@ -251,13 +251,8 @@ fn testnet_genesis(
         transaction_payment: Default::default(),
 
         // Consensus
-        aura: AuraConfig {
-            authorities: initial_authorities.iter().map(|x| (x.2.clone())).collect(),
-        },
-        grandpa: GrandpaConfig {
-            authorities: initial_authorities.iter().map(|x| (x.3.clone(), 1)).collect(),
-            ..Default::default()
-        },
+        aura: Default::default(),
+        grandpa: Default::default(),
         session: SessionConfig {
             keys: initial_authorities
                 .iter()
