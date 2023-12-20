@@ -168,7 +168,8 @@ pub fn local_testnet_config() -> ChainSpec {
                 ],
                 vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
                 vec![],
-                42,
+                // Ethereum chain ID
+                SS58Prefix::get() as u64,
             )
         },
         // Bootnodes

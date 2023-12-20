@@ -1,0 +1,5 @@
+[submodule "polkadot-js-apps"]
+	path = polkadot-js-apps
+	url = https://github.com/ales-tsurko/polkadot-js-apps.git
+    branch = "sportchain/release/0.133.1"
+    shallow = true
