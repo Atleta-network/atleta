@@ -11,13 +11,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
 
-    - name: Create Image Tarball
+    - name: Create Image Tarball for Node
       run: |
         docker build -t sportchain-node .
         docker save -o sportchain-node.tar sportchain-node
         mkdir -p artifacts
         mv sportchain-node.tar artifacts/
+
+    - name: Create Image Tarball for Explorer
+      run: |
+        cd polkadot-js-apps
+        docker build -t sportchain-explorer -f docker/Dockerfile .
+        docker save -o sportchain-explorer.tar sportchain-explorer
+        mv sportchain-explorer.tar ../artifacts/
 
     - name: Set up SSH
       run: |
@@ -42,6 +51,7 @@ jobs:
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
+          docker load -i sportchain-explorer.tar
           docker-compose down
           docker-compose pull
           docker-compose up -d --build --remove-orphans

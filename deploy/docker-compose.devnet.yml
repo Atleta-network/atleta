@@ -52,6 +52,15 @@ services:
     networks:
       - sportchain-node-network
 
+  explorer:
+    image: sportchain-explorer
+    container_name: sportchain-explorer
+    restart: always
+    depends_on:
+      - archive_node
+    networks:
+      - sportchain-node-network
+
 networks:
   sportchain-node-network:
     name: sportchain-node
