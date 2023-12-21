@@ -58,6 +58,8 @@ services:
     restart: always
     depends_on:
       - archive_node
+    ports:
+      - "0.0.0.0:80:80/tcp"
     networks:
       - sportchain-node-network
 
