@@ -17,7 +17,7 @@ services:
       --rpc-cors all
       --state-pruning archive
     volumes:
-      - chain_data: /chain-data/archive
+      - chain_data:/chain-data/archive
     ports:
       # - "0.0.0.0:30333:30333/tcp"
       - "0.0.0.0:9944:9944/tcp"
@@ -32,7 +32,7 @@ services:
     depends_on:
       - archive_node
     volumes:
-      - chain_data: /chain-data/alice
+      - chain_data:/chain-data/alice
     command: >
       --chain dev
       --base-path /chain-data/alice
@@ -49,7 +49,7 @@ services:
     depends_on:
       - archive_node
     volumes:
-      - chain_data: /chain-data/bob
+      - chain_data:/chain-data/bob
     command: >
       --chain dev
       --base-path /chain-data/bob
