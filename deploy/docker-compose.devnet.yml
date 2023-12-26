@@ -7,6 +7,7 @@ services:
     restart: always
     command: >
       --chain dev
+      --base-path /chain-data/archive
       --name "dev-archive"
       --port 30333
       --rpc-port 9944
@@ -15,6 +16,8 @@ services:
       --node-key 0000000000000000000000000000000000000000000000000000000000000001
       --rpc-cors all
       --state-pruning archive
+    volumes:
+      - chain_data: /chain-data/archive
     ports:
       # - "0.0.0.0:30333:30333/tcp"
       - "0.0.0.0:9944:9944/tcp"
@@ -28,6 +31,8 @@ services:
     restart: always
     depends_on:
       - archive_node
+    volumes:
+      - chain_data: /chain-data/alice
     command: >
       --chain dev
       --base-path /chain-data/alice
@@ -43,6 +48,8 @@ services:
     restart: always
     depends_on:
       - archive_node
+    volumes:
+      - chain_data: /chain-data/bob
     command: >
       --chain dev
       --base-path /chain-data/bob
@@ -62,6 +69,10 @@ services:
       - "0.0.0.0:80:80/tcp"
     networks:
       - sportchain-node-network
+
+volumes:
+  chain_data:
+    driver: local
 
 networks:
   sportchain-node-network:
