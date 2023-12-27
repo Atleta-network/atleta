@@ -5,9 +5,11 @@ services:
     image: sportchain-node
     container_name: sportchain-archive-node
     restart: always
+    volumes:
+      - ./chain-data/archive:/chain-data
     command: >
       --chain dev
-      --base-path /chain-data/archive
+      --base-path /chain-data
       --name "dev-archive"
       --port 30333
       --rpc-port 9944
@@ -16,8 +18,6 @@ services:
       --node-key 0000000000000000000000000000000000000000000000000000000000000001
       --rpc-cors all
       --state-pruning archive
-    volumes:
-      - chain_data:/chain-data/archive
     ports:
       # - "0.0.0.0:30333:30333/tcp"
       - "0.0.0.0:9944:9944/tcp"
@@ -32,10 +32,10 @@ services:
     depends_on:
       - archive_node
     volumes:
-      - chain_data:/chain-data/alice
+      - ./chain-data/alice:/chain-data
     command: >
       --chain dev
-      --base-path /chain-data/alice
+      --base-path /chain-data
       --alice
       --validator
       --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
@@ -49,10 +49,10 @@ services:
     depends_on:
       - archive_node
     volumes:
-      - chain_data:/chain-data/bob
+      - ./chain-data/bob:/chain-data
     command: >
       --chain dev
-      --base-path /chain-data/bob
+      --base-path /chain-data
       --bob
       --validator
       --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
@@ -69,10 +69,6 @@ services:
       - "0.0.0.0:80:80/tcp"
     networks:
       - sportchain-node-network
-
-volumes:
-  chain_data:
-    driver: local
 
 networks:
   sportchain-node-network:
