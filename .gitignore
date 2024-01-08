@@ -9,3 +9,9 @@
 # direnv files
 .envrc
 .direnv
+
+chain-data
+blockscout/services/logs 
+blockscout/services/redis-data 
+blockscout/services/blockscout-db-data 
+blockscout/services/stats-db-data
