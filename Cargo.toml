@@ -2,7 +2,7 @@
 members = [
     "node",
     "runtime",
-    "pallets/*",
+    # "pallets/*",
     # "precompiles",
 ]
 resolver = "2"
