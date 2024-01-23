@@ -41,7 +41,7 @@ services:
         ETHEREUM_JSONRPC_HTTP_URL: http://65.109.166.237:9944/
         ETHEREUM_JSONRPC_TRACE_URL: http://65.109.166.237:9944/
         ETHEREUM_JSONRPC_WS_URL: ws://65.109.166.237:9944/
-        ETHEREUM_JSONRPC_VARIANT: 'core'
+        ETHEREUM_JSONRPC_VARIANT: 'geth'
         CHAIN_ID: '2340'
 
   visualizer:
