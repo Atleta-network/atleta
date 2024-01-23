@@ -92,6 +92,8 @@ mod precompiles;
 pub mod constants;
 mod voter_bags;
 
+// Type aliases
+
 /// Type of block number.
 pub type BlockNumber = u32;
 
@@ -168,6 +170,8 @@ pub fn native_version() -> sp_version::NativeVersion {
     sp_version::NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
+// Constants
+
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for 2000ms of compute with a 6 second average block time.
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 2000;
@@ -175,6 +179,7 @@ pub const MAXIMUM_BLOCK_WEIGHT: Weight =
     Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_MILLIS, u64::MAX);
 pub const MAXIMUM_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 
+// frame_system config
 parameter_types! {
     pub const Version: RuntimeVersion = VERSION;
     pub const BlockHashCount: BlockNumber = 256;
@@ -236,6 +241,8 @@ impl frame_system::Config for Runtime {
     type MaxConsumers = ConstU32<16>;
 }
 
+// Consensus
+
 parameter_types! {
     pub const MaxAuthorities: u32 = 100;
 }
@@ -257,6 +264,7 @@ impl pallet_grandpa::Config for Runtime {
     type EquivocationReportSystem = ();
 }
 
+// Timestamp
 parameter_types! {
     pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
     pub storage EnableManualSeal: bool = false;
@@ -281,6 +289,7 @@ impl pallet_timestamp::Config for Runtime {
     type WeightInfo = ();
 }
 
+// balances
 parameter_types! {
     pub const ExistentialDeposit: u128 = 500;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
@@ -304,6 +313,7 @@ impl pallet_balances::Config for Runtime {
     type MaxFreezes = ();
 }
 
+// transaction payment
 parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
@@ -317,6 +327,7 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
+// sudo
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;

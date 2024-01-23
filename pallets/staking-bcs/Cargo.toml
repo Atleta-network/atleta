@@ -17,11 +17,11 @@ frame-benchmarking = { workspace = true, optional = true }
 frame-support = { workspace = true }
 frame-system = { workspace = true }
 pallet-staking = { workspace = true }
+sp-runtime = { workspace = true }
 
 [dev-dependencies]
 sp-core = { workspace = true }
 sp-io = { workspace = true }
-sp-runtime = { workspace = true }
 
 [features]
 default = ["std"]
@@ -32,6 +32,7 @@ std = [
     "pallet-staking/std",
     "scale-codec/std",
     "scale-info/std",
+    "sp-runtime/std",
 ]
 runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 try-runtime = ["frame-support/try-runtime"]
