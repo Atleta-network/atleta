@@ -1,5 +1,6 @@
 use std::{collections::BTreeMap, str::FromStr};
 
+// 3rd party imports
 use hex_literal::hex;
 use serde::{Deserialize, Serialize};
 // Substrate
@@ -30,6 +31,10 @@ pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
 /// Specialized `ChainSpec` for development.
 pub type DevChainSpec = sc_service::GenericChainSpec<DevGenesisExt>;
 
+// Public accoint type
+#[allow(dead_code)]
+type AccountPublic = <Signature as Verify>::Signer;
+
 /// Extension for the dev genesis config to support a custom changes to the genesis state.
 #[derive(Serialize, Deserialize)]
 pub struct DevGenesisExt {
@@ -39,6 +44,7 @@ pub struct DevGenesisExt {
     enable_manual_seal: Option<bool>,
 }
 
+// Impl storage builder
 impl sp_runtime::BuildStorage for DevGenesisExt {
     fn assimilate_storage(&self, storage: &mut Storage) -> Result<(), String> {
         BasicExternalities::execute_with_storage(storage, || {
@@ -56,9 +62,6 @@ pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Pu
         .expect("static values are valid; qed")
         .public()
 }
-
-#[allow(dead_code)]
-type AccountPublic = <Signature as Verify>::Signer;
 
 /// Generate an account ID from seed.
 /// For use with `AccountId32`, `dead_code` if `AccountId20`.
@@ -81,6 +84,12 @@ pub fn authority_keys_from_seed(s: &str) -> (AccountId, AccountId, AuraId, Grand
     )
 }
 
+// Session keys constructor.
+fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
+    SessionKeys { aura, grandpa, im_online }
+}
+
+// Chain properties
 fn properties() -> Properties {
     let mut properties = Properties::new();
     properties.insert("tokenSymbol".into(), "BCS".into());
@@ -89,10 +98,7 @@ fn properties() -> Properties {
     properties
 }
 
-fn session_keys(aura: AuraId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
-    SessionKeys { aura, grandpa, im_online }
-}
-
+// Dev chain config
 pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
     let wasm_binary = WASM_BINARY.expect("WASM not available");
 
@@ -142,6 +148,7 @@ pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
     )
 }
 
+// Local testnet config
 pub fn local_testnet_config() -> ChainSpec {
     let wasm_binary = WASM_BINARY.expect("WASM not available");
 
@@ -213,7 +220,7 @@ fn testnet_genesis(
         });
 
     // stakers: all validators and nominators.
-    const ENDOWMENT: Balance = 10_000_000 * DOLLARS;
+    const ENDOWMENT: Balance = 75_000_000 * DOLLARS;
     const STASH: Balance = ENDOWMENT / 1000;
     let mut rng = rand::thread_rng();
     let stakers = initial_authorities
@@ -266,6 +273,8 @@ fn testnet_genesis(
             invulnerables: initial_authorities.iter().map(|x| x.0).collect(),
             slash_reward_fraction: Perbill::from_percent(10),
             stakers,
+            min_validator_bond: 75_000 * DOLLARS,
+            min_nominator_bond: 1 * DOLLARS,
             ..Default::default()
         },
         im_online: ImOnlineConfig { keys: vec![] },

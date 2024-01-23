@@ -1,5 +1,6 @@
 //! The Substrate Node Template runtime. This can be compiled with `#[no_std]`, ready for Wasm.
 
+// Module level attributes
 #![cfg_attr(not(feature = "std"), no_std)]
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
@@ -10,6 +11,7 @@
 #[cfg(feature = "std")]
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
+// Imports
 use scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
@@ -72,6 +74,10 @@ use pallet_evm::{
     Account as EVMAccount, EnsureAccountId20, FeeCalculator, IdentityAddressMapping, Runner,
 };
 
+// Local imports
+use precompiles::FrontierPrecompiles;
+use constants::{currency::*, time::*};
+
 // A few exports that help ease life for downstream crates.
 pub use frame_system::{Call as SystemCall, EnsureRoot};
 pub use pallet_balances::Call as BalancesCall;
@@ -81,13 +87,12 @@ use pallet_transaction_payment::Multiplier;
 #[cfg(any(feature = "std", test))]
 pub use pallet_staking::StakerStatus;
 
+// Module definitions
 mod precompiles;
-use precompiles::FrontierPrecompiles;
-
 pub mod constants;
-use constants::{currency::*, time::*};
-
 mod voter_bags;
+
+// Type aliases
 
 /// Type of block number.
 pub type BlockNumber = u32;
@@ -146,6 +151,7 @@ pub mod opaque {
     }
 }
 
+// Runtime version
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("sportchain"),
@@ -164,6 +170,8 @@ pub fn native_version() -> sp_version::NativeVersion {
     sp_version::NativeVersion { runtime_version: VERSION, can_author_with: Default::default() }
 }
 
+// Constants
+
 const NORMAL_DISPATCH_RATIO: Perbill = Perbill::from_percent(75);
 /// We allow for 2000ms of compute with a 6 second average block time.
 pub const WEIGHT_MILLISECS_PER_BLOCK: u64 = 2000;
@@ -171,6 +179,7 @@ pub const MAXIMUM_BLOCK_WEIGHT: Weight =
     Weight::from_parts(WEIGHT_MILLISECS_PER_BLOCK * WEIGHT_REF_TIME_PER_MILLIS, u64::MAX);
 pub const MAXIMUM_BLOCK_LENGTH: u32 = 5 * 1024 * 1024;
 
+// frame_system config
 parameter_types! {
     pub const Version: RuntimeVersion = VERSION;
     pub const BlockHashCount: BlockNumber = 256;
@@ -182,7 +191,6 @@ parameter_types! {
 }
 
 // Configure FRAME pallets to include in runtime.
-
 impl frame_system::Config for Runtime {
     /// The ubiquitous event type.
     type RuntimeEvent = RuntimeEvent;
@@ -233,6 +241,8 @@ impl frame_system::Config for Runtime {
     type MaxConsumers = ConstU32<16>;
 }
 
+// Consensus
+
 parameter_types! {
     pub const MaxAuthorities: u32 = 100;
 }
@@ -254,12 +264,14 @@ impl pallet_grandpa::Config for Runtime {
     type EquivocationReportSystem = ();
 }
 
+// Timestamp
 parameter_types! {
     pub const MinimumPeriod: u64 = SLOT_DURATION / 2;
     pub storage EnableManualSeal: bool = false;
 }
 
 pub struct ConsensusOnTimestampSet<T>(PhantomData<T>);
+
 impl<T: pallet_aura::Config> OnTimestampSet<T::Moment> for ConsensusOnTimestampSet<T> {
     fn on_timestamp_set(moment: T::Moment) {
         if EnableManualSeal::get() {
@@ -277,6 +289,7 @@ impl pallet_timestamp::Config for Runtime {
     type WeightInfo = ();
 }
 
+// balances
 parameter_types! {
     pub const ExistentialDeposit: u128 = 500;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
@@ -300,6 +313,7 @@ impl pallet_balances::Config for Runtime {
     type MaxFreezes = ();
 }
 
+// transaction payment
 parameter_types! {
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
@@ -313,6 +327,7 @@ impl pallet_transaction_payment::Config for Runtime {
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
 }
 
+// sudo
 impl pallet_sudo::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
@@ -374,6 +389,7 @@ parameter_types! {
 /// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
 /// since the staking is bounded and the weight pipeline takes hours for this single pallet.
 pub struct ElectionProviderBenchmarkConfig;
+
 impl pallet_election_provider_multi_phase::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
     const VOTERS: [u32; 2] = [1000, 2000];
     const TARGETS: [u32; 2] = [500, 1000];
@@ -390,6 +406,7 @@ pub const MINER_MAX_ITERATIONS: u32 = 10;
 
 /// A source of random balance for NposSolver, which is meant to be run by the OCW election miner.
 pub struct OffchainRandomBalancing;
+
 impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
     fn get() -> Option<BalancingConfig> {
         use sp_runtime::traits::TrailingZeroInput;
@@ -410,6 +427,7 @@ impl Get<Option<BalancingConfig>> for OffchainRandomBalancing {
 }
 
 pub struct OnChainSeqPhragmen;
+
 impl onchain::Config for OnChainSeqPhragmen {
     type System = Runtime;
     type Solver = SequentialPhragmen<
@@ -486,6 +504,7 @@ parameter_types! {
 }
 
 type VoterBagsListInstance = pallet_bags_list::Instance1;
+
 impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type RuntimeEvent = RuntimeEvent;
     /// The voter bags-list is loosely kept up to date, and the real source of truth for the score
@@ -531,8 +550,8 @@ pallet_staking_reward_curve::build! {
 
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-    pub const BondingDuration: sp_staking::EraIndex = 24 * 28;
-    pub const SlashDeferDuration: sp_staking::EraIndex = 24 * 7; // 1/4 the bonding duration.
+    pub const BondingDuration: sp_staking::EraIndex = 2;
+    pub const SlashDeferDuration: sp_staking::EraIndex = 1;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxNominatorRewardedPerValidator: u32 = 256;
     pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
@@ -541,6 +560,7 @@ parameter_types! {
 }
 
 pub struct StakingBenchmarkingConfig;
+
 impl pallet_staking::BenchmarkingConfig for StakingBenchmarkingConfig {
     type MaxNominators = ConstU32<1000>;
     type MaxValidators = ConstU32<1000>;
@@ -668,6 +688,7 @@ impl pallet_im_online::Config for Runtime {
 impl pallet_evm_chain_id::Config for Runtime {}
 
 pub struct FindAuthorTruncated<F>(PhantomData<F>);
+
 impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
     fn find_author<'a, I>(digests: I) -> Option<H160>
     where
@@ -739,6 +760,7 @@ parameter_types! {
 }
 
 pub struct BaseFeeThreshold;
+
 impl pallet_base_fee::BaseFeeThreshold for BaseFeeThreshold {
     fn lower() -> Permill {
         Permill::zero()
