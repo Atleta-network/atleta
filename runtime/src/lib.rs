@@ -313,6 +313,7 @@ impl pallet_balances::Config for Runtime {
     type MaxReserves = ();
     type MaxHolds = ();
     type MaxFreezes = ();
+    type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
 // transaction payment
@@ -331,7 +332,7 @@ impl pallet_transaction_payment::Config for Runtime {
 
 // treasury
 parameter_types! {
-    pub const TreasuryPalletId: PalletId = PalletId(*b"bcs/treasury");
+    pub const TreasuryPalletId: PalletId = PalletId(*b"BCSTREAS");
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub ProposalBondMinimum: Balance = 10 * DOLLARS;
     pub ProposalBondMaximum: Balance = 50 * DOLLARS;
@@ -354,6 +355,8 @@ parameter_types! {
 
     pub const SevenDays: BlockNumber = 7 * DAYS;
     pub const OneDay: BlockNumber = DAYS;
+
+    pub const TreasuryAccount: AccountId = Treasury::account_id();
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -376,7 +379,7 @@ impl pallet_treasury::Config for Runtime {
     type AssetKind = ();
     type Beneficiary = AccountId;
     type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-    // type Paymaster = PayFromAccount<Balances, ()>; // TODO
+    type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
     type BalanceConverter = UnityAssetBalanceConversion;
     type PayoutPeriod = PayoutSpendPeriod;
     #[cfg(feature = "runtime-benchmarks")]
@@ -648,7 +651,7 @@ impl pallet_staking::Config for Runtime {
     type SessionInterface = Self;
     type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
-    type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+    // type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
     type ElectionProvider = ElectionProviderMultiPhase;
     type GenesisElectionProvider = onchain::OnChainExecution<OnChainSeqPhragmen>;
