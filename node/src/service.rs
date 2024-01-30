@@ -285,13 +285,13 @@ where
         &client.block_hash(0)?.expect("Genesis block exists; qed"),
         &config.chain_spec,
     );
-	let (grandpa_protocol_config, grandpa_notification_service) =
-		sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
+    let (grandpa_protocol_config, grandpa_notification_service) =
+        sc_consensus_grandpa::grandpa_peers_set_config(grandpa_protocol_name.clone());
 
     let warp_sync_params = if sealing.is_some() {
         None
     } else {
-		net_config.add_notification_protocol(grandpa_protocol_config);
+        net_config.add_notification_protocol(grandpa_protocol_config);
         let warp_sync: Arc<dyn WarpSyncProvider<Block>> =
             Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
                 backend.clone(),
@@ -311,7 +311,7 @@ where
             import_queue,
             block_announce_validator_builder: None,
             warp_sync_params,
-			block_relay: None,
+            block_relay: None,
         })?;
 
     if config.offchain_worker.enabled {
@@ -552,19 +552,19 @@ where
         // and vote data availability than the observer. The observer has not
         // been tested extensively yet and having most nodes in a network run it
         // could lead to finality stalls.
-		let grandpa_voter =
-			sc_consensus_grandpa::run_grandpa_voter(sc_consensus_grandpa::GrandpaParams {
-				config: grandpa_config,
-				link: grandpa_link,
-				network,
-				sync: sync_service,
-				notification_service: grandpa_notification_service,
-				voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
-				prometheus_registry,
-				shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
-				telemetry: telemetry.as_ref().map(|x| x.handle()),
-				offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
-			})?;
+        let grandpa_voter =
+            sc_consensus_grandpa::run_grandpa_voter(sc_consensus_grandpa::GrandpaParams {
+                config: grandpa_config,
+                link: grandpa_link,
+                network,
+                sync: sync_service,
+                notification_service: grandpa_notification_service,
+                voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
+                prometheus_registry,
+                shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
+                telemetry: telemetry.as_ref().map(|x| x.handle()),
+                offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
+            })?;
 
         // the GRANDPA voter task is considered infallible, i.e.
         // if it fails we take down the service with it.

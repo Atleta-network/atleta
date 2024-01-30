@@ -264,7 +264,7 @@ fn testnet_genesis(
             "slash_reward_fraction": Perbill::from_percent(10),
             "stakers": stakers,
             "min_validator_bond": 75_000 * DOLLARS,
-            "min_nominator_bond": 1 * DOLLARS,
+            "min_nominator_bond": DOLLARS,
         },
 
         // EVM compatibility
