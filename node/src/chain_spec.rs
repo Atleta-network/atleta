@@ -238,37 +238,28 @@ fn testnet_genesis(
     };
 
     serde_json::json!({
-        // System
         "sudo": {
-            // Assign network admin rights.
             "key": Some(sudo_key),
         },
-
-        // Monetary
         "balances": {
-            // Configure endowed accounts with initial balance
             "balances": endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
-
-        // Consensus
         "session": {
             "keys": initial_authorities
                 .iter()
-                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
+                .map(|x| (x.1.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
                 .collect::<Vec<_>>(),
         },
         "staking": {
-            "validator_count": initial_authorities.len() as u32,
-            "minimum_validator_count": initial_authorities.len() as u32,
-            "invulnerables": initial_authorities.iter().map(|x| x.0).collect::<Vec<_>>(),
-            "slash_reward_fraction": Perbill::from_percent(10),
-            "stakers": stakers,
-            "min_validator_bond": 75_000 * DOLLARS,
-            "min_nominator_bond": DOLLARS,
+            "validatorCount": initial_authorities.len() as u32,
+            "minimumValidatorCount": initial_authorities.len() as u32,
+            "invulnerables": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+            "slashRewardFraction": Perbill::from_percent(10),
+            "stakers": stakers.clone(),
+            "minValidatorBond": 75_000 * DOLLARS,
+            "minNominatorBond": DOLLARS,
         },
-
-        // EVM compatibility
-        "evm_chain_id": { "chain_id": chain_id },
+        "evmChainId": { "chainId": chain_id },
         "evm": {
             "accounts": evm_accounts,
         },
