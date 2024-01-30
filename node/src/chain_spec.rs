@@ -99,115 +99,70 @@ fn properties() -> Properties {
 }
 
 // Dev chain config
-pub fn development_config(enable_manual_seal: Option<bool>) -> DevChainSpec {
-    let wasm_binary = WASM_BINARY.expect("WASM not available");
-
-    DevChainSpec::from_genesis(
-        // Name
-        "Development",
-        // ID
-        "dev",
-        ChainType::Development,
-        move || {
-            DevGenesisExt {
-                genesis_config: testnet_genesis(
-                    wasm_binary,
-                    // Sudo account (Alith)
-                    AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-                    // Pre-funded accounts
-                    vec![
-                        AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-                        AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-                        AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-                        AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
-                        AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
-                        AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
-                    ],
-                    // Initial PoA authorities
-                    vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-                    // Initial nominators
-                    vec![],
-                    // Ethereum chain ID
-                    SS58Prefix::get() as u64,
-                ),
-                enable_manual_seal,
-            }
-        },
-        // Bootnodes
-        vec![],
-        // Telemetry
-        None,
-        // Protocol ID
-        None,
-        // Fork ID
-        None,
-        // Properties
-        Some(properties()),
-        // Extensions
-        None,
-    )
+pub fn development_config() -> DevChainSpec {
+    DevChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
+        .with_name("Development")
+        .with_id("dev")
+        .with_chain_type(ChainType::Development)
+        .with_properties(properties())
+        .with_genesis_config_patch(testnet_genesis(
+            // Sudo account (Alith)
+            AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+            // Pre-funded accounts
+            vec![
+                AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
+                AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
+                AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
+                AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+                AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
+                AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
+            ],
+            // Initial PoA authorities
+            vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+            // Initial nominators
+            vec![],
+            // Ethereum chain ID
+            SS58Prefix::get() as u64,
+        ))
+        .build()
 }
 
 // Local testnet config
 pub fn local_testnet_config() -> ChainSpec {
-    let wasm_binary = WASM_BINARY.expect("WASM not available");
-
-    ChainSpec::from_genesis(
-        // Name
-        "Local Testnet",
-        // ID
-        "local_testnet",
-        ChainType::Local,
-        move || {
-            testnet_genesis(
-                wasm_binary,
-                // Initial PoA authorities
-                // Sudo account (Alith)
-                AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
-                // Pre-funded accounts
-                vec![
-                    AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
-                    AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
-                    AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
-                    AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
-                    AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
-                    AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
-                ],
-                vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-                vec![],
-                // Ethereum chain ID
-                SS58Prefix::get() as u64,
-            )
-        },
-        // Bootnodes
-        vec![],
-        // Telemetry
-        None,
-        // Protocol ID
-        None,
-        // Fork ID
-        None,
-        // Properties
-        None,
-        // Extensions
-        None,
-    )
+    ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
+        .with_name("Local Testnet")
+        .with_id("local_testnet")
+        .with_chain_type(ChainType::Local)
+        .with_properties(properties())
+        .with_genesis_config_patch(testnet_genesis(
+            // Initial PoA authorities
+            // Sudo account (Alith)
+            AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")),
+            // Pre-funded accounts
+            vec![
+                AccountId::from(hex!("f24FF3a9CF04c71Dbc94D0b566f7A27B94566cac")), // Alith
+                AccountId::from(hex!("3Cd0A705a2DC65e5b1E1205896BaA2be8A07c6e0")), // Baltathar
+                AccountId::from(hex!("798d4Ba9baf0064Ec19eB4F0a1a45785ae9D6DFc")), // Charleth
+                AccountId::from(hex!("773539d4Ac0e786233D90A233654ccEE26a613D9")), // Dorothy
+                AccountId::from(hex!("Ff64d3F6efE2317EE2807d223a0Bdc4c0c49dfDB")), // Ethan
+                AccountId::from(hex!("C0F0f4ab324C46e55D02D0033343B4Be8A55532d")), // Faith
+            ],
+            vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+            vec![],
+            // Ethereum chain ID
+            SS58Prefix::get() as u64,
+        ))
+        .build()
 }
 
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
-    wasm_binary: &[u8],
     sudo_key: AccountId,
     mut endowed_accounts: Vec<AccountId>,
     initial_authorities: Vec<(AccountId, AccountId, AuraId, GrandpaId, ImOnlineId)>,
     initial_nominators: Vec<AccountId>,
     chain_id: u64,
-) -> RuntimeGenesisConfig {
-    use sportchain_runtime::{
-        BalancesConfig, EVMChainIdConfig, EVMConfig, ImOnlineConfig, SessionConfig, StakingConfig,
-        SudoConfig, SystemConfig,
-    };
-
+) -> serde_json::Value {
     // endow all authorities and nominators.
     initial_authorities
         .iter()
@@ -238,97 +193,84 @@ fn testnet_genesis(
             (*x, *x, STASH, StakerStatus::Nominator(nominations))
         }))
         .collect::<Vec<_>>();
+    let evm_accounts = {
+        let mut map = BTreeMap::new();
+        map.insert(
+            // H160 address of Alice dev account
+            // Derived from SS58 (42 prefix) address
+            // SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+            // hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
+            // Using the full hex key, truncating to the first 20 bytes (the first 40 hex chars)
+            H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
+                .expect("internal H160 is valid; qed"),
+            fp_evm::GenesisAccount {
+                balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+                    .expect("internal U256 is valid; qed"),
+                code: Default::default(),
+                nonce: Default::default(),
+                storage: Default::default(),
+            },
+        );
+        map.insert(
+            // H160 address of CI test runner account
+            H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
+                .expect("internal H160 is valid; qed"),
+            fp_evm::GenesisAccount {
+                balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
+                    .expect("internal U256 is valid; qed"),
+                code: Default::default(),
+                nonce: Default::default(),
+                storage: Default::default(),
+            },
+        );
+        map.insert(
+            // H160 address for benchmark usage
+            H160::from_str("1000000000000000000000000000000000000001")
+                .expect("internal H160 is valid; qed"),
+            fp_evm::GenesisAccount {
+                nonce: U256::from(1),
+                balance: U256::from(1_000_000_000_000_000_000_000_000u128),
+                storage: Default::default(),
+                code: vec![0x00],
+            },
+        );
+        map
+    };
 
-    RuntimeGenesisConfig {
+    serde_json::json!({
         // System
-        system: SystemConfig {
-            // Add Wasm runtime to storage.
-            code: wasm_binary.to_vec(),
-            ..Default::default()
-        },
-        sudo: SudoConfig {
+        "sudo": {
             // Assign network admin rights.
-            key: Some(sudo_key),
+            "key": Some(sudo_key),
         },
 
         // Monetary
-        balances: BalancesConfig {
+        "balances": {
             // Configure endowed accounts with initial balance
-            balances: endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect(),
+            "balances": endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
-        transaction_payment: Default::default(),
 
         // Consensus
-        aura: Default::default(),
-        grandpa: Default::default(),
-        session: SessionConfig {
-            keys: initial_authorities
+        "session": {
+            "keys": initial_authorities
                 .iter()
                 .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
                 .collect::<Vec<_>>(),
         },
-        staking: StakingConfig {
-            validator_count: initial_authorities.len() as u32,
-            minimum_validator_count: initial_authorities.len() as u32,
-            invulnerables: initial_authorities.iter().map(|x| x.0).collect(),
-            slash_reward_fraction: Perbill::from_percent(10),
-            stakers,
-            min_validator_bond: 75_000 * DOLLARS,
-            min_nominator_bond: 1 * DOLLARS,
-            ..Default::default()
+        "staking": {
+            "validator_count": initial_authorities.len() as u32,
+            "minimum_validator_count": initial_authorities.len() as u32,
+            "invulnerables": initial_authorities.iter().map(|x| x.0).collect::<Vec<_>>(),
+            "slash_reward_fraction": Perbill::from_percent(10),
+            "stakers": stakers,
+            "min_validator_bond": 75_000 * DOLLARS,
+            "min_nominator_bond": DOLLARS,
         },
-        im_online: ImOnlineConfig { keys: vec![] },
 
         // EVM compatibility
-        evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
-        evm: EVMConfig {
-            accounts: {
-                let mut map = BTreeMap::new();
-                map.insert(
-                    // H160 address of Alice dev account
-                    // Derived from SS58 (42 prefix) address
-                    // SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-                    // hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
-                    // Using the full hex key, truncating to the first 20 bytes (the first 40 hex chars)
-                    H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
-                        .expect("internal H160 is valid; qed"),
-                    fp_evm::GenesisAccount {
-                        balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-                            .expect("internal U256 is valid; qed"),
-                        code: Default::default(),
-                        nonce: Default::default(),
-                        storage: Default::default(),
-                    },
-                );
-                map.insert(
-                    // H160 address of CI test runner account
-                    H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-                        .expect("internal H160 is valid; qed"),
-                    fp_evm::GenesisAccount {
-                        balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-                            .expect("internal U256 is valid; qed"),
-                        code: Default::default(),
-                        nonce: Default::default(),
-                        storage: Default::default(),
-                    },
-                );
-                map.insert(
-                    // H160 address for benchmark usage
-                    H160::from_str("1000000000000000000000000000000000000001")
-                        .expect("internal H160 is valid; qed"),
-                    fp_evm::GenesisAccount {
-                        nonce: U256::from(1),
-                        balance: U256::from(1_000_000_000_000_000_000_000_000u128),
-                        storage: Default::default(),
-                        code: vec![0x00],
-                    },
-                );
-                map
-            },
-            ..Default::default()
+        "evm_chain_id": { "chain_id": chain_id },
+        "evm": {
+            "accounts": evm_accounts,
         },
-        ethereum: Default::default(),
-        dynamic_fee: Default::default(),
-        base_fee: Default::default(),
-    }
+    })
 }
