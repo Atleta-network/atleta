@@ -25,9 +25,9 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
-        IdentityLookup, NumberFor, One, OpaqueKeys, PostDispatchInfoOf, SaturatedConversion,
-        UniqueSaturatedInto, Verify,
+        self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
+        IdentifyAccount, IdentityLookup, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
         TransactionPriority, TransactionSource, TransactionValidity, TransactionValidityError,
@@ -197,6 +197,8 @@ parameter_types! {
 impl frame_system::Config for Runtime {
     /// The ubiquitous event type.
     type RuntimeEvent = RuntimeEvent;
+    /// The aggregated RuntimeTask type.
+    type RuntimeTask = RuntimeTask;
     /// The basic call filter to use in dispatchable.
     type BaseCallFilter = frame_support::traits::Everything;
     /// Block & extrinsics weights: base values and limits.
@@ -313,7 +315,7 @@ impl pallet_balances::Config for Runtime {
     type MaxReserves = ();
     type MaxHolds = ();
     type MaxFreezes = ();
-    type RuntimeFreezeReason = RuntimeFreezeReason;
+    type RuntimeFreezeReason = ();
 }
 
 // transaction payment
@@ -356,7 +358,8 @@ parameter_types! {
     pub const SevenDays: BlockNumber = 7 * DAYS;
     pub const OneDay: BlockNumber = DAYS;
 
-    pub const TreasuryAccount: AccountId = Treasury::account_id();
+    pub TreasuryAccount: AccountId =
+    TreasuryPalletId::get().try_into_account().expect("Can't create treasury account");
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -401,7 +404,8 @@ parameter_types! {
 
     // signed config
     pub const SignedRewardBase: Balance = DOLLARS;
-    pub const SignedDepositBase: Balance = DOLLARS;
+    pub const SignedFixedDeposit: Balance = DOLLARS;
+    pub const SignedDepositIncreaseFactor: Percent = Percent::from_percent(10);
     pub const SignedDepositByte: Balance = CENTS;
 
     pub BetterUnsignedThreshold: Perbill = Perbill::from_rational(1u32, 10_000);
@@ -534,14 +538,18 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
     type EstimateCallFee = TransactionPayment;
     type SignedPhase = SignedPhase;
     type UnsignedPhase = UnsignedPhase;
-    type BetterUnsignedThreshold = BetterUnsignedThreshold;
+    // type BetterUnsignedThreshold = BetterUnsignedThreshold;
     type BetterSignedThreshold = ();
     type OffchainRepeat = OffchainRepeat;
     type MinerTxPriority = MultiPhaseUnsignedPriority;
     type MinerConfig = Self;
     type SignedMaxSubmissions = ConstU32<10>;
     type SignedRewardBase = SignedRewardBase;
-    type SignedDepositBase = SignedDepositBase;
+    type SignedDepositBase = pallet_election_provider_multi_phase::signed::GeometricDepositBase<
+        Balance,
+        SignedFixedDeposit,
+        SignedDepositIncreaseFactor,
+    >;
     type SignedDepositByte = SignedDepositByte;
     type SignedMaxRefunds = ConstU32<3>;
     type SignedDepositWeight = ();
@@ -605,7 +613,8 @@ parameter_types! {
     pub const BondingDuration: sp_staking::EraIndex = 2;
     pub const SlashDeferDuration: sp_staking::EraIndex = 1;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
-    pub const MaxNominatorRewardedPerValidator: u32 = 256;
+    pub const MaxExposurePageSize: u32 = 256;
+    pub const MaxControllersInDeprecationBatch: u32 = 5900;
     pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
     pub OffchainRepeat: BlockNumber = 5;
     pub HistoryDepth: u32 = 84;
@@ -651,7 +660,7 @@ impl pallet_staking::Config for Runtime {
     type SessionInterface = Self;
     type EraPayout = pallet_staking::ConvertCurve<RewardCurve>;
     type NextNewSession = Session;
-    // type MaxNominatorRewardedPerValidator = MaxNominatorRewardedPerValidator;
+    type MaxExposurePageSize = MaxExposurePageSize;
     type OffendingValidatorsThreshold = OffendingValidatorsThreshold;
     type ElectionProvider = ElectionProviderMultiPhase;
     type GenesisElectionProvider = onchain::OnChainExecution<OnChainSeqPhragmen>;
@@ -661,6 +670,7 @@ impl pallet_staking::Config for Runtime {
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth;
     type EventListeners = (); // TODO: NominationPools?
+    type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
     type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = StakingBenchmarkingConfig;
 }
@@ -778,6 +788,7 @@ parameter_types! {
     pub const GasLimitPovSizeRatio: u64 = BLOCK_GAS_LIMIT.saturating_div(MAX_POV_SIZE);
     pub PrecompilesValue: FrontierPrecompiles<Runtime> = FrontierPrecompiles::<_>::new();
     pub WeightPerGas: Weight = Weight::from_parts(weight_per_gas(BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK), 0);
+    pub SuicideQuickClearLimit: u32 = 0;
 }
 
 impl pallet_evm::Config for Runtime {
@@ -801,6 +812,7 @@ impl pallet_evm::Config for Runtime {
     type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
     type Timestamp = Timestamp;
     type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
+    type SuicideQuickClearLimit = SuicideQuickClearLimit;
 }
 
 // ethereum
