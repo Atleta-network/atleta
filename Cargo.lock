@@ -5692,6 +5692,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-staking-runtime-api"
+version = "4.0.0-dev"
+source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.6.0#925af80de25e26d25bf1b9c3b3746c0b921289a7"
+dependencies = [
+ "parity-scale-codec",
+ "sp-api",
+ "sp-staking",
+]
+
+[[package]]
 name = "pallet-sudo"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot-v1.6.0#925af80de25e26d25bf1b9c3b3746c0b921289a7"
@@ -8653,7 +8663,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -8693,7 +8703,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -8714,7 +8724,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -8914,7 +8924,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -8945,7 +8955,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "Inflector",
  "expander",
@@ -9037,7 +9047,7 @@ source = "git+https://github.com/paritytech/polkadot-sdk?branch=release-polkadot
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 
 [[package]]
 name = "sp-storage"
@@ -9055,7 +9065,7 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "impl-serde",
  "parity-scale-codec",
@@ -9093,7 +9103,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "parity-scale-codec",
  "sp-std 14.0.0",
@@ -9194,7 +9204,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#ff2e7dbd355cc0d9762acde29ad38aa8652a0563"
+source = "git+https://github.com/paritytech/polkadot-sdk#5eb4773d13bde74f95758ee0f91a5d64399e0a24"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -9352,6 +9362,7 @@ dependencies = [
  "pallet-session",
  "pallet-staking",
  "pallet-staking-reward-curve",
+ "pallet-staking-runtime-api",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
@@ -9363,13 +9374,16 @@ dependencies = [
  "sp-api",
  "sp-block-builder",
  "sp-consensus-aura",
+ "sp-consensus-grandpa",
  "sp-core",
+ "sp-genesis-builder",
  "sp-inherents",
  "sp-io",
  "sp-offchain",
  "sp-runtime",
  "sp-session",
  "sp-staking",
+ "sp-statement-store",
  "sp-std 8.0.0",
  "sp-transaction-pool",
  "sp-version",

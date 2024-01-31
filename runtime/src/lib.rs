@@ -12,7 +12,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 // Imports
-use scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{
@@ -49,10 +49,11 @@ use frame_support::weights::constants::RocksDbWeight as RuntimeDbWeight;
 use frame_support::{
     construct_runtime,
     dispatch::DispatchClass,
+    genesis_builder_helper::{build_config, create_default_config},
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU32, ConstU8, FindAuthor, OnFinalize, OnTimestampSet,
+        ConstBool, ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize, OnTimestampSet,
     },
     weights::{
         constants::{BlockExecutionWeight, WEIGHT_REF_TIME_PER_MILLIS},
@@ -61,9 +62,7 @@ use frame_support::{
     PalletId,
 };
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
-use pallet_grandpa::{
-    fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
-};
+use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter};
 // Frontier
@@ -1106,6 +1105,42 @@ impl_runtime_apis! {
         }
     }
 
+    impl sp_consensus_grandpa::GrandpaApi<Block> for Runtime {
+        fn grandpa_authorities() -> sp_consensus_grandpa::AuthorityList {
+            Grandpa::grandpa_authorities()
+        }
+
+        fn current_set_id() -> sp_consensus_grandpa::SetId {
+            Grandpa::current_set_id()
+        }
+
+        fn submit_report_equivocation_unsigned_extrinsic(
+            equivocation_proof: sp_consensus_grandpa::EquivocationProof<
+                <Block as BlockT>::Hash,
+                NumberFor<Block>,
+            >,
+            key_owner_proof: sp_consensus_grandpa::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            let key_owner_proof = key_owner_proof.decode()?;
+
+            Grandpa::submit_unsigned_equivocation_report(
+                equivocation_proof,
+                key_owner_proof,
+            )
+        }
+
+        fn generate_key_ownership_proof(
+            _set_id: sp_consensus_grandpa::SetId,
+            authority_id: GrandpaId,
+        ) -> Option<sp_consensus_grandpa::OpaqueKeyOwnershipProof> {
+            use parity_scale_codec::Encode;
+
+            Historical::prove((sp_consensus_grandpa::KEY_TYPE, authority_id))
+                .map(|p| p.encode())
+                .map(sp_consensus_grandpa::OpaqueKeyOwnershipProof::new)
+        }
+    }
+
     impl sp_consensus_aura::AuraApi<Block, AuraId> for Runtime {
         fn slot_duration() -> sp_consensus_aura::SlotDuration {
             sp_consensus_aura::SlotDuration::from_millis(Aura::slot_duration())
@@ -1116,9 +1151,29 @@ impl_runtime_apis! {
         }
     }
 
+    impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+        fn create_default_config() -> Vec<u8> {
+            create_default_config::<RuntimeGenesisConfig>()
+        }
+
+        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
+            build_config::<RuntimeGenesisConfig>(config)
+        }
+    }
+
     impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce> for Runtime {
         fn account_nonce(account: AccountId) -> Nonce {
             System::account_nonce(account)
+        }
+    }
+
+    impl pallet_staking_runtime_api::StakingApi<Block, Balance, AccountId> for Runtime {
+        fn nominations_quota(balance: Balance) -> u32 {
+            Staking::api_nominations_quota(balance)
+        }
+
+        fn eras_stakers_page_count(era: sp_staking::EraIndex, account: AccountId) -> sp_staking::Page {
+            Staking::api_eras_stakers_page_count(era, account)
         }
     }
 
@@ -1353,36 +1408,6 @@ impl_runtime_apis! {
             encoded: Vec<u8>,
         ) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
             opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
-        }
-    }
-
-    impl fg_primitives::GrandpaApi<Block> for Runtime {
-        fn grandpa_authorities() -> GrandpaAuthorityList {
-            Grandpa::grandpa_authorities()
-        }
-
-        fn current_set_id() -> fg_primitives::SetId {
-            Grandpa::current_set_id()
-        }
-
-        fn submit_report_equivocation_unsigned_extrinsic(
-            _equivocation_proof: fg_primitives::EquivocationProof<
-                <Block as BlockT>::Hash,
-                NumberFor<Block>,
-            >,
-            _key_owner_proof: fg_primitives::OpaqueKeyOwnershipProof,
-        ) -> Option<()> {
-            None
-        }
-
-        fn generate_key_ownership_proof(
-            _set_id: fg_primitives::SetId,
-            _authority_id: GrandpaId,
-        ) -> Option<fg_primitives::OpaqueKeyOwnershipProof> {
-            // NOTE: this is the only implementation possible since we've
-            // defined our key owner proof type as a bottom type (i.e. a type
-            // with no values).
-            None
         }
     }
 

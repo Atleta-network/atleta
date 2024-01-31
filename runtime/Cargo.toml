@@ -10,14 +10,16 @@ repository = { workspace = true }
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-scale-codec = { package = "parity-scale-codec", workspace = true }
+parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 log = { workspace = true }
 
 # Substrate
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
+sp-genesis-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
+sp-consensus-grandpa = { workspace = true }
 sp-core = { workspace = true }
 sp-inherents = { workspace = true }
 sp-io = { workspace = true }
@@ -27,6 +29,7 @@ sp-session = { workspace = true }
 sp-staking = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
+sp-statement-store = { workspace = true }
 sp-version = { workspace = true }
 # Substrate FRAME
 frame-benchmarking = { workspace = true, optional = true }
@@ -47,6 +50,7 @@ pallet-offences = { workspace = true }
 pallet-offences-benchmarking = { workspace = true, optional = true }
 pallet-session = { workspace = true }
 pallet-staking = { workspace = true }
+pallet-staking-runtime-api = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
@@ -80,12 +84,14 @@ with-rocksdb-weights = []
 with-paritydb-weights = []
 std = [
     "log/std",
-    "scale-codec/std",
+    "parity-scale-codec/std",
     "scale-info/std",
     # Substrate
     "sp-api/std",
     "sp-block-builder/std",
+    "sp-genesis-builder/std",
     "sp-consensus-aura/std",
+    "sp-consensus-grandpa/std",
     "sp-core/std",
     "sp-inherents/std",
     "sp-io/std",
@@ -95,6 +101,7 @@ std = [
     "sp-staking/std",
     "sp-std/std",
     "sp-transaction-pool/std",
+    "sp-statement-store/std",
     "sp-version/std",
     "substrate-wasm-builder",
     # Substrate FRAME
@@ -114,6 +121,7 @@ std = [
     "pallet-offences/std",
     "pallet-session/std",
     "pallet-staking/std",
+    "pallet-staking-runtime-api/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
