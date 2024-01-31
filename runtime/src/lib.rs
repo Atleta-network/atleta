@@ -12,7 +12,7 @@
 include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 // Imports
-use scale_codec::{Decode, Encode};
+use parity_scale_codec::{Decode, Encode};
 use sp_api::impl_runtime_apis;
 use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::{
@@ -53,7 +53,7 @@ use frame_support::{
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU32, ConstU8, FindAuthor, OnFinalize, OnTimestampSet,
+        ConstBool, ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize, OnTimestampSet,
     },
     weights::{
         constants::{BlockExecutionWeight, WEIGHT_REF_TIME_PER_MILLIS},
@@ -63,7 +63,7 @@ use frame_support::{
 };
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::{
-    fg_primitives, AuthorityId as GrandpaId, AuthorityList as GrandpaAuthorityList,
+    AuthorityId as GrandpaId,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter};
@@ -1101,15 +1101,6 @@ impl_runtime_apis! {
         }
     }
 
-    impl sp_statement_store::runtime_api::ValidateStatement<Block> for Runtime {
-        fn validate_statement(
-            source: sp_statement_store::runtime_api::StatementSource,
-            statement: sp_statement_store::Statement,
-        ) -> Result<sp_statement_store::runtime_api::ValidStatement, sp_statement_store::runtime_api::InvalidStatement> {
-            Statement::validate_statement(source, statement)
-        }
-    }
-
     impl sp_offchain::OffchainWorkerApi<Block> for Runtime {
         fn offchain_worker(header: &<Block as BlockT>::Header) {
             Executive::offchain_worker(header)
@@ -1144,7 +1135,7 @@ impl_runtime_apis! {
             _set_id: sp_consensus_grandpa::SetId,
             authority_id: GrandpaId,
         ) -> Option<sp_consensus_grandpa::OpaqueKeyOwnershipProof> {
-            use codec::Encode;
+            use parity_scale_codec::Encode;
 
             Historical::prove((sp_consensus_grandpa::KEY_TYPE, authority_id))
                 .map(|p| p.encode())

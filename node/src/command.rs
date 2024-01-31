@@ -33,7 +33,7 @@ use crate::chain_spec::get_account_id_from_seed;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "Frontier Node".into()
+        "BCS".into()
     }
 
     fn impl_version() -> String {
@@ -53,7 +53,7 @@ impl SubstrateCli for Cli {
     }
 
     fn copyright_start_year() -> i32 {
-        2021
+        2024
     }
 
     fn load_spec(&self, id: &str) -> Result<Box<dyn ChainSpec>, String> {
