@@ -247,13 +247,13 @@ fn testnet_genesis(
         "session": {
             "keys": initial_authorities
                 .iter()
-                .map(|x| (x.1.clone(), x.0.clone(), session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
+                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
                 .collect::<Vec<_>>(),
         },
         "staking": {
             "validatorCount": initial_authorities.len() as u32,
             "minimumValidatorCount": initial_authorities.len() as u32,
-            "invulnerables": initial_authorities.iter().map(|x| x.0.clone()).collect::<Vec<_>>(),
+            "invulnerables": initial_authorities.iter().map(|x| x.0).collect::<Vec<_>>(),
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,

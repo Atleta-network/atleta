@@ -4,7 +4,6 @@ use std::{cell::RefCell, path::Path, sync::Arc, time::Duration};
 
 use futures::{channel::mpsc, prelude::*};
 // Substrate
-use substrate_prometheus_endpoint::Registry;
 use sc_client_api::{Backend, BlockBackend};
 use sc_consensus::BasicQueue;
 use sc_executor::NativeExecutionDispatch;
@@ -15,6 +14,7 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_api::ConstructRuntimeApi;
 use sp_consensus_aura::sr25519::AuthorityPair as AuraPair;
 use sp_core::U256;
+use substrate_prometheus_endpoint::Registry;
 // Runtime
 use sportchain_runtime::{constants::time::*, opaque::Block, Hash, TransactionConverter};
 
