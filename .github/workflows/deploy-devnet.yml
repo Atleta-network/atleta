@@ -16,6 +16,7 @@ jobs:
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         target: wasm32-unknown-unknown
+        components: rustfmt clippy rust-src
 
     - name: Create Image Tarball for Node
       run: |
