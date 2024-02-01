@@ -7,6 +7,7 @@ use sc_client_api::{
     client::BlockchainEvents,
     AuxStore, UsageProvider,
 };
+use sc_consensus_manual_seal::consensus::babe::BabeConsensusDataProvider;
 use sc_network::NetworkService;
 use sc_network_sync::SyncingService;
 use sc_rpc::SubscriptionTaskExecutor;
@@ -15,7 +16,6 @@ use sc_transaction_pool_api::TransactionPool;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_block_builder::BlockBuilder as BlockBuilderApi;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
-use sp_consensus_aura::{sr25519::AuthorityId as AuraId, AuraApi};
 use sp_core::H256;
 use sp_inherents::CreateInherentDataProviders;
 use sp_runtime::traits::Block as BlockT;
@@ -26,7 +26,7 @@ pub use fc_storage::overrides_handle;
 use fp_rpc::{ConvertTransaction, ConvertTransactionRuntimeApi, EthereumRuntimeRPCApi};
 
 /// Extra dependencies for Ethereum compatibility.
-pub struct EthDeps<B: BlockT, C, P, A: ChainApi, CT, CIDP> {
+pub struct EthDeps<C, P, A: ChainApi, CT, B: BlockT, CIDP> {
     /// The client instance to use.
     pub client: Arc<C>,
     /// Transaction pool instance.
@@ -67,9 +67,9 @@ pub struct EthDeps<B: BlockT, C, P, A: ChainApi, CT, CIDP> {
 }
 
 /// Instantiate Ethereum-compatible RPC extensions.
-pub fn create_eth<B, C, BE, P, A, CT, CIDP, EC>(
+pub fn create_eth<C, BE, P, A, CT, B, CIDP, EC>(
     mut io: RpcModule<()>,
-    deps: EthDeps<B, C, P, A, CT, CIDP>,
+    deps: EthDeps<C, P, A, CT, B, CIDP>,
     subscription_task_executor: SubscriptionTaskExecutor,
     pubsub_notification_sinks: Arc<
         fc_mapping_sync::EthereumBlockNotificationSinks<
@@ -80,8 +80,7 @@ pub fn create_eth<B, C, BE, P, A, CT, CIDP, EC>(
 where
     B: BlockT<Hash = H256>,
     C: CallApiAt<B> + ProvideRuntimeApi<B>,
-    C::Api: AuraApi<B, AuraId>
-        + BlockBuilderApi<B>
+    C::Api: BlockBuilderApi<B>
         + ConvertTransactionRuntimeApi<B>
         + EthereumRuntimeRPCApi<B>,
     C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError>,
@@ -93,8 +92,7 @@ where
     CIDP: CreateInherentDataProviders<B, ()> + Send + 'static,
     EC: EthConfig<B, C>,
 {
-    use fc_rpc::{
-        pending::AuraConsensusDataProvider, Eth, EthApiServer, EthDevSigner, EthFilter,
+    use fc_rpc::{Eth, EthApiServer, EthDevSigner, EthFilter,
         EthFilterApiServer, EthPubSub, EthPubSubApiServer, EthSigner, Net, NetApiServer, Web3,
         Web3ApiServer,
     };
@@ -128,7 +126,7 @@ where
     }
 
     io.merge(
-        Eth::<B, C, P, CT, BE, A, CIDP, EC>::new(
+        Eth::new(
             client.clone(),
             pool.clone(),
             graph.clone(),
@@ -144,7 +142,6 @@ where
             execute_gas_limit_multiplier,
             forced_parent_hashes,
             pending_create_inherent_data_providers,
-            Some(Box::new(AuraConsensusDataProvider::new(client.clone()))),
         )
         .replace_config::<EC>()
         .into_rpc(),
