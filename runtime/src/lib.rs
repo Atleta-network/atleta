@@ -52,7 +52,7 @@ use frame_support::{
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize, OnTimestampSet,
+         ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize,
     },
     weights::{
         constants::{BlockExecutionWeight, WEIGHT_REF_TIME_PER_MILLIS},
@@ -258,6 +258,7 @@ parameter_types! {
     pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
     pub const ReportLongevity: u64 =
         BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
+    pub const MaxAuthorities: u32 = 100;
 }
 
 impl pallet_babe::Config for Runtime {
@@ -277,8 +278,8 @@ impl pallet_babe::Config for Runtime {
 impl pallet_grandpa::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
-    type MaxAuthorities = ConstU32<32>;
-    type MaxNominators = ConstU32<0>;
+    type MaxAuthorities = MaxAuthorities;
+    type MaxNominators = MaxNominators;
     type MaxSetIdSessionEntries = ();
     type KeyOwnerProof = sp_core::Void;
     type EquivocationReportSystem = ();
@@ -623,6 +624,7 @@ parameter_types! {
     pub const OffendingValidatorsThreshold: Perbill = Perbill::from_percent(17);
     pub OffchainRepeat: BlockNumber = 5;
     pub HistoryDepth: u32 = 84;
+    pub const MaxNominators: u32 = 64;
 }
 
 pallet_staking_reward_curve::build! {
@@ -771,15 +773,14 @@ impl pallet_im_online::Config for Runtime {
 impl pallet_evm_chain_id::Config for Runtime {}
 
 pub struct FindAuthorTruncated<F>(PhantomData<F>);
-
 impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
     fn find_author<'a, I>(digests: I) -> Option<H160>
     where
         I: 'a + IntoIterator<Item = (ConsensusEngineId, &'a [u8])>,
     {
         if let Some(author_index) = F::find_author(digests) {
-            let authority_id = Aura::authorities()[author_index as usize].clone();
-            return Some(H160::from_slice(&authority_id.to_raw_vec()[4..24]));
+            let (public, _) = Babe::authorities()[author_index as usize].clone();
+            return Some(H160::from_slice(&public.to_raw_vec()[4..24]));
         }
         None
     }
@@ -813,7 +814,7 @@ impl pallet_evm::Config for Runtime {
     type Runner = pallet_evm::runner::stack::Runner<Self>;
     type OnChargeTransaction = ();
     type OnCreate = ();
-    type FindAuthor = FindAuthorTruncated<Aura>;
+    type FindAuthor = FindAuthorTruncated<Babe>;
     type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
     type Timestamp = Timestamp;
     type WeightInfo = pallet_evm::weights::SubstrateWeight<Self>;
