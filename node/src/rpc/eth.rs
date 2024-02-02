@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, marker::PhantomData, sync::Arc};
+use std::{collections::BTreeMap, sync::Arc};
 
 use jsonrpsee::RpcModule;
 // Substrate

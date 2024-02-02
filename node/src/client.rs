@@ -1,6 +1,6 @@
 // Substrate
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
-use sp_runtime::traits::BlakeTwo256;
+
 // Local
 use sportchain_runtime::{opaque::Block, AccountId, Balance, Nonce};
 
@@ -57,7 +57,7 @@ impl<Api> BaseRuntimeApiCollection for Api where
 
 /// A set of APIs that template runtime must implement.
 pub trait RuntimeApiCollection:
-BaseRuntimeApiCollection
+    BaseRuntimeApiCollection
     + EthCompatRuntimeApiCollection
     + sp_consensus_babe::BabeApi<Block>
     + sp_consensus_grandpa::GrandpaApi<Block>
@@ -68,10 +68,10 @@ BaseRuntimeApiCollection
 
 impl<Api> RuntimeApiCollection for Api where
     Api: BaseRuntimeApiCollection
-    + EthCompatRuntimeApiCollection
-    + sp_consensus_babe::BabeApi<Block>
-    + sp_consensus_grandpa::GrandpaApi<Block>
-    + frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
-    + pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
+        + EthCompatRuntimeApiCollection
+        + sp_consensus_babe::BabeApi<Block>
+        + sp_consensus_grandpa::GrandpaApi<Block>
+        + frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce>
+        + pallet_transaction_payment_rpc_runtime_api::TransactionPaymentApi<Block, Balance>
 {
 }

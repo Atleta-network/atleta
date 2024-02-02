@@ -35,18 +35,12 @@ where
     ) -> Result<sp_runtime::Digest, sp_inherents::Error> {
         let slot = data
             .babe_inherent_data()?
-            .ok_or(sp_inherents::Error::Application(Box::new(
-                Error::MissingInherent,
-            )))?;
+            .ok_or(sp_inherents::Error::Application(Box::new(Error::MissingInherent)))?;
 
-        let predigest = PreDigest::SecondaryPlain(SecondaryPlainPreDigest {
-            slot,
-            authority_index: 0,
-        });
+        let predigest =
+            PreDigest::SecondaryPlain(SecondaryPlainPreDigest { slot, authority_index: 0 });
 
-        let logs = vec![<DigestItem as CompatibleDigestItem>::babe_pre_digest(
-            predigest,
-        )];
+        let logs = vec![<DigestItem as CompatibleDigestItem>::babe_pre_digest(predigest)];
 
         Ok(sp_runtime::Digest { logs })
     }

@@ -2,24 +2,25 @@ use std::{collections::BTreeMap, str::FromStr};
 
 // 3rd party imports
 use hex_literal::hex;
-use serde::{Deserialize, Serialize};
+
 // Substrate
 use sc_chain_spec::{ChainType, Properties};
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 #[allow(unused_imports)]
 use sp_core::ecdsa;
-use sp_core::{storage::Storage, Pair, Public, H160, U256};
+use sp_core::{Pair, Public, H160, U256};
 use sp_runtime::{
     traits::{IdentifyAccount, Verify},
     Perbill,
 };
-use sp_state_machine::BasicExternalities;
+
 // Frontier
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sportchain_runtime::{
-    constants::currency::*, opaque::SessionKeys, AccountId, Balance,
-    MaxNominations, RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, WASM_BINARY, BABE_GENESIS_EPOCH_CONFIG,
+    constants::currency::*, opaque::SessionKeys, AccountId, Balance, MaxNominations,
+    RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, BABE_GENESIS_EPOCH_CONFIG,
+    WASM_BINARY,
 };
 
 // The URL for the telemetry server.
@@ -45,7 +46,7 @@ pub fn development_config() -> ChainSpec {
             // Sudo account (Alith)
             alith(),
             // Pre-funded accounts
-            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],   
+            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
             // Initial Validators and PoA authorities
             vec![authority_keys_from_seed("Alice")],
             // Initial nominators
@@ -59,7 +60,7 @@ pub fn development_config() -> ChainSpec {
 // Local testnet config
 pub fn local_testnet_config() -> ChainSpec {
     use devnet_keys::*;
-    
+
     ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
         .with_name("Local Testnet")
         .with_id("local_testnet")
@@ -222,34 +223,6 @@ mod devnet_keys {
 
     pub(super) fn goliath() -> AccountId {
         AccountId::from(hex!("7BF369283338E12C90514468aa3868A551AB2929"))
-    }
-
-    pub fn authority_keys_from_seed(
-        s: &str,
-    ) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
-        (
-            get_account_id_from_seed::<ecdsa::Public>(&format!("{}//stash", s)),
-            get_account_id_from_seed::<ecdsa::Public>(s),
-            derive_dev::<BabeId>(s),
-            derive_dev::<GrandpaId>(s),
-            derive_dev::<ImOnlineId>(s),
-        )
-    }
-    /// Generate a crypto pair.
-    pub fn derive_dev<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
-        TPublic::Pair::from_string(&format!("//{}", seed), None)
-            .expect("static values are valid; qed")
-            .public()
-    }
-
-    type AccountPublic = <Signature as Verify>::Signer;
-
-    /// Generate an account ID from seed.
-    pub fn get_account_id_from_seed<TPublic: Public>(seed: &str) -> AccountId
-    where
-        AccountPublic: From<<TPublic::Pair as Pair>::Public>,
-    {
-        AccountPublic::from(derive_dev::<TPublic>(seed)).into_account()
     }
 }
 

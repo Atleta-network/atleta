@@ -52,7 +52,7 @@ use frame_support::{
     parameter_types,
     traits::{
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-         ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize,
+        ConstU32, ConstU8, FindAuthor, KeyOwnerProofSystem, OnFinalize,
     },
     weights::{
         constants::{BlockExecutionWeight, WEIGHT_REF_TIME_PER_MILLIS},

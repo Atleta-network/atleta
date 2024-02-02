@@ -27,8 +27,8 @@ use sp_runtime::traits::Block as BlockT;
 // Runtime
 use sportchain_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
 
-mod eth;
 mod consensus_data_provider;
+mod eth;
 pub use self::eth::{create_eth, overrides_handle, EthDeps};
 
 /// Extra dependencies for BABE.
