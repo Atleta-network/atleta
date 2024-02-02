@@ -28,6 +28,7 @@ use sp_runtime::traits::Block as BlockT;
 use sportchain_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
 
 mod eth;
+mod consensus_data_provider;
 pub use self::eth::{create_eth, overrides_handle, EthDeps};
 
 /// Extra dependencies for BABE.
@@ -130,7 +131,7 @@ where
     } = grandpa;
 
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
-    io.merge(TransactionPayment::new(client).into_rpc())?;
+    io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(Babe::new(client, worker_handle, keystore, select_chain, deny_unsafe).into_rpc())?;
     io.merge(
         Grandpa::new(
