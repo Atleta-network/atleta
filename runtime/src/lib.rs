@@ -300,7 +300,7 @@ impl pallet_timestamp::Config for Runtime {
 
 // balances
 parameter_types! {
-    pub const ExistentialDeposit: Balance = DOLLARS;
+    pub const ExistentialDeposit: Balance = DOLLARS / 3000;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
     // This number may need to be adjusted in the future if this assumption no longer holds true.
     pub const MaxLocks: u32 = 50;
@@ -591,11 +591,6 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 }
 
 // session
-parameter_types! {
-    pub const Period: u32 = 6 * HOURS;
-    pub const Offset: u32 = 0;
-}
-
 impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type ValidatorId = <Self as frame_system::Config>::AccountId;
