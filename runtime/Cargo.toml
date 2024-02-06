@@ -18,7 +18,7 @@ log = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-genesis-builder = { workspace = true }
-sp-consensus-aura = { workspace = true }
+sp-consensus-babe = { workspace = true }
 sp-consensus-grandpa = { workspace = true }
 sp-core = { workspace = true }
 sp-inherents = { workspace = true }
@@ -39,7 +39,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
-pallet-aura = { workspace = true }
+pallet-babe = { workspace = true }
 pallet-authorship = { workspace = true }
 pallet-bags-list = { workspace = true }
 pallet-balances = { workspace = true }
@@ -90,7 +90,7 @@ std = [
     "sp-api/std",
     "sp-block-builder/std",
     "sp-genesis-builder/std",
-    "sp-consensus-aura/std",
+    "sp-consensus-babe/std",
     "sp-consensus-grandpa/std",
     "sp-core/std",
     "sp-inherents/std",
@@ -111,8 +111,8 @@ std = [
     "frame-system/std",
     "frame-system-rpc-runtime-api/std",
     "frame-system-benchmarking?/std",
-    "pallet-aura/std",
     "pallet-authorship/std",
+    "pallet-babe/std",
     "pallet-bags-list/std",
     "pallet-balances/std",
     "pallet-election-provider-multi-phase/std",
@@ -120,8 +120,8 @@ std = [
     "pallet-im-online/std",
     "pallet-offences/std",
     "pallet-session/std",
-    "pallet-staking/std",
     "pallet-staking-runtime-api/std",
+    "pallet-staking/std",
     "pallet-sudo/std",
     "pallet-timestamp/std",
     "pallet-transaction-payment-rpc-runtime-api/std",
