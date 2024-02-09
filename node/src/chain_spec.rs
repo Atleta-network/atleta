@@ -63,7 +63,7 @@ pub fn local_testnet_config() -> ChainSpec {
 
     ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
         .with_name("Local Testnet")
-        .with_id("local_testnet")
+        .with_id("local")
         .with_chain_type(ChainType::Local)
         .with_properties(properties())
         .with_genesis_config_patch(testnet_genesis(
