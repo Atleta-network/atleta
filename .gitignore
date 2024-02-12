@@ -12,6 +12,8 @@
 .envrc
 .direnv
 
+testenv
+
 chain-data
 blockscout/services/logs 
 blockscout/services/redis-data 
