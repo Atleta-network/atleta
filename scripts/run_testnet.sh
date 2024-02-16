@@ -37,12 +37,6 @@ print_info() {
     sleep 3
 }
 
-rebuild_node() {
-    echo "Rebuilding node..."
-    cargo build
-    clear
-}
-
 start_network() {
     run_bootnode 9944
     run_node 9955 30344
@@ -108,11 +102,11 @@ check_availability() {
     local rpc_api_endpoint=$1
     local retry_count=0
     local max_retries=30
-    local retry_interval=5
+    local retry_interval=10
 
     while [ $retry_count -lt $max_retries ]; do
         # Use curl to test the connection without making an actual request
-        curl --connect-timeout 5 "$rpc_api_endpoint" 2>/dev/null
+        curl --connect-timeout 10 "$rpc_api_endpoint"
         
         # Check the exit status of curl
         if [ $? -eq 0 ]; then
@@ -167,7 +161,8 @@ add_key() {
 check_args
 load_envs
 print_info
-rebuild_node
+cargo build
+
 start_network
 
 sleep 10

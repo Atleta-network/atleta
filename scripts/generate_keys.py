@@ -28,10 +28,12 @@ def main():
         "roberto",
     ]
     accounts = generate_accounts(mnemonic, names)
-    print_accounts(accounts)
+    if not args.quiet:
+        print_accounts(accounts)
     
     session_keys = generate_session_keys(mnemonic, ["diego", "pele", "franz"])
-    print_session_keys(session_keys)
+    if not args.quiet:
+        print_session_keys(session_keys)
 
     if args.envfile:
         write_dotenv(accounts, session_keys, args.envfile)
@@ -39,6 +41,7 @@ def main():
 
 def parse_args():
     parser = argparse.ArgumentParser(description='generate keys for technical accounts')
+    parser.add_argument('-q', '--quiet', action="store_true", help="don't print into output")
     parser.add_argument('-m', '--mnemonic', type=str, help='the core mnemonic phrase from which the keys will be derived')
     parser.add_argument('-e', '--envfile', type=str, help='if set, the script will generate a .env file with all the variables at the provided path')
     args = parser.parse_args()

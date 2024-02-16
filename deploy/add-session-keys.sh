@@ -6,9 +6,10 @@ num_of_args=$#
 envs="$1"
 prefix="$2"
 rpc_api_endpoint="$3"
+container_name="$4"
 
 check_args() {
-    if [ $num_of_args -ne 3 ]; then
+    if [ $num_of_args -ne 4 ]; then
         printf "\033[31m"
         echo "Error: wrong number of arguments"
         printf "\033[0m"
@@ -18,10 +19,11 @@ check_args() {
 }
 
 usage() {
-    echo "Usage: ./add-session-keys.sh <ENVS_FILE> <PREFIX> <RPC_API_ENDPOINT>"
+    echo "Usage: ./add-session-keys.sh <ENVS_FILE> <PREFIX> <RPC_API_ENDPOINT> <CONTAINER_NAME>"
     printf "\t<ENVS_FILE>        contains the environment variables with session keys\n"
     printf "\t<PREFIX>           the prefix of the environment variables in the envs file (for example, an account NAME_)\n"
     printf "\t<RPC_API_ENDPOINT> the URL to connect to the node via RPC\n"
+    printf "\t<CONTAINER_NAME>   the name of the docker container in which the node is running\n"
     printf "\n\033[31m"
     echo "The envs file should contain the variables:"
     printf "\t<PREFIX><BABE, GRAN, IMON>_<PRIVATE, PUBLIC>"
@@ -38,7 +40,7 @@ load_envs() {
         local variable_name="${prefix}${postfix}"
 
         if [[ -z "${!variable_name}" ]]; then
-            echo "\033[31mError: ${variable_name} is not set\033[0m"
+            printf "\033[31mError: ${variable_name} is not set\033[0m\n"
             exit 1
         fi
     done
@@ -47,7 +49,7 @@ load_envs() {
 check_availability() {
     local retry_count=0
     local max_retries=30
-    local retry_interval=5
+    local retry_interval=7
 
     while [ $retry_count -lt $max_retries ]; do
         # Use curl to test the connection without making an actual request
@@ -65,7 +67,7 @@ check_availability() {
     done
     
     if [ $retry_count -eq $max_retries ]; then
-        echo "\033[31mError: Couldn't connect to $rpc_api_endpoint\033[0m"
+        printf "\033[31mError: Couldn't connect to $rpc_api_endpoint\033[0m\n"
         kill $$
     fi
 }
@@ -98,12 +100,17 @@ add_key() {
     }"
 
     echo "Adding '${key_type}' key to ${rpc_api_endpoint}"
-    curl -H "Content-Type: application/json" -d "$request" "$rpc_api_endpoint"
+    curl -X POST -H "Content-Type: application/json" -d "$request" "$rpc_api_endpoint"
+}
+
+restart_container() {
+    docker restart "$container_name"
 }
 
 check_args
 load_envs
 check_availability
 add_session_keys
+restart_container
 
-echo "Session keys are added, the node should be restarted"
+echo "Session keys are added"
