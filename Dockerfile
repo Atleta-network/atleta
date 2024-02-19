@@ -38,6 +38,5 @@ WORKDIR /app
 
 # Copy the built binary from the builder stage
 COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node /app/bin/
-COPY --from=builder /app/deploy/entrypoint.sh /app/
 
 ENTRYPOINT ["/app/bin/sportchain-node"]
