@@ -1,4 +1,4 @@
-name: Deploy Devnet
+name: Deploy Testnet
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
 
     - name: Make Keys File
       run: |
-        echo "$TESTNET_KEYS" > deploy/testnet.keys.env
+        echo "${{ secrets.TESTNET_KEYS }}" > deploy/testnet.keys.env
 
     - name: Copy Files to Server
       run: |
@@ -51,7 +51,6 @@ jobs:
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
-          docker load -i sportchain-explorer.tar
           docker-compose down
           docker-compose pull
           ./run-testnet.sh testnet.keys.env
