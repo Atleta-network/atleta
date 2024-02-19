@@ -2,7 +2,6 @@
 
 FROM rust:latest as builder
 
-ARG PROFILE=release
 WORKDIR /app
 
 # Update system packages and install build dependencies
@@ -27,15 +26,18 @@ RUN rustup component add rustfmt clippy rust-src
 COPY . .
 
 # Build the application
-RUN cargo build --locked "--$PROFILE"
+RUN cargo build --locked --release
 
 #Stage 2: Create the final image
 FROM ubuntu:latest
+
+RUN apt update -y && apt install -y curl
 
 # Set the working directory
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node /app/target/release/
+COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node /app/bin/
+COPY --from=builder /app/deploy/entrypoint.sh /app/
 
-ENTRYPOINT ["/app/target/release/sportchain-node"]
+ENTRYPOINT ["/app/bin/sportchain-node"]
