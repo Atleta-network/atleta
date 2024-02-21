@@ -19,7 +19,7 @@ $ cargo build --release
 To execute the chain, run:
 
 ```
-$ ./target/release/sportchain --dev
+$ ./target/release/sportchain-node --dev
 ```
 
 
