@@ -77,7 +77,6 @@ pallet-hotfix-sufficients = { workspace = true }
 # Smart contracts
 pallet-contracts = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
-pallet-assets = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -147,7 +146,6 @@ std = [
     "pallet-evm-precompile-sha3fips/std",
     "pallet-evm-precompile-simple/std",
     "pallet-hotfix-sufficients/std",
-    "pallet-assets/std",
     "pallet-contracts/std",
     "pallet-insecure-randomness-collective-flip/std",
 ]
@@ -162,7 +160,6 @@ runtime-benchmarks = [
     "pallet-hotfix-sufficients/runtime-benchmarks",
     "pallet-offences-benchmarking",
     "pallet-contracts/runtime-benchmarks",
-    "pallet-assets/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
 ]
