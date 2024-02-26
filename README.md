@@ -169,8 +169,19 @@ Then you need to configure the network this way:
 - RPC URL is __http://localhost:9944/__ (or change appropriately to where you
   deploy the node)
 
+## ink! contracts
 
+To generate an initial smart contract, execute the following commands from the project root:
 
+```
+$ cargo contract new <conract_name>
+```
+
+To compile smart contract, run in the project directory:
+
+```
+$ cargo contract build --release
+```
 
 ## Example 1: ERC20 Contract Deployment using EVM dispatchable
 
