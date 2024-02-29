@@ -172,7 +172,7 @@ Then you need to configure the network this way:
 
 
 
-## ink! Smart Contracts development
+## ink! Smart Contracts
 
 The project supports **ink!** smart contracts. For detailed instructions and
 more information on **ink!**, please visit the [ink! documentation site](https://use.ink/).
