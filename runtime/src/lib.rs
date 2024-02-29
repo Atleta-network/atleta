@@ -806,9 +806,9 @@ impl pallet_membership::Config<pallet_membership::Instance1> for Runtime {
 
 // preimage
 parameter_types! {
-    pub const PreimageBaseDeposit: Balance = 1 * DOLLARS;
+    pub const PreimageBaseDeposit: Balance = DOLLARS;
     // One cent: $10,000 / MB
-    pub const PreimageByteDeposit: Balance = 1 * CENTS;
+    pub const PreimageByteDeposit: Balance = CENTS;
     pub const PreimageHoldReason: RuntimeHoldReason = RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
 }
 

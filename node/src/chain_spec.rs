@@ -224,20 +224,20 @@ fn testnet_genesis(
             "minNominatorBond": DOLLARS,
         },
         "elections": {
-			"members": endowed_accounts
-				.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.map(|member| (member, STASH))
-				.collect::<Vec<_>>(),
-		},
-		"technicalCommittee": {
-			"members": endowed_accounts
-				.iter()
-				.take((num_endowed_accounts + 1) / 2)
-				.cloned()
-				.collect::<Vec<_>>(),
-		},
+            "members": endowed_accounts
+                .iter()
+                .take((num_endowed_accounts + 1) / 2)
+                .cloned()
+                .map(|member| (member, STASH))
+                .collect::<Vec<_>>(),
+        },
+        "technicalCommittee": {
+            "members": endowed_accounts
+                .iter()
+                .take((num_endowed_accounts + 1) / 2)
+                .cloned()
+                .collect::<Vec<_>>(),
+        },
         "evmChainId": { "chainId": chain_id },
         "evm": {
             "accounts": evm_accounts,
