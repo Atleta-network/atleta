@@ -39,19 +39,21 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
-pallet-babe = { workspace = true }
 pallet-authorship = { workspace = true }
+pallet-babe = { workspace = true }
 pallet-bags-list = { workspace = true }
-pallet-balances = { workspace = true, features = ["insecure_zero_ed"]}
+pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-contracts = { workspace = true }
 pallet-election-provider-multi-phase = { workspace = true }
 pallet-grandpa = { workspace = true }
 pallet-im-online = { workspace = true }
+pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-offences = { workspace = true }
 pallet-offences-benchmarking = { workspace = true, optional = true }
 pallet-session = { workspace = true }
 pallet-staking = { workspace = true }
-pallet-staking-runtime-api = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
+pallet-staking-runtime-api = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
@@ -74,9 +76,6 @@ pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
-# Smart contracts
-pallet-contracts = { workspace = true }
-pallet-insecure-randomness-collective-flip = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -118,9 +117,11 @@ std = [
     "pallet-babe/std",
     "pallet-bags-list/std",
     "pallet-balances/std",
+    "pallet-contracts/std",
     "pallet-election-provider-multi-phase/std",
     "pallet-grandpa/std",
     "pallet-im-online/std",
+    "pallet-insecure-randomness-collective-flip/std",
     "pallet-offences/std",
     "pallet-session/std",
     "pallet-staking-runtime-api/std",
@@ -146,8 +147,6 @@ std = [
     "pallet-evm-precompile-sha3fips/std",
     "pallet-evm-precompile-simple/std",
     "pallet-hotfix-sufficients/std",
-    "pallet-contracts/std",
-    "pallet-insecure-randomness-collective-flip/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

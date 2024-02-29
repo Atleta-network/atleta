@@ -482,13 +482,9 @@ impl pallet_contracts::Config for Runtime {
     type CodeHashLockupDepositPercent = CodeHashLockupDepositPercent;
     type MaxDelegateDependencies = MaxDelegateDependencies;
     type RuntimeHoldReason = RuntimeHoldReason;
-
     type Environment = ();
     type Debug = ();
     type Migrations = ();
-    #[cfg(feature = "parachain")]
-    type Xcm = pallet_xcm::Pallet<Self>;
-    #[cfg(not(feature = "parachain"))]
     type Xcm = ();
 }
 
