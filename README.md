@@ -169,16 +169,24 @@ Then you need to configure the network this way:
 - RPC URL is __http://localhost:9944/__ (or change appropriately to where you
   deploy the node)
 
-## ink! contracts
+## ink! Smart Contracts development
 
-To generate an initial smart contract, execute the following commands from the project root:
+The project supports smart contract development using ink! for creating Substrate-based contracts.
 
+Before starting with ink! contracts, please ensure that you develop them in a separate project/repository.
+
+## Getting Started
+To begin developing ink! contracts, you must first install the necessary cargo plugin. Execute the following command to install it:
+```
+$ cargo install cargo-contract --force
+```
+
+To generate an initial smart contract, execute the following commands:
 ```
 $ cargo contract new <conract_name>
 ```
 
-To compile smart contract, run in the project directory:
-
+To compile smart contract, run in the contract directory:
 ```
 $ cargo contract build --release
 ```
