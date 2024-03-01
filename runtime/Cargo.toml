@@ -10,9 +10,10 @@ repository = { workspace = true }
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
+log = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
-log = { workspace = true }
+static_assertions = "1.1"
 
 # Substrate
 sp-api = { workspace = true }
@@ -43,13 +44,19 @@ pallet-authorship = { workspace = true }
 pallet-babe = { workspace = true }
 pallet-bags-list = { workspace = true }
 pallet-balances = { workspace = true, features = ["insecure_zero_ed"] }
+pallet-collective = { workspace = true }
 pallet-contracts = { workspace = true }
+pallet-democracy = { workspace = true }
 pallet-election-provider-multi-phase = { workspace = true }
+pallet-elections-phragmen = { workspace = true }
 pallet-grandpa = { workspace = true }
 pallet-im-online = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
+pallet-membership = { workspace = true }
 pallet-offences = { workspace = true }
 pallet-offences-benchmarking = { workspace = true, optional = true }
+pallet-preimage = { workspace = true }
+pallet-scheduler = { workspace = true }
 pallet-session = { workspace = true }
 pallet-staking = { workspace = true }
 pallet-staking-reward-curve = { workspace = true }
@@ -117,12 +124,18 @@ std = [
     "pallet-babe/std",
     "pallet-bags-list/std",
     "pallet-balances/std",
+    "pallet-collective/std",
     "pallet-contracts/std",
+    "pallet-democracy/std",
     "pallet-election-provider-multi-phase/std",
+    "pallet-elections-phragmen/std",
     "pallet-grandpa/std",
     "pallet-im-online/std",
     "pallet-insecure-randomness-collective-flip/std",
+    "pallet-membership/std",
     "pallet-offences/std",
+    "pallet-preimage/std",
+    "pallet-scheduler/std",
     "pallet-session/std",
     "pallet-staking-runtime-api/std",
     "pallet-staking/std",
