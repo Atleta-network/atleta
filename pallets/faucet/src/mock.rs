@@ -79,7 +79,6 @@ impl pallet_faucet::Config for Test {
     type FaucetAmount = FaucetAmount;
     type RuntimeEvent = RuntimeEvent;
     type WeightInfo = ();
-    type Currency = ();
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {

@@ -599,7 +599,6 @@ parameter_types! {
 impl pallet_faucet::Config for Runtime {
     type AccumulationPeriod = AccumulationPeriod;
     type RuntimeEvent = RuntimeEvent;
-    type Currency = Balances;
     type FaucetAmount = FaucetAmount;
     type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
 }

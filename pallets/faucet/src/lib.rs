@@ -34,9 +34,6 @@ pub mod pallet {
         /// The type of events defined by the pallet.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-        /// The currency mechanism.
-        type Currency: Currency<Self::AccountId>;
-
         /// Estimate of resource consumption for pallet operations.
         type WeightInfo: WeightInfo;
 
