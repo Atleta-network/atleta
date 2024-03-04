@@ -19,7 +19,7 @@ $ cargo build --release
 To execute the chain, run:
 
 ```
-$ ./target/release/sportchain --dev
+$ ./target/release/sportchain-node --dev
 ```
 
 
@@ -32,52 +32,52 @@ In order to view an EVM account, use the `Developer` tab of the Polkadot UI
 
 ```json
 {
-    "AccountId": "EthereumAccountId",
-    "Address": "AccountId",
-    "Balance": "u128",
-    "RefCount": "u8",
-    "LookupSource": "AccountId",
-    "Account": {
-        "nonce": "U256",
-        "balance": "u128"
-    },
-    "EthTransaction": "LegacyTransaction",
-    "DispatchErrorModule": "DispatchErrorModuleU8",
-    "EthereumSignature": {
-        "r": "H256",
-        "s": "H256",
-        "v": "U8"
-    },
-    "ExtrinsicSignature": "EthereumSignature",
-    "TxPoolResultContent": {
-        "pending": "HashMap<H160, HashMap<U256, PoolTransaction>>",
-        "queued": "HashMap<H160, HashMap<U256, PoolTransaction>>"
-    },
-    "TxPoolResultInspect": {
-        "pending": "HashMap<H160, HashMap<U256, Summary>>",
-        "queued": "HashMap<H160, HashMap<U256, Summary>>"
-    },
-    "TxPoolResultStatus": {
-        "pending": "U256",
-        "queued": "U256"
-    },
-    "Summary": "Bytes",
-    "PoolTransaction": {
-        "hash": "H256",
-        "nonce": "U256",
-        "blockHash": "Option<H256>",
-        "blockNumber": "Option<U256>",
-        "from": "H160",
-        "to": "Option<H160>",
-        "value": "U256",
-        "gasPrice": "U256",
-        "gas": "U256",
-        "input": "Bytes"
-    }
+  "AccountId": "EthereumAccountId",
+  "Address": "AccountId",
+  "Balance": "u128",
+  "RefCount": "u8",
+  "LookupSource": "AccountId",
+  "Account": {
+    "nonce": "U256",
+    "balance": "u128"
+  },
+  "EthTransaction": "LegacyTransaction",
+  "DispatchErrorModule": "DispatchErrorModuleU8",
+  "EthereumSignature": {
+    "r": "H256",
+    "s": "H256",
+    "v": "U8"
+  },
+  "ExtrinsicSignature": "EthereumSignature",
+  "TxPoolResultContent": {
+    "pending": "HashMap<H160, HashMap<U256, PoolTransaction>>",
+    "queued": "HashMap<H160, HashMap<U256, PoolTransaction>>"
+  },
+  "TxPoolResultInspect": {
+    "pending": "HashMap<H160, HashMap<U256, Summary>>",
+    "queued": "HashMap<H160, HashMap<U256, Summary>>"
+  },
+  "TxPoolResultStatus": {
+    "pending": "U256",
+    "queued": "U256"
+  },
+  "Summary": "Bytes",
+  "PoolTransaction": {
+    "hash": "H256",
+    "nonce": "U256",
+    "blockHash": "Option<H256>",
+    "blockNumber": "Option<U256>",
+    "from": "H160",
+    "to": "Option<H160>",
+    "value": "U256",
+    "gasPrice": "U256",
+    "gas": "U256",
+    "input": "Bytes"
+  }
 }
 ```
 
-Use the `Developer` app's `RPC calls` tab to query 
+Use the `Developer` app's `RPC calls` tab to query
 `eth > getBalance(address, number)` with Alice's EVM account ID
 (`0xd43593c715fdd31c61141abd04a99fd6822c8558`); the value that is returned
 should look something like:
@@ -172,19 +172,52 @@ Then you need to configure the network this way:
 
 
 
+## ink! Smart Contracts
+
+The project supports **ink!** smart contracts. For detailed instructions and
+more information on **ink!**, please visit the [ink! documentation site](https://use.ink/).
+
+Before starting with **ink!** contracts, please ensure that you develop them in
+a separate project/repository.
+
+
+### Getting Started
+
+To begin developing **ink!** contracts, you must first install the necessary
+cargo plugin:
+
+```
+$ cargo install cargo-contract --force
+```
+
+To generate an initial smart contract, execute the following command:
+
+```
+$ cargo contract new <contract_name>
+```
+
+To compile smart contract:
+
+```
+$ cargo contract build --release
+```
+
+
+
+
 ## Example 1: ERC20 Contract Deployment using EVM dispatchable
 
-The following steps are also available as a 
+The following steps are also available as a
 [Typescript script](examples/contract-erc20) using Polkadot JS SDK.
 
 
 ### Step 1: Contract creation
 
 The [`truffle`](examples/contract-erc20/truffle) directory contains a
-[Truffle](https://www.trufflesuite.com/truffle) project that defines 
-[an ERC-20 token](examples/contract-erc20/truffle/contracts/MyToken.sol). 
-For convenience, this repository also contains 
-[the compiled bytecode of this token contract](examples/contract-erc20/truffle/contracts/MyToken.json#L259), 
+[Truffle](https://www.trufflesuite.com/truffle) project that defines
+[an ERC-20 token](examples/contract-erc20/truffle/contracts/MyToken.sol).
+For convenience, this repository also contains
+[the compiled bytecode of this token contract](examples/contract-erc20/truffle/contracts/MyToken.json#L259),
 which can be used to deploy it to the Substrate blockchain.
 
 > Further reading:
@@ -250,7 +283,7 @@ value that is returned should be
 `0xffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff`.
 
 The storage slot was calculated using
-[a provided utility](utils/README.md#--erc20-slot-slot-address). 
+[a provided utility](utils/README.md#--erc20-slot-slot-address).
 (Slot 0 and alice address: `0xd43593c715fdd31c61141abd04a99fd6822c8558`)
 
 > Further reading:
@@ -259,8 +292,8 @@ The storage slot was calculated using
 
 ### Step 3: Contract Usage
 
-Use the `Developer` -> `Extrinsics` tab to invoke the 
-`transfer(address, uint256)` function on the ERC-20 contract with `evm > call` 
+Use the `Developer` -> `Extrinsics` tab to invoke the
+`transfer(address, uint256)` function on the ERC-20 contract with `evm > call`
 and transfer some of the ERC-20 tokens from Alice to Bob.
 
 ```text
@@ -285,5 +318,5 @@ transferred (`0xdd`, or 221 in hex).
 
 ### Step 4: Check Bob Contract Storage
 
-After the extrinsic has finalized, use the `Chain State` app to query 
+After the extrinsic has finalized, use the `Chain State` app to query
 `evm > accountStorage` to see the ERC-20 balances for both Alice and Bob.
