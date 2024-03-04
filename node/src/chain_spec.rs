@@ -219,7 +219,8 @@ fn testnet_genesis(
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,
-            "minNominatorBond": DOLLARS,
+            "minNominatorBond": 10 * DOLLARS,
+            "maxNominatorCount": 16,
         },
         "evmChainId": { "chainId": chain_id },
         "evm": {
