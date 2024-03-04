@@ -221,7 +221,7 @@ fn testnet_genesis(
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,
-            "minNominatorBond": DOLLARS,
+            "minNominatorBond": 10 * DOLLARS,
         },
         "elections": {
             "members": endowed_accounts

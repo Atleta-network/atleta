@@ -917,7 +917,7 @@ impl pallet_scheduler::Config for Runtime {
 // staking
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-    pub const BondingDuration: sp_staking::EraIndex = 2;
+    pub const BondingDuration: sp_staking::EraIndex = (21 * DAYS) / (EPOCH_DURATION_IN_BLOCKS * SessionsPerEra::get());
     pub const SlashDeferDuration: sp_staking::EraIndex = 1;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxExposurePageSize: u32 = 256;
