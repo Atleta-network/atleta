@@ -2,7 +2,7 @@
 members = [
     "node",
     "runtime",
-    # "pallets/*",
+    "pallets/faucet",
     # "precompiles",
 ]
 resolver = "2"
@@ -14,6 +14,8 @@ repository = ""
 
 [workspace.dependencies]
 sportchain-runtime = { path = "runtime", default-features = false }
+
+pallet-faucet = { path = "pallets/faucet", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
