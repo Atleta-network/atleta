@@ -21,5 +21,9 @@ mod benchmarks {
         assert!(Requests::<T>::contains_key(&caller));
     }
 
-    impl_benchmark_test_suite!(Faucet, crate::mock::new_test_ext(), crate::mock::Test);
+    impl_benchmark_test_suite!(
+        Faucet,
+        crate::mock::ExtBuilder::default().build(),
+        crate::mock::Test
+    );
 }

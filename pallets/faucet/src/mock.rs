@@ -81,10 +81,6 @@ impl pallet_faucet::Config for Test {
     type WeightInfo = ();
 }
 
-pub fn new_test_ext() -> sp_io::TestExternalities {
-    frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
-}
-
 pub const GENESIS_ACCOUNT: AccountId = 5;
 pub const GENESIS_ACCOUNT_BALANCE: u32 = 1_000_000_000;
 
@@ -103,7 +99,7 @@ impl Default for ExtBuilder {
 }
 
 impl ExtBuilder {
-    fn build(self) -> sp_io::TestExternalities {
+    pub fn build(self) -> sp_io::TestExternalities {
         let mut storage =
             frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into();
 
