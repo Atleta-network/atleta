@@ -220,7 +220,6 @@ fn testnet_genesis(
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,
             "minNominatorBond": 10 * DOLLARS,
-            "maxNominatorCount": 16,
         },
         "evmChainId": { "chainId": chain_id },
         "evm": {
