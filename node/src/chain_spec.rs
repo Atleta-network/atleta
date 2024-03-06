@@ -16,7 +16,6 @@ use sp_runtime::{
 };
 
 // Frontier
-use crate::chain_spec::devnet_keys::hercules;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use sportchain_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, Balance, MaxNominations,
@@ -47,16 +46,7 @@ pub fn development_config() -> ChainSpec {
             // Sudo account (Alith)
             alith(),
             // Pre-funded accounts
-            vec![
-                alith(),
-                baltathar(),
-                charleth(),
-                dorothy(),
-                ethan(),
-                faith(),
-                goliath(),
-                hercules(),
-            ],
+            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
             // Initial Validators and PoA authorities
             vec![authority_keys_from_seed("Alice")],
             // Initial nominators
@@ -81,16 +71,7 @@ pub fn local_testnet_config() -> ChainSpec {
             // Sudo account (Alith)
             alith(),
             // Pre-funded accounts
-            vec![
-                alith(),
-                baltathar(),
-                charleth(),
-                dorothy(),
-                ethan(),
-                faith(),
-                goliath(),
-                hercules(),
-            ],
+            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
             vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
             vec![],
             // Ethereum chain ID
@@ -124,7 +105,6 @@ pub fn testnet_config() -> ChainSpec {
                 cristiano(),
                 michel(),
                 roberto(),
-                hercules(),
             ],
             vec![diego_session_keys(), pele_session_keys(), franz_session_keys()],
             vec![],
@@ -152,22 +132,6 @@ fn testnet_genesis(
                 endowed_accounts.push(*x)
             }
         });
-
-    // genesis for faucet.
-    let faucet_genesis_account: AccountId = hercules();
-    let faucet_genesis_account_initial_balance: Balance = 1_000_000 * DOLLARS;
-
-    let balances = endowed_accounts
-        .iter()
-        .cloned()
-        .map(|acc| {
-            if acc == faucet_genesis_account {
-                (acc, faucet_genesis_account_initial_balance)
-            } else {
-                (acc, ENDOWMENT)
-            }
-        })
-        .collect::<Vec<_>>();
 
     let num_endowed_accounts = endowed_accounts.len();
 
@@ -239,7 +203,7 @@ fn testnet_genesis(
             "key": Some(sudo_key),
         },
         "balances": {
-            "balances": balances,
+            "balances": endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
         "babe": {
             "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
@@ -257,7 +221,7 @@ fn testnet_genesis(
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,
-            "minNominatorBond": DOLLARS,
+            "minNominatorBond": 10 * DOLLARS,
         },
         "elections": {
             "members": endowed_accounts
@@ -311,10 +275,6 @@ mod devnet_keys {
     pub(super) fn goliath() -> AccountId {
         AccountId::from(hex!("7BF369283338E12C90514468aa3868A551AB2929"))
     }
-
-    pub(super) fn hercules() -> AccountId {
-        AccountId::from(hex!("8a8b8918de890f4c61f546a9830a9c3dfe2a077b"))
-    }
 }
 
 mod testnet_keys {
@@ -358,10 +318,6 @@ mod testnet_keys {
 
     pub(super) fn roberto() -> AccountId {
         AccountId::from(hex!("8ec8036d2746f635A32164f9e6C8c3f654d8Ab42"))
-    }
-
-    pub(super) fn hercules() -> AccountId {
-        AccountId::from(hex!("8a8b8918de890f4c61f546a9830a9c3dfe2a077b"))
     }
 
     pub(super) fn diego_session_keys() -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
