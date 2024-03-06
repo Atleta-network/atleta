@@ -244,7 +244,7 @@ fn testnet_genesis(
         },
         "nominationPools": {
             "minCreateBond": 10 * DOLLARS,
-            "minJoinBond": 1 * DOLLARS,
+            "minJoinBond": DOLLARS,
         },
     })
 }
