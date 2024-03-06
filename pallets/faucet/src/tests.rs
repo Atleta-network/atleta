@@ -4,12 +4,11 @@ use frame_support::{assert_noop, assert_ok};
 #[test]
 fn faucet_works() {
     ExtBuilder::default().build_and_execute(|| {
-        let balance = 100;
+        let balance = 200;
         let receiver = 1;
         assert_eq!(Balances::free_balance(&receiver), 0);
-        assert_ok!(Faucet::request_funds(RuntimeOrigin::signed(1), balance));
+        assert_ok!(Faucet::request_funds(RuntimeOrigin::signed(receiver), balance));
         assert_eq!(Balances::free_balance(&receiver), balance);
-        assert_eq!(Balances::free_balance(&GENESIS_ACCOUNT), GENESIS_ACCOUNT_BALANCE - balance);
     })
 }
 

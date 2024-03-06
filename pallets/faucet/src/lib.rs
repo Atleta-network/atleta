@@ -89,6 +89,7 @@ pub mod pallet {
             // Create faucet account.
             let account_id = <Pallet<T>>::account_id();
             let min = T::Currency::minimum_balance();
+
             if T::Currency::free_balance(&account_id) < min {
                 let _ = T::Currency::make_free_balance_be(&account_id, min);
             }
@@ -145,7 +146,7 @@ pub mod pallet {
 
             let _ = T::Currency::make_free_balance_be(&account_id, amount);
             let _ =
-                T::Currency::transfer(&account_id, &who, amount, ExistenceRequirement::KeepAlive);
+                T::Currency::transfer(&account_id, &who, amount, ExistenceRequirement::AllowDeath);
 
             Requests::<T>::insert(&who, (total, now));
 

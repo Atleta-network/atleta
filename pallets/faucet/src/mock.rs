@@ -1,6 +1,9 @@
 use crate as pallet_faucet;
 use frame_support::parameter_types;
-use frame_support::traits::{ConstU16, ConstU32, ConstU64, Everything};
+use frame_support::{
+    traits::{ConstU16, ConstU32, ConstU64, Everything},
+    PalletId,
+};
 use frame_system::pallet_prelude::*;
 use sp_core::H256;
 use sp_runtime::{
@@ -72,45 +75,31 @@ impl pallet_balances::Config for Test {
 parameter_types! {
     pub const AccumulationPeriod: BlockNumberFor<Test> = BLOCKS_PER_HOUR * 24;
     pub const FaucetAmount: Balance = 1000;
+    pub const FaucetPalletId: PalletId = PalletId(*b"pa/facet");
 }
 
 impl pallet_faucet::Config for Test {
     type AccumulationPeriod = AccumulationPeriod;
     type FaucetAmount = FaucetAmount;
     type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type PalletId = FaucetPalletId;
     type WeightInfo = ();
 }
 
-pub const GENESIS_ACCOUNT: AccountId = 5;
-pub const GENESIS_ACCOUNT_BALANCE: u32 = 1_000_000_000;
-
-pub struct ExtBuilder {
-    balances: Vec<(AccountId, u32)>,
-    genesis_account: Option<AccountId>,
-}
+pub struct ExtBuilder {}
 
 impl Default for ExtBuilder {
     fn default() -> Self {
-        Self {
-            balances: [(GENESIS_ACCOUNT, GENESIS_ACCOUNT_BALANCE)].to_vec(),
-            genesis_account: Some(GENESIS_ACCOUNT),
-        }
+        Self {}
     }
 }
 
 impl ExtBuilder {
     pub fn build(self) -> sp_io::TestExternalities {
-        let mut storage =
-            frame_system::GenesisConfig::<Test>::default().build_storage().unwrap().into();
-
-        let _ = pallet_balances::GenesisConfig::<Test> { balances: self.balances }
-            .assimilate_storage(&mut storage);
-
-        let _ = pallet_faucet::GenesisConfig::<Test> { genesis_account: self.genesis_account }
-            .assimilate_storage(&mut storage);
+        let storage = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
         let ext = sp_io::TestExternalities::from(storage);
-
         ext
     }
 
