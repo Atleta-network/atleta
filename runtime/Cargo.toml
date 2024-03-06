@@ -53,6 +53,7 @@ pallet-grandpa = { workspace = true }
 pallet-im-online = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-membership = { workspace = true }
+pallet-nomination-pools = { workspace = true }
 pallet-offences = { workspace = true }
 pallet-offences-benchmarking = { workspace = true, optional = true }
 pallet-preimage = { workspace = true }
@@ -133,6 +134,7 @@ std = [
     "pallet-im-online/std",
     "pallet-insecure-randomness-collective-flip/std",
     "pallet-membership/std",
+    "pallet-nomination-pools/std",
     "pallet-offences/std",
     "pallet-preimage/std",
     "pallet-scheduler/std",
