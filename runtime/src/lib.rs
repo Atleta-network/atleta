@@ -1014,7 +1014,7 @@ impl pallet_staking::Config for Runtime {
     type TargetList = pallet_staking::UseValidatorsMap<Self>;
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth;
-    type EventListeners = (); // TODO: NominationPools?
+    type EventListeners = NominationPools;
     type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
     type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = StakingBenchmarkingConfig;
@@ -1550,6 +1550,20 @@ impl_runtime_apis! {
                 equivocation_proof,
                 key_owner_proof,
             )
+        }
+    }
+
+    impl pallet_nomination_pools_runtime_api::NominationPoolsApi<Block, AccountId, Balance> for Runtime {
+        fn pending_rewards(who: AccountId) -> Balance {
+            NominationPools::api_pending_rewards(who).unwrap_or_default()
+        }
+
+        fn points_to_balance(pool_id: pallet_nomination_pools::PoolId, points: Balance) -> Balance {
+            NominationPools::api_points_to_balance(pool_id, points)
+        }
+
+        fn balance_to_points(pool_id: pallet_nomination_pools::PoolId, new_funds: Balance) -> Balance {
+            NominationPools::api_balance_to_points(pool_id, new_funds)
         }
     }
 
