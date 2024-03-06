@@ -22,11 +22,20 @@ mod benchmarking;
 pub mod weights;
 pub use weights::*;
 
+use frame_support::{
+    traits::{Currency, Get},
+    PalletId,
+};
+use sp_runtime::traits::AccountIdConversion;
+
+type BalanceOf<T> =
+    <<T as Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
+    use frame_support::pallet_prelude::*;
     use frame_support::traits::ExistenceRequirement;
-    use frame_support::{pallet_prelude::*, traits::Currency};
     use frame_system::pallet_prelude::*;
 
     #[pallet::config]
@@ -34,8 +43,15 @@ pub mod pallet {
         /// The type of events defined by the pallet.
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
+        /// The currency mechanism, used for Faucet.
+        type Currency: Currency<Self::AccountId>;
+
         /// Estimate of resource consumption for pallet operations.
         type WeightInfo: WeightInfo;
+
+        /// The faucet's pallet id, used for deriving its sovereign account ID.
+        #[pallet::constant]
+        type PalletId: Get<PalletId>;
 
         /// The period during which the user can't request more than `Config::MaxAmount`.
         #[pallet::constant]
@@ -43,7 +59,7 @@ pub mod pallet {
 
         /// Faucet amount.
         #[pallet::constant]
-        type FaucetAmount: Get<Self::Balance>;
+        type FaucetAmount: Get<BalanceOf<Self>>;
     }
 
     #[pallet::pallet]
@@ -52,25 +68,30 @@ pub mod pallet {
     /// Holding all requests by account.
     #[pallet::storage]
     #[pallet::getter(fn requests)]
-    pub type Requests<T: Config> =
-        StorageMap<_, Blake2_128Concat, T::AccountId, (T::Balance, BlockNumberFor<T>), ValueQuery>;
-
-    /// Holding genesis account for funds sending.
-    #[pallet::storage]
-    #[pallet::getter(fn genesis_account)]
-    pub type GenesisAccount<T: Config> = StorageValue<_, Option<T::AccountId>, ValueQuery>;
+    pub type Requests<T: Config> = StorageMap<
+        _,
+        Blake2_128Concat,
+        T::AccountId,
+        (BalanceOf<T>, BlockNumberFor<T>),
+        ValueQuery,
+    >;
 
     #[pallet::genesis_config]
     #[derive(frame_support::DefaultNoBound)]
     pub struct GenesisConfig<T: Config> {
-        /// Account for funds sending.
-        pub genesis_account: Option<T::AccountId>,
+        #[serde(skip)]
+        _config: sp_std::marker::PhantomData<T>,
     }
 
     #[pallet::genesis_build]
     impl<T: Config> BuildGenesisConfig for GenesisConfig<T> {
         fn build(&self) {
-            <GenesisAccount<T>>::put(self.genesis_account.clone());
+            // Create faucet account.
+            let account_id = <Pallet<T>>::account_id();
+            let min = T::Currency::minimum_balance();
+            if T::Currency::free_balance(&account_id) < min {
+                let _ = T::Currency::make_free_balance_be(&account_id, min);
+            }
         }
     }
 
@@ -82,7 +103,7 @@ pub mod pallet {
             /// The account ID reaceved the funds.
             who: T::AccountId,
             /// The amount of funds.
-            amount: T::Balance,
+            amount: BalanceOf<T>,
         },
     }
 
@@ -103,7 +124,7 @@ pub mod pallet {
         #[pallet::weight(
         (<T as Config>::WeightInfo::request_funds(), DispatchClass::Normal, Pays::No)
         )]
-        pub fn request_funds(origin: OriginFor<T>, amount: T::Balance) -> DispatchResult {
+        pub fn request_funds(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
             let who = ensure_signed(origin)?;
 
             ensure!(amount <= T::FaucetAmount::get(), Error::<T>::AmountTooHigh);
@@ -120,14 +141,11 @@ pub mod pallet {
 
             ensure!(total <= T::FaucetAmount::get(), Error::<T>::RequestLimitExceeded);
 
-            let genesis_account = Self::genesis_account().ok_or(Error::<T>::NoFaucetAccount)?;
+            let account_id = Self::account_id();
 
-            let _ = pallet_balances::Pallet::<T>::transfer(
-                &genesis_account,
-                &who,
-                amount,
-                ExistenceRequirement::KeepAlive,
-            );
+            let _ = T::Currency::make_free_balance_be(&account_id, amount);
+            let _ =
+                T::Currency::transfer(&account_id, &who, amount, ExistenceRequirement::KeepAlive);
 
             Requests::<T>::insert(&who, (total, now));
 
@@ -135,5 +153,12 @@ pub mod pallet {
 
             Ok(())
         }
+    }
+}
+
+impl<T: Config> Pallet<T> {
+    /// The account ID to transfer faucet amount to user.
+    pub fn account_id() -> T::AccountId {
+        T::PalletId::get().into_account_truncating()
     }
 }

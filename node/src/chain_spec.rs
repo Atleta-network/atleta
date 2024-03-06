@@ -278,9 +278,6 @@ fn testnet_genesis(
         "evm": {
             "accounts": evm_accounts,
         },
-        "faucet": {
-            "genesisAccount": Some(faucet_genesis_account)
-        }
     })
 }
 

@@ -692,11 +692,14 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 parameter_types! {
     pub AccumulationPeriod: BlockNumber = HOURS * 24;
     pub const FaucetAmount: Balance = 1000 * DOLLARS;
+    pub const FaucetPalletId: PalletId = PalletId(*b"BCSTREAS");
 }
 
 impl pallet_faucet::Config for Runtime {
     type AccumulationPeriod = AccumulationPeriod;
     type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type PalletId = FaucetPalletId;
     type FaucetAmount = FaucetAmount;
     type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
 }
