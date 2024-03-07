@@ -125,8 +125,12 @@ pub mod pallet {
         #[pallet::weight(
         (<T as Config>::WeightInfo::request_funds(), DispatchClass::Normal, Pays::No)
         )]
-        pub fn request_funds(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
-            let who = ensure_signed(origin)?;
+        pub fn request_funds(
+            origin: OriginFor<T>,
+            who: T::AccountId,
+            amount: BalanceOf<T>,
+        ) -> DispatchResult {
+            ensure_none(origin)?;
 
             ensure!(amount <= T::FaucetAmount::get(), Error::<T>::AmountTooHigh);
 
