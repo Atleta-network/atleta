@@ -59,16 +59,7 @@ services:
     networks:
       - sportchain-node-network
 
-  explorer:
-    image: sportchain-explorer
-    container_name: sportchain-explorer
-    restart: always
-    depends_on:
-      - archive_node
-    ports:
-      - "0.0.0.0:80:80/tcp"
-    networks:
-      - sportchain-node-network
+
 
 networks:
   sportchain-node-network:
