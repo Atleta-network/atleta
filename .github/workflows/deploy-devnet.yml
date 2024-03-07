@@ -45,6 +45,6 @@ jobs:
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
-          docker-compose down
-          docker-compose pull
-          docker-compose up -d --build --remove-orphans
+          docker compose down
+          docker compose pull
+          docker compose up -d --build --remove-orphans

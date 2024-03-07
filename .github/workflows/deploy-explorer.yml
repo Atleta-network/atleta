@@ -14,13 +14,13 @@ jobs:
       with:
         submodules: "recursive"
 
-
     - name: Create Image Tarball for Explorer
       run: |
         cd polkadot-js-apps
         docker build -t sportchain-explorer -f docker/Dockerfile .
         docker save -o sportchain-explorer.tar sportchain-explorer
-        mv sportchain-explorer.tar ./artifacts
+        mkdir -p ../artifacts
+        mv sportchain-explorer.tar ../artifacts/
 
     - name: Set up SSH
       run: |
@@ -33,7 +33,7 @@ jobs:
 
     - name: Copy Files to Server
       run: |
-        scp -r artifacts/sportchain-explorer.tar ${{ secrets.EXPLORER_USERNAME}}@${{ secrets.EXPLORER_HOST }}:/sportchain/
+        scp artifacts/sportchain-explorer.tar ${{ secrets.EXPLORER_USERNAME}}@${{ secrets.EXPLORER_HOST }}:/sportchain/
 
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
@@ -44,4 +44,6 @@ jobs:
         script: |
           cd /sportchain 
           docker load -i sportchain-explorer.tar
-          docker run -p 80:80/tcp sportchain-explorer
+          docker stop $(docker ps -qa)
+          docker rm -v $(docker ps -qa)
+          docker run -d -p 80:80 sportchain-explorer

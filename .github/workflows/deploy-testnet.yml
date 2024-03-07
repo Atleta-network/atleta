@@ -51,6 +51,6 @@ jobs:
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
-          docker-compose down
-          docker-compose pull
+          docker compose down
+          docker compose pull
           ./run-testnet.sh testnet.keys.env
