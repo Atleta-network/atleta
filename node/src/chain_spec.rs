@@ -133,6 +133,8 @@ fn testnet_genesis(
             }
         });
 
+    let num_endowed_accounts = endowed_accounts.len();
+
     // stakers: all validators and nominators.
     const ENDOWMENT: Balance = 75_000_000 * DOLLARS;
     const STASH: Balance = ENDOWMENT / 1000;
@@ -219,11 +221,30 @@ fn testnet_genesis(
             "slashRewardFraction": Perbill::from_percent(10),
             "stakers": stakers.clone(),
             "minValidatorBond": 75_000 * DOLLARS,
-            "minNominatorBond": DOLLARS,
+            "minNominatorBond": 10 * DOLLARS,
+        },
+        "elections": {
+            "members": endowed_accounts
+                .iter()
+                .take((num_endowed_accounts + 1) / 2)
+                .cloned()
+                .map(|member| (member, STASH))
+                .collect::<Vec<_>>(),
+        },
+        "technicalCommittee": {
+            "members": endowed_accounts
+                .iter()
+                .take((num_endowed_accounts + 1) / 2)
+                .cloned()
+                .collect::<Vec<_>>(),
         },
         "evmChainId": { "chainId": chain_id },
         "evm": {
             "accounts": evm_accounts,
+        },
+        "nominationPools": {
+            "minCreateBond": 10 * DOLLARS,
+            "minJoinBond": DOLLARS,
         },
     })
 }
