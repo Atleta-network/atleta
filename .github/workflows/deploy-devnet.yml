@@ -27,7 +27,7 @@ jobs:
         mkdir -p ~/.ssh/
         touch ~/.ssh/known_hosts
         ssh-keyscan ${{ secrets.DEVNET_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.DEVNET_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
 
@@ -41,7 +41,7 @@ jobs:
       with:
         host: ${{ secrets.DEVNET_HOST }}
         username: ${{ secrets.DEVNET_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.DEVNET_PRIVATE_KEY }}
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
