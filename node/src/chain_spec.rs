@@ -242,6 +242,10 @@ fn testnet_genesis(
         "evm": {
             "accounts": evm_accounts,
         },
+        "nominationPools": {
+            "minCreateBond": 10 * DOLLARS,
+            "minJoinBond": DOLLARS,
+        },
     })
 }
 
