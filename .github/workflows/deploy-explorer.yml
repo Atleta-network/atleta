@@ -20,6 +20,8 @@ jobs:
         cd polkadot-js-apps
         docker build -t sportchain-explorer -f docker/Dockerfile .
         docker save -o sportchain-explorer.tar sportchain-explorer
+        mkdir
+        mv sportchain-explorer.tar ../artifacts/
         
 
     - name: Set up SSH
@@ -33,7 +35,7 @@ jobs:
 
     - name: Copy Files to Server
       run: |
-        scp  sportchain-explorer.tar ${{ secrets.EXPLORER_USERNAME}}@${{ secrets.EXPLORER_HOST }}:/sportchain/
+        scp -r artifacts/sportchain-explorer.tar ${{ secrets.EXPLORER_USERNAME}}@${{ secrets.EXPLORER_HOST }}:/sportchain/
 
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
