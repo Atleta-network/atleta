@@ -21,19 +21,13 @@ jobs:
         mkdir -p artifacts
         mv sportchain-node.tar artifacts/
 
-    - name: Create Image Tarball for Explorer
-      run: |
-        cd polkadot-js-apps
-        docker build -t sportchain-explorer -f docker/Dockerfile .
-        docker save -o sportchain-explorer.tar sportchain-explorer
-        mv sportchain-explorer.tar ../artifacts/
 
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh/
         touch ~/.ssh/known_hosts
         ssh-keyscan ${{ secrets.DEVNET_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.DEVNET_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
 
@@ -47,11 +41,10 @@ jobs:
       with:
         host: ${{ secrets.DEVNET_HOST }}
         username: ${{ secrets.DEVNET_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.DEVNET_PRIVATE_KEY }}
         script: |
           cd /sportchain
           docker load -i sportchain-node.tar
-          docker load -i sportchain-explorer.tar
           docker-compose down
           docker-compose pull
           docker-compose up -d --build --remove-orphans
