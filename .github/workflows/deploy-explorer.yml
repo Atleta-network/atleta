@@ -20,7 +20,7 @@ jobs:
         cd polkadot-js-apps
         docker build -t sportchain-explorer -f docker/Dockerfile .
         docker save -o sportchain-explorer.tar sportchain-explorer
-        mkdir
+        mkdir -p ../artifacts/
         mv sportchain-explorer.tar ../artifacts/
         
 
