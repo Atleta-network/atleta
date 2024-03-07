@@ -38,7 +38,7 @@ jobs:
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
       with:
-        host: ${{ secrets.DEVNET_HOST }}
+        host: ${{ secrets.EXPLORER_HOST }}
         username: ${{ secrets.EXPLORER_USERNAME }}
         key: ${{ secrets.SSH_PRIVATE_KEY }}
         script: |
