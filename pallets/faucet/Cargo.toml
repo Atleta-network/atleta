@@ -1,0 +1,38 @@
+[package]
+name = "pallet-faucet"
+version = "0.1.0"
+authors = { workspace = true }
+edition = "2021"
+publish = false
+repository = { workspace = true }
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[dependencies]
+frame-benchmarking = { workspace = true, optional = true }
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+sp-std = { workspace = true }
+sp-runtime = { workspace = true }
+pallet-balances = { workspace = true }
+parity-scale-codec = { workspace = true }
+scale-info = { workspace = true }
+
+[dev-dependencies]
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "frame-benchmarking?/std",
+    "frame-support/std",
+    "frame-system/std",
+    "pallet-balances/std",
+    "parity-scale-codec/std",
+    "scale-info/std",
+]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
+try-runtime = ["frame-support/try-runtime"]

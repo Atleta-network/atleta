@@ -688,6 +688,22 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
 }
 
+// faucet
+parameter_types! {
+    pub AccumulationPeriod: BlockNumber = HOURS * 24;
+    pub const FaucetAmount: Balance = 1000 * DOLLARS;
+    pub const FaucetPalletId: PalletId = PalletId(*b"BCSTREAS");
+}
+
+impl pallet_faucet::Config for Runtime {
+    type AccumulationPeriod = AccumulationPeriod;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type PalletId = FaucetPalletId;
+    type FaucetAmount = FaucetAmount;
+    type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
+}
+
 // nomination pools
 parameter_types! {
     pub const PostUnbondPoolsWindow: u32 = 4;
@@ -1222,6 +1238,7 @@ construct_runtime!(
         Babe: pallet_babe,
         Grandpa: pallet_grandpa,
         Balances: pallet_balances,
+        Faucet: pallet_faucet,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
         Treasury: pallet_treasury,
