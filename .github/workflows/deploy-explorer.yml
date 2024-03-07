@@ -27,7 +27,7 @@ jobs:
         mkdir -p ~/.ssh/
         touch ~/.ssh/known_hosts
         ssh-keyscan ${{ secrets.EXPLORER_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        echo "${{ secrets.EXPLORER_PRIVATE_KEY }}" > ~/.ssh/id_rsa
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
 
@@ -40,7 +40,7 @@ jobs:
       with:
         host: ${{ secrets.EXPLORER_HOST }}
         username: ${{ secrets.EXPLORER_USERNAME }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        key: ${{ secrets.EXPLORER_PRIVATE_KEY }}
         script: |
           cd /sportchain 
           docker load -i sportchain-explorer.tar
