@@ -31,7 +31,7 @@ use sp_runtime::{
     transaction_validity::{
         TransactionPriority, TransactionSource, TransactionValidity, TransactionValidityError,
     },
-    ApplyExtrinsicResult, ConsensusEngineId, Perbill, Percent, Permill,
+    ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
 };
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -688,6 +688,44 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type WeightInfo = pallet_bags_list::weights::SubstrateWeight<Runtime>;
 }
 
+// nomination pools
+parameter_types! {
+    pub const PostUnbondPoolsWindow: u32 = 4;
+    pub const NominationPoolsPalletId: PalletId = PalletId(*b"py/nopls");
+    pub const MaxPointsToBalance: u8 = 10;
+}
+
+use sp_runtime::traits::Convert;
+pub struct BalanceToU256;
+impl Convert<Balance, sp_core::U256> for BalanceToU256 {
+    fn convert(balance: Balance) -> sp_core::U256 {
+        sp_core::U256::from(balance)
+    }
+}
+
+pub struct U256ToBalance;
+impl Convert<sp_core::U256, Balance> for U256ToBalance {
+    fn convert(n: sp_core::U256) -> Balance {
+        n.try_into().unwrap_or(Balance::max_value())
+    }
+}
+
+impl pallet_nomination_pools::Config for Runtime {
+    type WeightInfo = ();
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type RuntimeFreezeReason = RuntimeFreezeReason;
+    type RewardCounter = FixedU128;
+    type BalanceToU256 = BalanceToU256;
+    type U256ToBalance = U256ToBalance;
+    type Staking = Staking;
+    type PostUnbondingPoolsWindow = PostUnbondPoolsWindow;
+    type MaxMetadataLen = ConstU32<256>;
+    type MaxUnbonding = ConstU32<8>;
+    type PalletId = NominationPoolsPalletId;
+    type MaxPointsToBalance = MaxPointsToBalance;
+}
+
 // session
 impl pallet_session::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -976,7 +1014,7 @@ impl pallet_staking::Config for Runtime {
     type TargetList = pallet_staking::UseValidatorsMap<Self>;
     type MaxUnlockingChunks = ConstU32<32>;
     type HistoryDepth = HistoryDepth;
-    type EventListeners = (); // TODO: NominationPools?
+    type EventListeners = NominationPools;
     type MaxControllersInDeprecationBatch = MaxControllersInDeprecationBatch;
     type WeightInfo = pallet_staking::weights::SubstrateWeight<Runtime>;
     type BenchmarkingConfig = StakingBenchmarkingConfig;
@@ -1207,6 +1245,7 @@ construct_runtime!(
         Historical: pallet_session::historical::{Pallet},
         Scheduler: pallet_scheduler,
         Preimage: pallet_preimage,
+        NominationPools: pallet_nomination_pools,
         // EVM
         EVM: pallet_evm,
         EVMChainId: pallet_evm_chain_id,
@@ -1511,6 +1550,20 @@ impl_runtime_apis! {
                 equivocation_proof,
                 key_owner_proof,
             )
+        }
+    }
+
+    impl pallet_nomination_pools_runtime_api::NominationPoolsApi<Block, AccountId, Balance> for Runtime {
+        fn pending_rewards(who: AccountId) -> Balance {
+            NominationPools::api_pending_rewards(who).unwrap_or_default()
+        }
+
+        fn points_to_balance(pool_id: pallet_nomination_pools::PoolId, points: Balance) -> Balance {
+            NominationPools::api_points_to_balance(pool_id, points)
+        }
+
+        fn balance_to_points(pool_id: pallet_nomination_pools::PoolId, new_funds: Balance) -> Balance {
+            NominationPools::api_balance_to_points(pool_id, new_funds)
         }
     }
 
