@@ -9,7 +9,7 @@ if [ $# -ne 1 ]; then
     exit 1
 fi
 
-docker-compose -f docker-compose.testnet.yml up -d
+docker compose -f docker-compose.testnet.yml up -d
 
 sleep 30
 
