@@ -1,5 +1,5 @@
 [package]
-name = "sportchain-node"
+name = "atleta-node"
 version = "0.0.0"
 build = "build.rs"
 publish = false
@@ -87,7 +87,8 @@ fp-account = { workspace = true }
 fp-dynamic-fee = { workspace = true, features = ["default"] }
 fp-evm = { workspace = true, features = ["default"] }
 fp-rpc = { workspace = true, features = ["default"] }
-sportchain-runtime = { workspace = true, features = ["std"] }
+
+atleta-runtime = { workspace = true, features = ["std"] }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
@@ -103,13 +104,13 @@ rocksdb = [
     "fc-rpc/rocksdb",
 ]
 sql = ["fc-db/sql", "fc-mapping-sync/sql"]
-with-rocksdb-weights = ["sportchain-runtime/with-rocksdb-weights"]
-with-paritydb-weights = ["sportchain-runtime/with-paritydb-weights"]
+with-rocksdb-weights = ["atleta-runtime/with-rocksdb-weights"]
+with-paritydb-weights = ["atleta-runtime/with-paritydb-weights"]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
     "frame-benchmarking-cli/runtime-benchmarks",
     "sc-service/runtime-benchmarks",
-    "sportchain-runtime/runtime-benchmarks",
+    "atleta-runtime/runtime-benchmarks",
 ]

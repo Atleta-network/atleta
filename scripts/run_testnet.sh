@@ -7,7 +7,7 @@ envs="$2"
 
 # network_pid is the global array of pids for all the nodes
 network_pids=()
-node=./target/debug/sportchain-node
+node=./target/debug/atleta-node
 
 check_args() {
     if [ $num_of_args -ne 2 ]; then

@@ -33,7 +33,7 @@ use crate::chain_spec::get_account_id_from_seed;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "BCS".into()
+        "Atleta Network".into()
     }
 
     fn impl_version() -> String {
@@ -177,7 +177,7 @@ pub fn run() -> sc_cli::Result<()> {
             use frame_benchmarking_cli::{
                 BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE,
             };
-            use sportchain_runtime::{Block, ExistentialDeposit};
+            use atleta_runtime::{Block, ExistentialDeposit};
 
             let runner = cli.create_runner(cmd)?;
             match cmd {

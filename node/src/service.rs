@@ -16,7 +16,7 @@ use sp_api::ConstructRuntimeApi;
 use sp_core::U256;
 use substrate_prometheus_endpoint::Registry;
 // Runtime
-use sportchain_runtime::{opaque::Block, Hash, TransactionConverter};
+use atleta_runtime::{opaque::Block, Hash, TransactionConverter};
 
 use crate::{
     cli::Sealing,
@@ -27,7 +27,7 @@ use crate::{
     },
 };
 pub use crate::{
-    client::{Client, SportchainRuntimeExecutor},
+    client::{Client, AtletaRuntimeExecutor},
     eth::{db_config_dir, EthConfiguration},
 };
 
@@ -648,7 +648,7 @@ where
             inherent_data: &mut sp_inherents::InherentData,
         ) -> Result<(), sp_inherents::Error> {
             TIMESTAMP.with(|x| {
-                *x.borrow_mut() += sportchain_runtime::constants::time::SLOT_DURATION;
+                *x.borrow_mut() += atleta_runtime::constants::time::SLOT_DURATION;
                 inherent_data.put_data(sp_timestamp::INHERENT_IDENTIFIER, &*x.borrow())
             })
         }
@@ -708,7 +708,7 @@ pub async fn build_full(
     eth_config: EthConfiguration,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError> {
-    new_full::<sportchain_runtime::RuntimeApi, SportchainRuntimeExecutor>(
+    new_full::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor>(
         config, eth_config, sealing,
     )
     .await
@@ -723,7 +723,7 @@ pub fn new_chain_ops(
 > {
     config.keystore = sc_service::config::KeystoreConfig::InMemory;
     let PartialComponents { client, backend, import_queue, task_manager, other, .. } =
-        new_partial::<sportchain_runtime::RuntimeApi, SportchainRuntimeExecutor, _>(
+        new_partial::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor, _>(
             config,
             eth_config,
             build_babe_grandpa_import_queue,

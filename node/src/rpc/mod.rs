@@ -25,7 +25,7 @@ use sp_inherents::CreateInherentDataProviders;
 use sp_keystore::KeystorePtr;
 use sp_runtime::traits::Block as BlockT;
 // Runtime
-use sportchain_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
+use atleta_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
 
 mod consensus_data_provider;
 mod eth;

@@ -2,7 +2,7 @@
 use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
 
 // Local
-use sportchain_runtime::{opaque::Block, AccountId, Balance, Nonce};
+use atleta_runtime::{opaque::Block, AccountId, Balance, Nonce};
 
 use crate::eth::EthCompatRuntimeApiCollection;
 
@@ -12,7 +12,7 @@ pub type FullBackend = sc_service::TFullBackend<Block>;
 pub type FullClient<RuntimeApi, Executor> =
     sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
 
-pub type Client = FullClient<sportchain_runtime::RuntimeApi, SportchainRuntimeExecutor>;
+pub type Client = FullClient<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor>;
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
 #[cfg(feature = "runtime-benchmarks")]
@@ -21,16 +21,16 @@ pub type HostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 #[cfg(not(feature = "runtime-benchmarks"))]
 pub type HostFunctions = ();
 
-pub struct SportchainRuntimeExecutor;
-impl NativeExecutionDispatch for SportchainRuntimeExecutor {
+pub struct AtletaRuntimeExecutor;
+impl NativeExecutionDispatch for AtletaRuntimeExecutor {
     type ExtendHostFunctions = HostFunctions;
 
     fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        sportchain_runtime::api::dispatch(method, data)
+        atleta_runtime::api::dispatch(method, data)
     }
 
     fn native_version() -> NativeVersion {
-        sportchain_runtime::native_version()
+        atleta_runtime::native_version()
     }
 }
 

@@ -17,7 +17,7 @@ use sp_runtime::{
 
 // Frontier
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use sportchain_runtime::{
+use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, Balance, MaxNominations,
     RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, BABE_GENESIS_EPOCH_CONFIG,
     WASM_BINARY,
@@ -417,7 +417,7 @@ pub fn authority_keys_from_seed(s: &str) -> (AccountId, AccountId, BabeId, Grand
 // Chain properties
 fn properties() -> Properties {
     let mut properties = Properties::new();
-    properties.insert("tokenSymbol".into(), "BCS".into());
+    properties.insert("tokenSymbol".into(), "ATLA".into());
     properties.insert("tokenDecimals".into(), 18.into());
     properties.insert("ss58Format".into(), SS58Prefix::get().into());
     properties
