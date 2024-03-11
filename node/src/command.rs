@@ -174,10 +174,10 @@ pub fn run() -> sc_cli::Result<()> {
             use crate::benchmarking::{
                 inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder,
             };
+            use atleta_runtime::{Block, ExistentialDeposit};
             use frame_benchmarking_cli::{
                 BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE,
             };
-            use atleta_runtime::{Block, ExistentialDeposit};
 
             let runner = cli.create_runner(cmd)?;
             match cmd {

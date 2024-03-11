@@ -16,12 +16,12 @@ use sp_runtime::{
 };
 
 // Frontier
-use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, Balance, MaxNominations,
     RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, BABE_GENESIS_EPOCH_CONFIG,
     WASM_BINARY,
 };
+use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";

@@ -27,7 +27,7 @@ use crate::{
     },
 };
 pub use crate::{
-    client::{Client, AtletaRuntimeExecutor},
+    client::{AtletaRuntimeExecutor, Client},
     eth::{db_config_dir, EthConfiguration},
 };
 
@@ -708,10 +708,7 @@ pub async fn build_full(
     eth_config: EthConfiguration,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError> {
-    new_full::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor>(
-        config, eth_config, sealing,
-    )
-    .await
+    new_full::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor>(config, eth_config, sealing).await
 }
 
 pub fn new_chain_ops(
