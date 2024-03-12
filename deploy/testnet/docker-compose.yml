@@ -1,0 +1,147 @@
+version: "3"
+
+services:
+
+  bootnode:
+    image: sportchain-node
+    container_name: sportchain-bootnode
+    volumes:
+      - ./chain-data/bootnode:/chain-data
+    command: >
+      --chain testnet
+      --base-path /chain-data
+      --node-key 66d0f50a1293fb0e042b409ae0715b8e82bb6d01528e164c6694fa6fc876d585
+      --name bootnode
+      --allow-private-ipv4
+      --port 30333
+    ports:
+      - "0.0.0.0:30333:30333"
+    networks:
+      sportchain-node-network:
+        ipv4_address: 172.16.238.10
+  
+  archive_node:
+    image: sportchain-node
+    container_name: sportchain-archive-node
+    restart: always
+    depends_on:
+      - bootnode
+    volumes:
+      - ./chain-data/archive:/chain-data
+    command: >
+      --chain testnet
+      --base-path /chain-data
+      --name "testnet-archive"
+      --rpc-port 9944
+      --unsafe-rpc-external
+      --prometheus-external
+      --rpc-cors all
+      --state-pruning archive
+      --allow-private-ipv4
+      --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
+    networks:
+      sportchain-node-network:
+        ipv4_address: 172.16.238.11
+
+  diego:
+    image: sportchain-node
+    container_name: sportchain-diego
+    restart: always
+    depends_on:
+      - archive_node
+    volumes:
+      - ./chain-data/diego:/chain-data
+    command: >
+      --chain testnet
+      --base-path /chain-data
+      --force-authoring
+      --rpc-port 9944
+      --rpc-cors all
+      --unsafe-rpc-external
+      --rpc-methods=Unsafe
+      --validator
+      --allow-private-ipv4
+      --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
+    ports:
+      - "127.0.0.1:9955:9944"
+    networks:
+      - sportchain-node-network
+
+  pele:
+    image: sportchain-node
+    container_name: sportchain-pele
+    restart: always
+    depends_on:
+      - archive_node
+    volumes:
+      - ./chain-data/pele:/chain-data
+    command: >
+      --chain testnet
+      --base-path /chain-data
+      --force-authoring
+      --rpc-port 9944
+      --rpc-cors all
+      --unsafe-rpc-external
+      --rpc-methods=Unsafe
+      --validator
+      --allow-private-ipv4
+      --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
+    ports:
+      - "127.0.0.1:9966:9944"
+    networks:
+      - sportchain-node-network
+
+  franz:
+    image: sportchain-node
+    container_name: sportchain-franz
+    restart: always
+    depends_on:
+      - archive_node
+    volumes:
+      - ./chain-data/franz:/chain-data
+    command: >
+      --chain testnet
+      --base-path /chain-data
+      --force-authoring
+      --rpc-port 9944
+      --rpc-cors all
+      --unsafe-rpc-external
+      --rpc-methods=Unsafe
+      --validator
+      --allow-private-ipv4
+      --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
+    ports:
+      - "127.0.0.1:9977:9944"
+    networks:
+      - sportchain-node-network
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    environment:
+      - CERTBOT_EMAIL=admin@moneyfactory.io
+      - CERTBOT_DOMAIN=atleta-testnet-rpc.quark.blue
+        
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/log/nginx/:/var/log/nginx
+    depends_on:
+      - archive_node
+      - certbot
+    ports:
+      - "9944:9944/tcp"
+    networks:
+      - sportchain-node-network
+
+networks:
+  sportchain-node-network:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 172.16.238.0/24
