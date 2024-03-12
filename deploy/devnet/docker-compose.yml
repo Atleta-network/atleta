@@ -19,9 +19,7 @@ services:
       --rpc-cors all
       --state-pruning archive
     ports:
-      # - "0.0.0.0:30333:30333/tcp"
       - "0.0.0.0:9944:9944/tcp"
-      # - "127.0.0.1:9615:9615/tcp"
     networks:
       - sportchain-node-network
 
