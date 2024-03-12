@@ -21,7 +21,6 @@ jobs:
         mkdir -p artifacts
         mv sportchain-node.tar artifacts/
 
-
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh/
@@ -34,7 +33,7 @@ jobs:
     - name: Copy Files to Server
       run: |
         scp -r artifacts/* ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/
-        scp deploy/docker-compose.devnet.yml ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/docker-compose.yml
+        scp deploy/devnet/docker-compose.yml ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/docker-compose.yml
 
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
