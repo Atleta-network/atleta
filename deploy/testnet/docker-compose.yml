@@ -1,17 +1,7 @@
 version: "3"
 
 services:
-  nginx:
-    image: nginx:latest
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-      - /etc/letsencrypt:/etc/letsencrypt
-    ports:
-      - "80:80"
-      - "443:443"
-      - "9944:9944"
-    networks:
-      - sportchain-node-network
+
   bootnode:
     image: sportchain-node
     container_name: sportchain-bootnode
@@ -49,10 +39,9 @@ services:
       --state-pruning archive
       --allow-private-ipv4
       --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
-    ports:
-      - "0.0.0.0:9944:9944/tcp"
     networks:
-      - sportchain-node-network
+      sportchain-node-network:
+        ipv4_address: 172.16.238.11
 
   diego:
     image: sportchain-node
@@ -123,6 +112,30 @@ services:
       --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
     ports:
       - "127.0.0.1:9977:9944"
+    networks:
+      - sportchain-node-network
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - /etc/letsencrypt:/etc/letsencrypt
+      - ./data/certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    environment:
+      - CERTBOT_EMAIL=admin@moneyfactory.io
+      - CERTBOT_DOMAIN=atleta-testnet-rpc.quark.blue
+        
+  nginx:
+    image: nginx:latest
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - /etc/letsencrypt:/etc/letsencrypt
+      - /var/log/nginx/:/var/log/nginx
+    depends_on:
+      - archive_node
+      - certbot
+    ports:
+      - "9944:9944/tcp"
     networks:
       - sportchain-node-network
 

@@ -37,9 +37,10 @@ jobs:
     - name: Copy Files to Server
       run: |
         scp -r artifacts/* ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/
-        scp deploy/docker-compose.testnet.yml ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/docker-compose.testnet.yml
+        scp deploy/testnet/docker-compose.yml ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/docker-compose.yml
         scp deploy/add-session-keys.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/add-session-keys.sh
-        scp deploy/run-testnet.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/run-testnet.sh
+        scp deploy/testnet/run.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/run.sh
+        scp deploy/testnet/nginx.conf ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/nginx.conf
         scp deploy/testnet.keys.env ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/testnet.keys.env
 
     - name: SSH into Server and Deploy
@@ -53,4 +54,4 @@ jobs:
           docker load -i sportchain-node.tar
           docker compose down
           docker compose pull
-          ./run-testnet.sh testnet.keys.env
+          ./run.sh testnet.keys.env
