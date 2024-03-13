@@ -167,8 +167,8 @@ pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
 // Runtime version
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-    spec_name: create_runtime_str!("sportchain"),
-    impl_name: create_runtime_str!("sportchain"),
+    spec_name: create_runtime_str!("atleta"),
+    impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
     spec_version: 1,
     impl_version: 1,
@@ -370,7 +370,7 @@ impl pallet_transaction_payment::Config for Runtime {
 
 // treasury
 parameter_types! {
-    pub const TreasuryPalletId: PalletId = PalletId(*b"BCSTREAS");
+    pub const TreasuryPalletId: PalletId = PalletId(*b"ATTREASU");
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub ProposalBondMinimum: Balance = 10 * DOLLARS;
     pub ProposalBondMaximum: Balance = 50 * DOLLARS;
@@ -692,7 +692,7 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 parameter_types! {
     pub AccumulationPeriod: BlockNumber = HOURS * 24;
     pub const FaucetAmount: Balance = 1000 * DOLLARS;
-    pub const FaucetPalletId: PalletId = PalletId(*b"BCSTREAS");
+    pub const FaucetPalletId: PalletId = PalletId(*b"ATFAUCET");
 }
 
 impl pallet_faucet::Config for Runtime {
