@@ -37,6 +37,6 @@ RUN apt update -y && apt install -y curl
 WORKDIR /app
 
 # Copy the built binary from the builder stage
-COPY --from=builder /app/target/release/lib* /app/target/release/sportchain-node /app/bin/
+COPY --from=builder /app/target/release/lib* /app/target/release/atleta-node /app/bin/
 
-ENTRYPOINT ["/app/bin/sportchain-node"]
+ENTRYPOINT ["/app/bin/atleta-node"]

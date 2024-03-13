@@ -29,8 +29,8 @@ use sp_core::{ecdsa, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
 use sp_runtime::{generic::Era, OpaqueExtrinsic, SaturatedConversion};
 // Frontier
+use atleta_runtime::{self as runtime, AccountId, Balance, BalancesCall, SystemCall};
 use fp_account::AccountId20;
-use sportchain_runtime::{self as runtime, AccountId, Balance, BalancesCall, SystemCall};
 
 use crate::client::Client;
 

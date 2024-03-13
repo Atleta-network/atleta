@@ -1,4 +1,4 @@
-# Blockchain Sports
+# Atleta Network
 
 The porject is built on a [frontier template](https://github.com/PureStake/frontier) —
 [FRAME](https://docs.substrate.io/v3/runtime/frame)-based
@@ -19,7 +19,7 @@ $ cargo build --release
 To execute the chain, run:
 
 ```
-$ ./target/release/sportchain-node --dev
+$ ./target/release/atleta-node --dev
 ```
 
 
@@ -162,9 +162,9 @@ The node should run locally in `--dev` mode.
 Then you need to configure the network this way:
 
 - chain ID is __2340__
-- chain name is __sportchain__
-- currency name is __BCSport Token__
-- currency symbol is __BCS__
+- chain name is __atleta__
+- currency name is __Atleta Token__
+- currency symbol is __ATLA__
 - currency decimals is __18__
 - RPC URL is __http://localhost:9944/__ (or change appropriately to where you
   deploy the node)
