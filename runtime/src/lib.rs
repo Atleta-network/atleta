@@ -350,7 +350,6 @@ impl pallet_balances::Config for Runtime {
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
     type MaxFreezes = ConstU32<1>;
-    type MaxHolds = ConstU32<6>;
     type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
@@ -498,6 +497,7 @@ impl pallet_contracts::Config for Runtime {
     type Debug = ();
     type Migrations = ();
     type Xcm = ();
+    type ApiVersion = ();
 }
 
 // election provider
