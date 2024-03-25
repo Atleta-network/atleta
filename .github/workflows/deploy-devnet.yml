@@ -17,15 +17,16 @@ jobs:
 
     - name: Create Image Tarball for Node
       run: |
+          docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
           VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//') 
-          docker build -t atleta-node:$VERSION .
+          docker build -t docker.io/atletanetwork/atleta-node:$VERSION .
           docker tag atleta-node:$VERSION atleta-node:latest
 
     - name: Push
       run: |
           VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
-          docker push atleta-node:$VERSION
-          docker push atleta-node:latest
+          docker push docker.io/atletanetwork/atleta-node:$VERSION
+          docker push docker.io/atletanetwork/atleta-node:latest
 
     - name: Copy Files to Server
       run: |
