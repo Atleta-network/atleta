@@ -19,13 +19,13 @@ jobs:
       run: |
           VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//') 
           docker build -t atleta-node:$VERSION .
-          docker tag atleta-node:$VERSION atleta-node:latest
+          docker tag docker.io/atletanetwork/atleta-node:$VERSION docker.io/atletanetwork/atleta-node:latest
 
     - name: Push
       run: |
           VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
-          docker push atleta-node:$VERSION
-          docker push atleta-node:latest
+          docker push docker.io/atletanetwork/atleta-node:$VERSION
+          docker push docker.io/atletanetwork/atleta-node:latest
 
     - name: Set up SSH
       run: |
@@ -36,9 +36,7 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
 
-    - name: Make Keys File
-      run: |
-        echo "${{ secrets.TESTNET_KEYS }}" > deploy/testnet.keys.env
+
 
     - name: Copy Files to Server
       run: |
