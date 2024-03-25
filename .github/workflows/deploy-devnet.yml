@@ -14,25 +14,21 @@ jobs:
       with:
         submodules: "recursive"
 
+
     - name: Create Image Tarball for Node
       run: |
-        docker build -t sportchain-node .
-        docker save -o sportchain-node.tar sportchain-node
-        mkdir -p artifacts
-        mv sportchain-node.tar artifacts/
+          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//') 
+          docker build -t atleta-node:$VERSION .
+          docker tag atleta-node:$VERSION atleta-node:latest
 
-    - name: Set up SSH
+    - name: Push
       run: |
-        mkdir -p ~/.ssh/
-        touch ~/.ssh/known_hosts
-        ssh-keyscan ${{ secrets.DEVNET_HOST }} >> ~/.ssh/known_hosts
-        echo "${{ secrets.DEVNET_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-        chmod 600 ~/.ssh/id_rsa
-        eval $(ssh-agent)
+          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
+          docker push atleta-node:$VERSION
+          docker push atleta-node:latest
 
     - name: Copy Files to Server
       run: |
-        scp -r artifacts/* ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/
         scp deploy/devnet/docker-compose.yml ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/docker-compose.yml
 
     - name: SSH into Server and Deploy
