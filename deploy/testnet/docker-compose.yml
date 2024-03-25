@@ -3,7 +3,7 @@ version: "3"
 services:
 
   bootnode:
-    image: sportchain-node
+    image: docker.io/atletanetwork/atleta-node:latest
     container_name: sportchain-bootnode
     volumes:
       - ./chain-data/bootnode:/chain-data
