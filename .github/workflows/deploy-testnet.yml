@@ -14,12 +14,18 @@ jobs:
       with:
         submodules: "recursive"
 
+
     - name: Create Image Tarball for Node
       run: |
-        docker build -t sportchain-node .
-        docker save -o sportchain-node.tar sportchain-node
-        mkdir -p artifacts
-        mv sportchain-node.tar artifacts/
+          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//') 
+          docker build -t atleta-node:$VERSION .
+          docker tag atleta-node:$VERSION atleta-node:latest
+
+    - name: Push
+      run: |
+          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
+          docker push atleta-node:$VERSION
+          docker push atleta-node:latest
 
     - name: Set up SSH
       run: |
