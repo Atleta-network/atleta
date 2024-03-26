@@ -17,14 +17,10 @@ jobs:
 
     - name: Create Image Tarball for Node
       run: |
-          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//') 
-          docker build -t atleta-node:$VERSION .
-          docker tag docker.io/atletanetwork/atleta-node:$VERSION docker.io/atletanetwork/atleta-node:latest
-
+          docker build -t atleta-node:latest .
+          
     - name: Push
       run: |
-          VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
-          docker push docker.io/atletanetwork/atleta-node:$VERSION
           docker push docker.io/atletanetwork/atleta-node:latest
 
     - name: Set up SSH
@@ -40,7 +36,6 @@ jobs:
 
     - name: Copy Files to Server
       run: |
-        scp -r artifacts/* ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/
         scp deploy/testnet/docker-compose.yml ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/docker-compose.yml
         scp deploy/add-session-keys.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/add-session-keys.sh
         scp deploy/testnet/run.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/run.sh
@@ -55,7 +50,6 @@ jobs:
         key: ${{ secrets.TESTNET_PRIVATE_KEY }}
         script: |
           cd /sportchain
-          docker load -i sportchain-node.tar
           docker compose down
           docker compose pull
           ./run.sh testnet.keys.env
