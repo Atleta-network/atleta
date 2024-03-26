@@ -29,7 +29,7 @@ jobs:
 
 
     - name: Push Docker Image
-      run: docker push docker.io/atletanetwork/atleta-node:devnet-${DATE}${BUILD_COUNT}
+      run: docker push docker.io/atletanetwork/atleta-node
 
     - name: Set up SSH
       run: |
