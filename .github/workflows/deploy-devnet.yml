@@ -25,6 +25,7 @@ jobs:
           DATE=$(date +%d%m%y)
           BUILD_COUNT=$(( ($(date +%s) / 60 / 60 / 24) % 10 ))
           docker build -t docker.io/atletanetwork/atleta-node:devnet-${DATE}${BUILD_COUNT} .
+          docker tag docker.io/atletanetwork/atleta-node:devnet-${DATE}${BUILD_COUNT} docker.io/atletanetwork/atleta-node:devnet-latest
 
 
     - name: Push Docker Image
