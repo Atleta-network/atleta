@@ -2,7 +2,7 @@ version: "3"
 
 services:
   archive_node:
-    image: sportchain-node
+    image: docker.io/atletanetwork/atleta-node:devnet-latest
     container_name: sportchain-archive-node
     restart: always
     volumes:
