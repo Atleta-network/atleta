@@ -13,7 +13,7 @@ services:
       --node-key 66d0f50a1293fb0e042b409ae0715b8e82bb6d01528e164c6694fa6fc876d585
       --name bootnode
       --allow-private-ipv4
-      --port 30333
+      --listen-addr /ip4/0.0.0.0/tcp/30333
     ports:
       - "0.0.0.0:30333:30333"
     networks:
