@@ -18,7 +18,7 @@ jobs:
     - name: Create Image Tarball for Node
       run: |
           docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
-          docker build -t docker.io/atletanetwork/atleta-node:latest
+          docker build -t docker.io/atletanetwork/atleta-node:latest .
      
 
     - name: Push
