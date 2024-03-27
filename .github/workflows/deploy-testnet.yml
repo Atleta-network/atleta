@@ -30,11 +30,11 @@ jobs:
           DATE: $(date +%d%m%y)
           HMS: $(date +%H%M%S)
           docker build -t docker.io/atletanetwork/testnet-node:${DATE}${HMS} .
-          docker tag docker.io/atletanetwork/testnet-node:${DATE}${HMS} docker.io/atletanetwork/testnet-node:latest
+          docker tag docker.io/atletanetwork/testnet-node:${DATE}${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
 
 
     - name: Push Docker Image
-      run: docker push docker.io/atletanetwork/atleta-node:testnet-${DATE}${BUILD_COUNT}
+      run: docker push docker.io/atletanetwork/atleta-node
 
       
     - name: Set up SSH
