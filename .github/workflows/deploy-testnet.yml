@@ -29,8 +29,8 @@ jobs:
       run: |
           DATE: $(date +%d%m%y)
           HMS: $(date +%H%M%S)
-          docker build -t docker.io/atletanetwork/testnet-node:${DATE}${HMS} .
-          docker tag docker.io/atletanetwork/testnet-node:${DATE}${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
+          docker build -t docker.io/atletanetwork/atleta-node:testnet-${DATE}${HMS} .
+          docker tag docker.io/atletanetwork/atleta-node:testnet-${DATE}${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
 
 
     - name: Push Docker Image
