@@ -24,16 +24,13 @@ jobs:
       id: date_and_build_count
       run: |
           DATE=$(date +%d%m%y)
-          BUILD_COUNT=$(printf "%02d" $(( ($(date +%s) / 60 / 60 / 24) % 100 )))
-          echo "::set-output name=date::${DATE}"
-          echo "::set-output name=build_count::${BUILD_COUNT}"
+          HMS: $(date +%H%M%S)
+
 
     - name: Build and Tag Docker Image
       run: |
-          DATE=${{ steps.date_and_build_count.outputs.date }}
-          BUILD_COUNT=${{ steps.date_and_build_count.outputs.build_count }}
-          docker build -t docker.io/atletanetwork/devnet-node:${DATE}${BUILD_COUNT} .
-          docker tag docker.io/atletanetwork/devnet-node:${DATE}${BUILD_COUNT} docker.io/atletanetwork/devnet-node:latest
+          docker build -t docker.io/atletanetwork/devnet-node:${DATE}${HMS} .
+          docker tag docker.io/atletanetwork/devnet-node:${DATE}${HMS} docker.io/atletanetwork/devnet-node:latest
 
     - name: Push Docker Image
       run: docker push docker.io/atletanetwork/devnet-node
