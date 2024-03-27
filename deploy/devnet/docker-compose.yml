@@ -2,7 +2,7 @@ version: "3"
 
 services:
   archive_node:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:devnet-latest
     container_name: sportchain-archive-node
     restart: always
     volumes:
@@ -24,7 +24,7 @@ services:
       - sportchain-node-network
 
   validator_1:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:devnet-latest
     container_name: sportchain-validator-1
     restart: always
     depends_on:
@@ -41,7 +41,7 @@ services:
       - sportchain-node-network
 
   validator_2:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:devnet-latest
     container_name: sportchain-validator-2
     restart: always
     depends_on:

@@ -14,13 +14,28 @@ jobs:
       with:
         submodules: "recursive"
 
-    - name: Create Image Tarball for Node
-      run: |
-        docker build -t sportchain-node .
-        docker save -o sportchain-node.tar sportchain-node
-        mkdir -p artifacts
-        mv sportchain-node.tar artifacts/
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v1
 
+    - name: Login to Docker Hub
+      run: docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
+
+    - name: Calculate Date and Build Count
+      id: date_and_build_count
+      run: |
+          DATE=$(date +%d%m%y)
+          HMS=$(date +%H%M%S)
+
+
+    - name: Build and Tag Docker Image
+      run: |
+          docker build -t docker.io/atletanetwork/atleta-node:devnet-${DATE}${HMS} .
+          docker tag docker.io/atletanetwork/atleta-node:devnet-${DATE}${HMS} docker.io/atletanetwork/atleta-node:devnet-latest
+
+    - name: Push Docker Image
+      run: docker push docker.io/atletanetwork/atleta-node
+
+      
     - name: Set up SSH
       run: |
         mkdir -p ~/.ssh/
@@ -32,7 +47,6 @@ jobs:
 
     - name: Copy Files to Server
       run: |
-        scp -r artifacts/* ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/
         scp deploy/devnet/docker-compose.yml ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/docker-compose.yml
 
     - name: SSH into Server and Deploy
@@ -43,7 +57,6 @@ jobs:
         key: ${{ secrets.DEVNET_PRIVATE_KEY }}
         script: |
           cd /sportchain
-          docker load -i sportchain-node.tar
           docker compose down
           docker compose pull
           docker compose up -d --build --remove-orphans
