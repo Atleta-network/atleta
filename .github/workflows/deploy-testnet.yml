@@ -20,15 +20,10 @@ jobs:
     - name: Login to Docker Hub
       run: docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
 
-    - name: Calculate Build Count
-      id: buildcount
-      run: |
-              DATE: $(date +%d%m%y)
-              HMS: $(date +%H%M%S)
     - name: Build and Tag Docker Image
       run: |
-          DATE: $(date +%d%m%y)
-          HMS: $(date +%H%M%S)
+          DATE=$(date +%d%m%y)
+          HMS=$(date +%H%M%S)
           docker build -t docker.io/atletanetwork/atleta-node:testnet-${DATE}${HMS} .
           docker tag docker.io/atletanetwork/atleta-node:testnet-${DATE}${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
 
