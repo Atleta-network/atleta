@@ -33,7 +33,10 @@ jobs:
           docker tag docker.io/atletanetwork/atleta-node:devnet-${DATE}${HMS} docker.io/atletanetwork/atleta-node:devnet-latest
 
     - name: Push Docker Image
-      run: docker push docker.io/atletanetwork/atleta-node
+      run: |
+             docker push docker.io/atletanetwork/atleta-node:devnet-${DATE}-${HMS}
+             docker push docker.io/atletanetwork/atleta-node:devnet-latest
+
 
       
     - name: Set up SSH
