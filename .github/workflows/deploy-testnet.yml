@@ -23,18 +23,14 @@ jobs:
     - name: Calculate Build Count
       id: buildcount
       run: |
-            SECONDS_SINCE_EPOCH=$(date +%s)
-            SECONDS_IN_DAY=86400
-            DAY_NUMBER=$((SECONDS_SINCE_EPOCH / SECONDS_IN_DAY))
-            BUILD_COUNT=$(( DAY_NUMBER % 10 ))
-            echo "::set-output name=build_count::$BUILD_COUNT"
-
+              DATE: $(date +%d%m%y)
+              HMS: $(date +%H%M%S)
     - name: Build and Tag Docker Image
       run: |
-          DATE=$(date +%d%m%y)
-          BUILD_COUNT=${{ steps.buildcount.outputs.build_count }}
-          docker build -t docker.io/atletanetwork/testnet-node:${DATE}${BUILD_COUNT} .
-          docker tag docker.io/atletanetwork/testnet-node:${DATE}${BUILD_COUNT} docker.io/atletanetwork/testnet-node:latest
+          DATE: $(date +%d%m%y)
+          HMS: $(date +%H%M%S)
+          docker build -t docker.io/atletanetwork/testnet-node:${DATE}${HMS} .
+          docker tag docker.io/atletanetwork/testnet-node:${DATE}${HMS} docker.io/atletanetwork/testnet-node:latest
 
 
     - name: Push Docker Image
