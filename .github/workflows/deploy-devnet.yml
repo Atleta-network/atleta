@@ -24,7 +24,7 @@ jobs:
       id: date_and_build_count
       run: |
           DATE=$(date +%d%m%y)
-          HMS: $(date +%H%M%S)
+          HMS=$(date +%H%M%S)
 
 
     - name: Build and Tag Docker Image
