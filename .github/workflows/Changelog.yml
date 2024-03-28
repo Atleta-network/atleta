@@ -22,8 +22,8 @@ jobs:
             echo "::error::Pull request title does not match the required format."
             exit 1
           fi
-      - name: Checkout PR Branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
+     # - name: Checkout PR Branch
+      #  run: git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Update Changelog
         if: success()
