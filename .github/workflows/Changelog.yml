@@ -30,7 +30,6 @@ jobs:
           PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
           DATE=$(date +'%Y-%m-%d')
 
-          # Generate changelog entry for the current pull request
           CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}
           $(git log --format='- %s' origin/${PR_BRANCH}^1..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
 
