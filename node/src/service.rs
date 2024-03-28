@@ -8,7 +8,7 @@ use sc_client_api::{Backend, BlockBackend};
 use sc_consensus::BasicQueue;
 use sc_consensus_babe::{BabeLink, BabeWorkerHandle, SlotProportion};
 use sc_executor::NativeExecutionDispatch;
-use sc_network_sync::warp::{WarpSyncParams, WarpSyncProvider};
+use sc_network_sync::strategy::warp::{WarpSyncParams, WarpSyncProvider};
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
@@ -635,7 +635,7 @@ where
         telemetry.as_ref().map(|x| x.handle()),
     );
 
-    thread_local!(static TIMESTAMP: RefCell<u64> = RefCell::new(0));
+    thread_local!(static TIMESTAMP: RefCell<u64> = const { RefCell::new(0) });
 
     /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
     /// Each call will increment timestamp by slot_duration making Aura think time has passed.

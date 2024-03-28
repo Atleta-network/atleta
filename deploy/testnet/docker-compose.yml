@@ -3,7 +3,7 @@ version: "3"
 services:
 
   bootnode:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-bootnode
     volumes:
       - ./chain-data/bootnode:/chain-data
@@ -13,7 +13,7 @@ services:
       --node-key 66d0f50a1293fb0e042b409ae0715b8e82bb6d01528e164c6694fa6fc876d585
       --name bootnode
       --allow-private-ipv4
-      --port 30333
+      --listen-addr /ip4/0.0.0.0/tcp/30333
     ports:
       - "0.0.0.0:30333:30333"
     networks:
@@ -21,7 +21,7 @@ services:
         ipv4_address: 172.16.238.10
   
   archive_node:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-archive-node
     restart: always
     depends_on:
@@ -44,7 +44,7 @@ services:
         ipv4_address: 172.16.238.11
 
   diego:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-diego
     restart: always
     depends_on:
@@ -68,7 +68,7 @@ services:
       - sportchain-node-network
 
   pele:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-pele
     restart: always
     depends_on:
@@ -92,7 +92,7 @@ services:
       - sportchain-node-network
 
   franz:
-    image: sportchain-node
+    image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-franz
     restart: always
     depends_on:
