@@ -1,0 +1,52 @@
+name: Pull Request Commit Message Check
+
+on:
+  pull_request:
+    branches: [ "testnet" ]
+    types: [opened, reopened, synchronize]
+
+jobs:
+  check-commit-message:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        
+      - name: Fetch Branches
+        run: git fetch origin ${{ github.event.pull_request.head.ref }} testnet
+
+      - name: Validate Commit Message
+        run: |
+          PR_BRANCH=$(jq -r ".pull_request.head.ref" "$GITHUB_EVENT_PATH")
+          PR_MESSAGES=$(git log --format=%s origin/testnet..HEAD)
+
+          # Get the merge commit message
+          MERGE_COMMIT_MESSAGE=$(git log --merges --format=%s origin/testnet..HEAD | head -n 1)
+
+          # Check if the merge commit message matches the required format
+          if ! echo "$MERGE_COMMIT_MESSAGE" | grep -qE '^(Added|Changed|Deprecated|Removed|Fixed|Security): .+$'; then
+            echo "Merge commit message '$MERGE_COMMIT_MESSAGE' does not match the required format."
+            exit 1
+          fi
+
+      - name: Update Changelog
+        if: success()
+        run: |
+          # Extract version and date from previous changelog entry
+          PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
+          DATE=$(date +'%Y-%m-%d')
+
+          # Generate changelog entry for the current pull request
+          CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}
+          $(git log --format='- %s' origin/testnet..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
+
+          # Update changelog file
+          sed -i "/## \[${PREVIOUS_VERSION}\]/a ${CHANGELOG_ENTRY}" Changelog.md
+
+          # Commit and push changelog update
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add Changelog.md
+          git commit -m "Update Changelog for ${PREVIOUS_VERSION} with changes from merge request #$PR_NUMBER"
+          git push origin $PR_BRANCH
