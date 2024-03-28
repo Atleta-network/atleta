@@ -1,34 +1,29 @@
-name: Pull Request Commit Message Check
+name: Pull Request Title Check
 
 on:
   pull_request:
-    branches: [ "testnet" ]
     types: [opened, reopened, synchronize]
 
 jobs:
-  check-commit-message:
+  validate-pull-request-title:
     runs-on: ubuntu-latest
     
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-        
-      - name: Fetch Branches
-        run: git fetch origin ${{ github.event.pull_request.head.ref }} testnet
 
-      - name: Validate Commit Message
+      - name: Validate Pull Request Title
         run: |
-          PR_BRANCH=$(jq -r ".pull_request.head.ref" "$GITHUB_EVENT_PATH")
-          PR_MESSAGES=$(git log --format=%s origin/testnet..HEAD)
+          PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
 
-          # Get the merge commit message
-          MERGE_COMMIT_MESSAGE=$(git log --merges --format=%s origin/testnet..HEAD | head -n 1)
-
-          # Check if the merge commit message matches the required format
-          if ! echo "$MERGE_COMMIT_MESSAGE" | grep -qE '^(Added|Changed|Deprecated|Removed|Fixed|Security): .+$'; then
-            echo "Merge commit message '$MERGE_COMMIT_MESSAGE' does not match the required format."
+          # Check if the pull request title matches the required format
+          if ! echo "$PR_TITLE" | grep -qE '^(Added|Changed|Deprecated|Removed|Fixed|Security): .+$'; then
+            echo "Pull request title '$PR_TITLE' does not match the required format."
+            echo "::error::Pull request title does not match the required format."
             exit 1
           fi
+      - name: Checkout PR Branch
+        run: git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Update Changelog
         if: success()
@@ -37,9 +32,8 @@ jobs:
           PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
           DATE=$(date +'%Y-%m-%d')
 
-          # Generate changelog entry for the current pull request
           CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}
-          $(git log --format='- %s' origin/testnet..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
+          $(git log --format='- %s' origin/${PR_BRANCH}^1..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
 
           # Update changelog file
           sed -i "/## \[${PREVIOUS_VERSION}\]/a ${CHANGELOG_ENTRY}" Changelog.md
@@ -48,5 +42,5 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add Changelog.md
-          git commit -m "Update Changelog for ${PREVIOUS_VERSION} with changes from merge request #$PR_NUMBER"
+          git commit -m "Update Changelog for ${PREVIOUS_VERSION} with changes from pull request #$PR_NUMBER"
           git push origin $PR_BRANCH
