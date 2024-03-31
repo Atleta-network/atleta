@@ -11,10 +11,12 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-      - name: List Branches
-        run: git branch -a
+
+      - name: Get PR Branch Name
+        run: echo "::set-env name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
+      
       - name: Checkout PR Branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
+        run: git checkout ${{ env.PR_BRANCH }}
 
       - name: Validate Pull Request Title
         run: |
