@@ -2,6 +2,7 @@ name: Pull Request Title Check
 
 on:
   pull_request:
+    types: [opened, reopened, synchronize]
     branches:
       - ${{ github.event.pull_request.head.ref }} 
 
