@@ -13,10 +13,11 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Get PR Branch Name
-        run: echo "::set-env name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
+        id: pr_branch
+        run: echo "::set-output name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
       
       - name: Checkout PR Branch
-        run: git checkout ${{ env.PR_BRANCH }}
+        run: git checkout ${{ steps.pr_branch.outputs.PR_BRANCH }}
 
       - name: Validate Pull Request Title
         run: |
