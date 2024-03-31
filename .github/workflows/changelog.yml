@@ -3,9 +3,6 @@ name: Pull Request Title Check
 on:
   pull_request:
     types: [opened, reopened, synchronize]
-    branches:
-      - testnet
-      - ${{ github.event.pull_request.head.ref }} 
 
 jobs:
   validate-pull-request-title:
@@ -14,7 +11,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
+      - name: List Branches
+        run: git branch -a
       - name: Checkout PR Branch
         run: git checkout ${{ github.event.pull_request.head.ref }}
 
