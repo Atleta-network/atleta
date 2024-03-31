@@ -12,7 +12,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Checkout PR Branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
+        run: git checkout testnet
       - name: Validate Pull Request Title
         run: |
           PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
