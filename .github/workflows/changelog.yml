@@ -11,7 +11,8 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
+      - name: Checkout PR Branch
+        run: git checkout ${{ github.event.pull_request.head.ref }}
       - name: Validate Pull Request Title
         run: |
           PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
@@ -21,8 +22,7 @@ jobs:
             echo "::error::Pull request title does not match the required format."
             exit 1
           fi 
-      - name: Checkout PR Branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
+
 
       - name: Update Changelog
         if: success()
