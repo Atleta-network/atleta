@@ -30,8 +30,7 @@ jobs:
           # Extract version and date from previous changelog entry
           PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
           DATE=$(date +'%Y-%m-%d')
-          CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}
-          $(git log --format='- %s' origin/${{ github.head_ref }}^1..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
+          CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}\n$(git log --format='- %s' origin/${{ github.head_ref }}^1..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
           # Update changelog file
           sed -i "/## \[${PREVIOUS_VERSION}\]/a ${CHANGELOG_ENTRY}" Changelog.md
           # Commit and push changelog update
