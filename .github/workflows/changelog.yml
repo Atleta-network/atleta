@@ -16,12 +16,7 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      - name: Get PR Branch Name
-        id: pr_branch
-        run: echo "::set-output name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
 
-      - name: Checkout PR Branch
-        run: git checkout ${{ steps.pr_branch.outputs.PR_BRANCH }}
 
 
 
@@ -34,6 +29,8 @@ jobs:
             echo "::error::Pull request title does not match the required format."
             exit 1
           fi 
+      - name: Checkout PR Branch
+        run: git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Extract Changelog Entry
         id: extract_changelog_entry
