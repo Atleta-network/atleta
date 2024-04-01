@@ -1,26 +1,18 @@
-name: Pull Request Title Check
-permissions:
-  contents: write
-  pull-requests: write
+name: Pull Request Workflow
 
 on:
   pull_request:
     types: [opened, reopened, synchronize]
 
 jobs:
-  validate-pull-request-title:
+  validate-pr:
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-
-
-
-
-      - name: Validate Pull Request Title
+      - name: Check PR Title Format
         run: |
           PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
           # Check if the pull request title matches the required format
@@ -29,22 +21,14 @@ jobs:
             echo "::error::Pull request title does not match the required format."
             exit 1
           fi 
-      - name: Checkout PR Branch
-        run: git checkout ${{ github.event.pull_request.head.ref }}
-
-      - name: Extract Changelog Entry
-        id: extract_changelog_entry
-        run: |
-          PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
-          CATEGORY=$(echo "$PR_TITLE" | cut -d ':' -f 1)
-          CONTENT=$(echo "$PR_TITLE" | cut -d ':' -f 2-)
-          CHANGELOG_ENTRY="**${CATEGORY}**\n${CONTENT}"
 
       - name: Update Changelog
-        env:
-          GITHUB_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         if: success()
         run: |
+          # Extract version and date from previous changelog entry
+          PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
+          DATE=$(date +'%Y-%m-%d')
+          CHANGELOG_ENTRY="**[${PREVIOUS_VERSION}] - ${DATE}**\n$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH" | sed 's/^[^:]*: //' | sed 's/^/* /')"
           # Update changelog file
           sed -i "1s/^/${CHANGELOG_ENTRY}\n\n/" Changelog.md
           # Commit and push changelog update
@@ -52,5 +36,4 @@ jobs:
           git config --local user.name "GitHub Action"
           git add Changelog.md
           git commit -m "Update Changelog with changes from pull request #$PR_NUMBER"
-          git push origin HEAD:${{ steps.pr_branch.outputs.PR_BRANCH }}
-
+          git push origin HEAD
