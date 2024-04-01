@@ -8,16 +8,6 @@ jobs:
   validate-pull-request-title:
     runs-on: ubuntu-latest
 
-    steps:
-name: Pull Request Title Check
-
-on:
-  pull_request:
-    types: [opened, reopened, synchronize]
-
-jobs:
-  validate-pull-request-title:
-    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
