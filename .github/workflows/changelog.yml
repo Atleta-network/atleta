@@ -12,11 +12,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+
       - name: Checkout Repository
         uses: actions/checkout@v3
+
       - name: Get PR Branch Name
         id: pr_branch
         run: echo "::set-output name=PR_BRANCH::${GITHUB_REF#refs/heads/}"
+
+      - name: Checkout PR Branch
+        run: git checkout ${{ steps.pr_branch.outputs.PR_BRANCH }}
+
 
 
       - name: Validate Pull Request Title
