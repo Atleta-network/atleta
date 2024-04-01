@@ -33,9 +33,10 @@ jobs:
           CHANGELOG_ENTRY="**[${PREVIOUS_VERSION}] - ${DATE}**\n$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH" | sed 's/^[^:]*: //' | sed 's/^/* /')"
           # Update changelog file
           sed -i "1s/^/${CHANGELOG_ENTRY}\n\n/" Changelog.md
-          # Commit and push changelog update
+      - name: Commit and Push Changelog Update
+        run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add Changelog.md
-          git commit -m "Update Changelog with changes from pull request #$PR_NUMBER"
-          git push origin HEAD
+          git commit -m "Update Changelog with changes from pull request #${{ github.event.number }}"
+          git push origin HEAD:${{ github.head_ref }}
