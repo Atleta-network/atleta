@@ -18,7 +18,7 @@ jobs:
 
       - name: Get PR Branch Name
         id: pr_branch
-        run: echo "::set-output name=PR_BRANCH::${GITHUB_REF#refs/heads/}"
+        run: echo "::set-output name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
 
       - name: Checkout PR Branch
         run: git checkout ${{ steps.pr_branch.outputs.PR_BRANCH }}
