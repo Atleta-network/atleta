@@ -55,4 +55,5 @@ jobs:
           git config --local user.name "GitHub Action"
           git add Changelog.md
           git commit -m "Update Changelog with changes from pull request #$PR_NUMBER"
-          git push origin HEAD
+          git push origin HEAD:${{ steps.pr_branch.outputs.PR_BRANCH }}
+
