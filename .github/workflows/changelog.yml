@@ -14,6 +14,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - name: Get PR Branch Name
+        id: pr_branch
+        run: echo "::set-output name=PR_BRANCH::${GITHUB_REF#refs/heads/}"
+
 
       - name: Validate Pull Request Title
         run: |
