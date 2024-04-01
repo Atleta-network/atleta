@@ -8,7 +8,6 @@ jobs:
   validate-pull-request-title:
     runs-on: ubuntu-latest
 
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -23,19 +22,31 @@ jobs:
             exit 1
           fi 
 
+      - name: Get PR Branch Name
+        id: pr_branch
+        run: echo "::set-output name=PR_BRANCH::$(git rev-parse --abbrev-ref HEAD)"
+      
+      - name: Checkout PR Branch
+        run: git checkout ${{ steps.pr_branch.outputs.PR_BRANCH }}
+
+      - name: Extract Changelog Entry
+        id: extract_changelog_entry
+        run: |
+          PR_TITLE=$(jq -r ".pull_request.title" "$GITHUB_EVENT_PATH")
+          CHANGELOG_ENTRY="${PR_TITLE#*:}"
+
       - name: Update Changelog
         if: success()
         run: |
-          git fetch origin ${{ github.head_ref }}
           # Extract version and date from previous changelog entry
           PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
           DATE=$(date +'%Y-%m-%d')
-          CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}\n$(git log --format='- %s' origin/${{ github.head_ref }}^1..HEAD | sed 's/^\([A-Z][a-zA-Z]*\): /\n### \1\n- /g' | sed ':a;N;$!ba;s/\n\n/\n/g')"
+          CHANGELOG_ENTRY="## [${PREVIOUS_VERSION}] - ${DATE}\n- ${{ steps.extract_changelog_entry.outputs.CHANGELOG_ENTRY }}"
           # Update changelog file
           sed -i "/## \[${PREVIOUS_VERSION}\]/a ${CHANGELOG_ENTRY}" Changelog.md
           # Commit and push changelog update
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add Changelog.md
-          git commit -m "Update Changelog for ${PREVIOUS_VERSION} with changes from pull request #${{ github.event.pull_request.number }}"
-          git push origin ${{ github.head_ref }}
+          git commit -m "Update Changelog for ${PREVIOUS_VERSION} with changes from pull request #$PR_NUMBER"
+          git push origin ${{ steps.pr_branch.outputs.PR_BRANCH }}
