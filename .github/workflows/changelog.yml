@@ -24,8 +24,6 @@ jobs:
             exit 1
           fi 
 
-      - name: pull branch updates
-        run:  git pull origin ${{ github.head_ref }}
 
       - name: Update Changelog
         if: success()
@@ -40,6 +38,8 @@ jobs:
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          git config pull.rebase false
+          git pull origin ${{ github.head_ref }}
           git add Changelog.md
           git commit -m "Update Changelog with changes from pull request #${{ github.event.number }}"
           git push origin HEAD:${{ github.head_ref }}
