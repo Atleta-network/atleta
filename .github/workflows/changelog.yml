@@ -26,6 +26,7 @@ jobs:
       - name: Update Changelog
         if: success()
         run: |
+          git fetch origin ${{ github.head_ref }}
           # Extract version and date from previous changelog entry
           PREVIOUS_VERSION=$(grep -oP '(?<=## \[)[^\]]+' Changelog.md | head -n 1)
           DATE=$(date +'%Y-%m-%d')
