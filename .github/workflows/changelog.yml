@@ -31,6 +31,8 @@ jobs:
           CHANGELOG_ENTRY="**${CATEGORY}**\n${CONTENT}"
 
       - name: Update Changelog
+        env:
+          GIT_AUTH_TOKEN: ${{ secrets.ACCESS_TOKEN }}
         if: success()
         run: |
           # Update changelog file
