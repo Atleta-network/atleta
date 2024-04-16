@@ -19,7 +19,7 @@ services:
     networks:
       sportchain-node-network:
         ipv4_address: 172.16.238.10
-  
+
   archive_node:
     image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-archive-node
@@ -119,14 +119,18 @@ services:
     image: certbot/certbot
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt
-      - ./data/certbot/www:/var/www/certbot
-    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; certbot certonly --standalone --preferred-challenges http -d testnet-rpc.atleta.network --email admin@moneyfactory.io --agree-tos --non-interactive --verbose; sleep 12h'"
+    ports:
+      - "0.0.0.0:80:80"
+      - "0.0.0.0:443:80"
     environment:
       - CERTBOT_EMAIL=admin@moneyfactory.io
-      - CERTBOT_DOMAIN=atleta-testnet-rpc.quark.blue
-        
+      - CERTBOT_DOMAIN=testnet-rpc.atleta.network
+
   nginx:
     image: nginx:latest
+    restart: always
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
       - /etc/letsencrypt:/etc/letsencrypt
