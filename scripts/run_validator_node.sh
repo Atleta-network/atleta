@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -euo pipefail
-
 sudo_cmd=""
 chain_spec=""
 keychain_exists=""
@@ -53,7 +51,7 @@ done
 
 echo "Your choose is: $chain_spec network."
 
-if [ -n "$(ls -A /opt/atleta/data/chains &>/dev/null)" ]; then
+if [ "$(ls -A /opt/atleta/data/chains &>/dev/null)" ]; then
 	keychain_exists=1
 else
 	keychain_exists=0
@@ -90,7 +88,23 @@ $sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v
 echo "Generate atleta-validator.service..."
 
 if [[ $arch == "x86_64" ]]; then
-    $sudo_cmd systemctl stop atleta-validator &>/dev/null || true
+    $sudo_cmd tee /etc/systemd/system/atleta-validator.service >/dev/null << EOF
+    [Unit]
+    Description=Atleta Validator Node Service
+    After=network.target
+
+    [Service]
+    Type=simple
+    ExecStart=/usr/local/bin/atleta-node --chain /opt/atleta/chain_spec.json --validator
+    Restart=on-failure
+    RestartSec=5m
+
+    [Install]
+    WantedBy=multi-user.target
+EOF
+    $sudo_cmd systemctl daemon-reload
+    $sudo_cmd systemctl enable atleta-validator
+    $sudo_cmd systemctl start atleta-validator
 else
     cat << EOF | $sudo_cmd tee /Library/LaunchDaemons/com.example.atleta-validator.plist >/dev/null
     <?xml version="1.0" encoding="UTF-8"?>
@@ -149,7 +163,14 @@ echo "Done!"
 echo
 
 if [[ $arch == "x86_64" ]]; then
-    $sudo_cmd systemctl stop atleta-validator &>/dev/null || true
+    cat << EOF
+        Your node is now running. Useful commands:
+        	Check status: $sudo_cmd systemctl status atleta-validator
+        	Stop: $sudo_cmd systemctl stop atleta-validator
+        	Start: $sudo_cmd systemctl start atleta-validator
+        	Logs: $sudo_cmd journalctl -u atleta-validator
+        Node data is stored in /opt/atleta/data.
+EOF
 else
     cat << EOF
     Your node is now running. Useful commands:
