@@ -1,6 +1,7 @@
 #!/bin/bash
 
 sudo_cmd=""
+files_path=""
 chain_spec=""
 keychain_exists=""
 session_keys=""
@@ -19,28 +20,48 @@ else
 fi
 
 echo "Detecting your architecture... "
-arch=$(uname -m)
-if [ "$arch" != "x86_64" -a "$arch" != "arm64" ]; then
-	echo "$arch is currently not supported by Atleta Node, only x86_64 or arm64 are supported. Exiting." >&2
+operating_system=$(uname -s)
+if [ "$operating_system" != "Linux" -a "$operating_system" != "Darwin" ]; then
+	echo "$operating_system is currently not supported by Atleta Node, only Linux or Darwin are supported. Exiting." >&2
 	exit 1
 else
-	echo "OK ($arch)"
+	echo "OK ($operating_system)"
 fi
 
-chain_spec_exists=0
+if [[ $arch == "Linux" ]]; then
+  echo -n "Checking for systemd... "
+  if [ -e /run/systemd/system ]; then
+  	echo "OK"
+  else
+  	echo "FAIL"
+  	echo "No systemd detected. Exiting." >&2
+  	exit 1
+  fi
+fi
+
+if ! command -v jq &>/dev/null || \
+! command -v curl &>/dev/null
+then
+	echo "You need to install some dependencies before continuing:"
+	echo "  jq curl"
+	exit 1
+fi
+
 while [ "$chain_spec" == "" ]; do
     echo "Available networks: "
-    i=0
     echo "1) Devnet"
     echo "2) Testnet"
-    echo "Select network for your running node: "
-    read choice < /dev/tty
+    echo "3) Mainnet"
+    read -p "Select network for your running node: " choice
     case $choice in
         1)
-            chain_spec="dev"
+            chain_spec="devnet"
             ;;
         2)
             chain_spec="testnet"
+            ;;
+        3)
+            chain_spec="mainnet"
             ;;
         *)
             echo "Invalid choice. Please select a right number."
@@ -49,17 +70,39 @@ while [ "$chain_spec" == "" ]; do
     esac
 done
 
-echo "Your choose is: $chain_spec network."
+echo "Your choice is: $chain_spec network."
 
-if [ "$(ls -A /opt/atleta/data/chains &>/dev/null)" ]; then
+while [ -z "$files_path" ]; do
+    read -p "Enter the path where you want to store at least a few gigabytes of data (or press Enter to use the standard $HOME/atleta/chain directory): " files_path
+
+    if [ -z "$files_path" ]; then
+        files_path="$HOME/atleta/chain"
+        $sudo_cmd mkdir -p "$files_path"
+        $sudo_cmd chmod -R 777 "$files_path"
+        echo "Standard directory selected: $files_path"
+    else
+        files_path="$HOME/$files_path"
+        $sudo_cmd mkdir -p "$files_path"
+        $sudo_cmd chmod -R 777 "$files_path"
+    fi
+
+    if [ -w "$files_path" ]; then
+        echo "The directory exists and you have write permissions."
+    else
+        echo "You do not have write permission to the specified directory. Please select another directory."
+        files_path=""
+    fi
+done
+
+if [ "$(ls -A $files_path/chains &>/dev/null)" ]; then
 	keychain_exists=1
 else
 	keychain_exists=0
 fi
 
 echo "Everything's ready. Tasks:"
-echo "  [X] Download atleta-node -> /usr/local/bin/atleta-node"
-echo "  [X] Download $chain_spec network chain spec -> /opt/atleta/chain_spec.json"
+echo "  [X] Download atleta-node -> ~/.config/atleta/atleta-node"
+echo "  [X] Download $chain_spec network chain spec -> ~/.config/atleta/chain_spec.$chain_spec.json"
 if [ $keychain_exists -eq 0 ]; then
 	echo "  [X] Generate new session keys and store them in node"
 else
@@ -69,25 +112,25 @@ echo "Press Enter to continue or Ctrl-C to cancel."
 read < /dev/tty
 
 echo "Create directories..."
-$sudo_cmd mkdir -p /opt/atleta/ /usr/local/bin/
+$sudo_cmd mkdir -p ~/.config/atleta/
 echo "Stop old node if it's running..."
 
 #Check status of process
-if [[ $arch == "x86_64" ]]; then
+if [[ $arch == "Linux" ]]; then
     $sudo_cmd systemctl stop atleta-validator &>/dev/null || true
 else
     $sudo_cmd launchctl unload /Library/LaunchDaemons/com.example.atleta-validator.plist || true
 fi
 
 echo "Download binary..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/atleta-node -o /usr/local/bin/atleta-node
+$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/atleta-node -o ~/.config/atleta/atleta-node
 $sudo_cmd chmod +x /usr/local/bin/atleta-node
 echo "Download chain spec..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/$chain_spec-chain-spec.json -o /opt/atleta/chain_spec.json
+$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/chain_spec.$chain_spec.json -o ~/.config/atleta/chain_spec.$chain_spec.json
 
 echo "Generate atleta-validator.service..."
 
-if [[ $arch == "x86_64" ]]; then
+if [[ $arch == "Linux" ]]; then
     $sudo_cmd tee /etc/systemd/system/atleta-validator.service >/dev/null << EOF
     [Unit]
     Description=Atleta Validator Node Service
@@ -95,7 +138,7 @@ if [[ $arch == "x86_64" ]]; then
 
     [Service]
     Type=simple
-    ExecStart=/usr/local/bin/atleta-node --chain /opt/atleta/chain_spec.json --validator
+    ExecStart=~/.config/atleta/atleta-node --base-path $files_path --chain ~/.config/atleta/chain_spec.$chain_spec.json --validator
     Restart=on-failure
     RestartSec=5m
 
@@ -114,13 +157,15 @@ else
         <key>Label</key>
         <string>com.example.atleta-validator</string>
         <key>Program</key>
-        <string>/usr/local/bin/atleta-node</string>
+        <string>~/.config/atleta/atleta-node</string>
         <key>ProgramArguments</key>
         <array>
-            <string>/usr/local/bin/atleta-node</string>
+            <string>~/.config/atleta/atleta-node</string>
             <string>--chain</string>
-            <string>/opt/atleta/chain_spec.json</string>
+            <string>~/.config/atleta/chain_spec.$chain_spec.json</string>
             <string>--validator</string>
+            <string>--base-path</string>
+            <string>$files_path</string>
         </array>
         <key>StandardErrorPath</key>
         <string>/var/log/atleta-validator.log</string>
@@ -152,7 +197,7 @@ if [ $keychain_exists -eq 0 ]; then
 		fi
 		sleep 5
 		set +e
-		session_keys=$(wscat -c ws://127.0.0.1:9944 -x '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys", "params":[]}' 2>/dev/null | jq -r .result)
+		session_keys=$(curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys"}' http://127.0.0.1:9944/ 2>/dev/null | jq -r .result)
 		(( i++ ))
 		set -e
 	done
@@ -162,7 +207,7 @@ fi
 echo "Done!"
 echo
 
-if [[ $arch == "x86_64" ]]; then
+if [[ $arch == "Linux" ]]; then
     cat << EOF
         Your node is now running. Useful commands:
         	Check status: $sudo_cmd systemctl status atleta-validator
