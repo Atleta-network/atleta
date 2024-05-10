@@ -87,7 +87,7 @@ while [ -z "$files_path" ]; do
         echo "Standard directory selected: $files_path"
     else
         files_path="$HOME/$files_path"
-        binary_path="/usr/local/bin"
+        binary_path="/usr/local"
         $sudo_cmd mkdir -p "$files_path"
         $sudo_cmd chmod -R 777 "$files_path"
     fi
@@ -107,8 +107,8 @@ else
 fi
 
 echo "Everything's ready. Tasks:"
-echo "  [X] Download atleta-node -> $binary_path/atleta-node"
-echo "  [X] Download $chain_spec_name network chain spec -> $binary_path/chain_spec.$chain_spec_name.json"
+echo "  [X] Download atleta-node -> $binary_path/bin/atleta-node"
+echo "  [X] Download $chain_spec_name network chain spec -> $binary_path/etc/chain_spec.$chain_spec_name.json"
 if [ $keychain_exists -eq 0 ]; then
     echo "  [X] Generate new session keys and store them in node"
 else
@@ -118,7 +118,7 @@ echo "Press Enter to continue or Ctrl-C to cancel."
 read < /dev/tty
 
 echo "Create directories..."
-$sudo_cmd mkdir -p $binary_path
+$sudo_cmd mkdir -p "$binary_path/bin" "$binary_path/etc"
 echo "Stop old node if it's running..."
 
 #Check status of process
@@ -129,10 +129,10 @@ else
 fi
 
 echo "Download binary..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/atleta-node -o $binary_path/atleta-node
-$sudo_cmd chmod +x $binary_path/atleta-node
+$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/atleta-node -o "$binary_path/bin/atleta-node"
+$sudo_cmd chmod +x "$binary_path/bin/atleta-node"
 echo "Download chain spec..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/chain_spec.$chain_spec_name.json -o $binary_path/chain_spec.$chain_spec_name.json
+$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/chain_spec.$chain_spec_name.json -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
 
 echo "Generate atleta-validator.service..."
 
@@ -144,7 +144,7 @@ if [[ $operating_system == "Linux" ]]; then
 
     [Service]
     Type=simple
-    ExecStart=$binary_path/atleta-node --base-path $files_path --chain $binary_path/chain_spec.$chain_spec_name.json --validator
+    ExecStart=$binary_path/bin/atleta-node --base-path $files_path --chain $binary_path/etc/chain_spec.$chain_spec_name.json --validator
     Restart=on-failure
     RestartSec=5m
 
@@ -163,12 +163,12 @@ else
         <key>Label</key>
         <string>com.example.atleta-validator</string>
         <key>Program</key>
-        <string>$binary_path/atleta-node</string>
+        <string>$binary_path/bin/atleta-node</string>
         <key>ProgramArguments</key>
         <array>
-            <string>$binary_path/atleta-node</string>
+            <string>$binary_path/bin/atleta-node</string>
             <string>--chain</string>
-            <string>$binary_path/chain_spec.$chain_spec_name.json</string>
+            <string>$binary_path/etc/chain_spec.$chain_spec_name.json</string>
             <string>--validator</string>
             <string>--base-path</string>
             <string>$files_path</string>
