@@ -10,42 +10,42 @@ binary_path=""
 echo "This script will setup a Atleta Validator on your PC. Press Ctrl-C at any time to cancel."
 echo "Checking privileges... "
 if [ $(id -u) -eq 0 ]; then
-	echo "OK (root)"
+    echo "OK (root)"
 elif command -v sudo &> /dev/null; then
-	echo "OK (sudo)"
-	sudo_cmd=sudo
+    echo "OK (sudo)"
+    sudo_cmd=sudo
 else
-	echo "FAIL"
-	echo "Not running as root and no sudo detected. Please run this as root or configure sudo. Exiting." >&2
-	exit 1
+    echo "FAIL"
+    echo "Not running as root and no sudo detected. Please run this as root or configure sudo. Exiting." >&2
+    exit 1
 fi
 
 echo "Detecting your architecture... "
 operating_system=$(uname -s)
 if [ "$operating_system" != "Linux" -a "$operating_system" != "Darwin" ]; then
-	echo "$operating_system is currently not supported by Atleta Node, only Linux or Darwin are supported. Exiting." >&2
-	exit 1
+    echo "$operating_system is currently not supported by Atleta Node, only Linux or Darwin are supported. Exiting." >&2
+    exit 1
 else
-	echo "OK ($operating_system)"
+    echo "OK ($operating_system)"
 fi
 
 if [[ $operating_system == "Linux" ]]; then
-  echo -n "Checking for systemd... "
-  if [ -e /run/systemd/system ]; then
-  	echo "OK"
-  else
-  	echo "FAIL"
-  	echo "No systemd detected. Exiting." >&2
-  	exit 1
-  fi
+    echo -n "Checking for systemd... "
+    if [ -e /run/systemd/system ]; then
+        echo "OK"
+    else
+        echo "FAIL"
+        echo "No systemd detected. Exiting." >&2
+        exit 1
+    fi
 fi
 
 if ! command -v jq &>/dev/null || \
-! command -v curl &>/dev/null
+    ! command -v curl &>/dev/null
 then
-	echo "You need to install some dependencies before continuing:"
-	echo "  jq curl"
-	exit 1
+    echo "You need to install some dependencies before continuing:"
+    echo "  jq curl"
+    exit 1
 fi
 
 while [ "$chain_spec_name" == "" ]; do
@@ -98,18 +98,18 @@ while [ -z "$files_path" ]; do
 done
 
 if [ "$(ls -A $files_path/chains &>/dev/null)" ]; then
-	keychain_exists=1
+    keychain_exists=1
 else
-	keychain_exists=0
+    keychain_exists=0
 fi
 
 echo "Everything's ready. Tasks:"
 echo "  [X] Download atleta-node -> $binary_path/atleta-node"
 echo "  [X] Download $chain_spec_name network chain spec -> ~/.config/atleta/chain_spec.$chain_spec_name.json"
 if [ $keychain_exists -eq 0 ]; then
-	echo "  [X] Generate new session keys and store them in node"
+    echo "  [X] Generate new session keys and store them in node"
 else
-	echo "  [ ] Data dir already exists, so session keys won't be regenerated."
+    echo "  [ ] Data dir already exists, so session keys won't be regenerated."
 fi
 echo "Press Enter to continue or Ctrl-C to cancel."
 read < /dev/tty
@@ -148,9 +148,9 @@ if [[ $operating_system == "Linux" ]]; then
     [Install]
     WantedBy=multi-user.target
 EOF
-    $sudo_cmd systemctl daemon-reload
-    $sudo_cmd systemctl enable atleta-validator
-    $sudo_cmd systemctl start atleta-validator
+$sudo_cmd systemctl daemon-reload
+$sudo_cmd systemctl enable atleta-validator
+$sudo_cmd systemctl start atleta-validator
 else
     cat << EOF | $sudo_cmd tee /Library/LaunchDaemons/com.example.atleta-validator.plist >/dev/null
     <?xml version="1.0" encoding="UTF-8"?>
@@ -182,29 +182,29 @@ else
     </dict>
     </plist>
 EOF
-    $sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
-    $sudo_cmd launchctl start com.example.atleta-validator
+$sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
+$sudo_cmd launchctl start com.example.atleta-validator
 fi
 
 echo "Atleta validator node was started successfully."
 
 if [ $keychain_exists -eq 0 ]; then
-	echo "Waiting for node to start to generate session keys (up to 5 minutes)..."
-	i=0
-	while [ -z "$session_keys" ]; do
-		echo "Waiting..."
-		if [ $i -gt 60 ]; then
-			echo
-			echo "Node didn't start after 5 minutes." >&2
-			exit 1
-		fi
-		sleep 5
-		set +e
-		session_keys=$(curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys"}' http://127.0.0.1:9944/ 2>/dev/null | jq -r .result)
-		(( i++ ))
-		set -e
-	done
-	echo
+    echo "Waiting for node to start to generate session keys (up to 5 minutes)..."
+    i=0
+    while [ -z "$session_keys" ]; do
+        echo "Waiting..."
+        if [ $i -gt 60 ]; then
+            echo
+            echo "Node didn't start after 5 minutes." >&2
+            exit 1
+        fi
+        sleep 5
+        set +e
+        session_keys=$(curl -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "author_rotateKeys"}' http://127.0.0.1:9944/ 2>/dev/null | jq -r .result)
+        (( i++ ))
+        set -e
+    done
+    echo
 fi
 
 echo "Done!"
@@ -213,23 +213,23 @@ echo
 if [[ $operating_system == "Linux" ]]; then
     cat << EOF
         Your node is now running. Useful commands:
-        	Check status: $sudo_cmd systemctl status atleta-validator
-        	Stop: $sudo_cmd systemctl stop atleta-validator
-        	Start: $sudo_cmd systemctl start atleta-validator
-        	Logs: $sudo_cmd journalctl -u atleta-validator
+            Check status: $sudo_cmd systemctl status atleta-validator
+            Stop: $sudo_cmd systemctl stop atleta-validator
+            Start: $sudo_cmd systemctl start atleta-validator
+            Logs: $sudo_cmd journalctl -u atleta-validator
         Node data is stored in $files_path.
 EOF
 else
     cat << EOF
     Your node is now running. Useful commands:
-    	Check status: $sudo_cmd launchctl list | grep com.example.atleta-validator
-    	Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.example.atleta-validator.plist
-    	Start: $sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
-    	Logs: cat /var/log/atleta-validator.log
+        Check status: $sudo_cmd launchctl list | grep com.example.atleta-validator
+        Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.example.atleta-validator.plist
+        Start: $sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
+        Logs: cat /var/log/atleta-validator.log
     Node data is stored in $files_path.
 EOF
 fi
 
 if [ $keychain_exists -eq 0 ]; then
-	echo Session keys for your node: $session_keys
+    echo Session keys for your node: $session_keys
 fi
