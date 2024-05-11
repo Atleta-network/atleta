@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+set -ex
+
+scripts=$(dirname "$(readlink -f "$0")")
+
+session='atla/devnet'
+
+launch() {
+    tmux new-session -d -s $session
+
+    tmux new-window -t $session
+
+    # tmux select-window -t $session:0
+    tmux rename-window -t $session:0 'Alice node'
+    tmux send-keys -t $session:0 "${scripts}/alice" C-m
+
+    tmux select-window -t $session:1
+    tmux rename-window -t $session:1 'Bob node'
+    tmux send-keys -t $session:1 "${scripts}/bob" C-m
+
+    tmux attach-session -t $session
+}
+
+
+terminate() {
+    tmux kill-session -t $session
+}
+
+usage() {
+    echo "devnet run | kill"
+}
+
+case $1 in
+    run)
+        launch ;;
+    kill)
+        terminate ;;
+    *)
+        if [ $# == 0 ]; then
+            usage
+            exit 0
+        fi
+        echo "unknown command $1"
+        exit 1 ;;
+esac
+
+

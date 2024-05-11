@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# runs alice validator and bootnode
+
+cargo run -- \
+    --chain dev \
+    --force-authoring \
+    --rpc-cors=all \
+    --tmp \
+    --alice \
+    --node-key 0000000000000000000000000000000000000000000000000000000000000001
+

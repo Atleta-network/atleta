@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+# runs bob validator
+
+cargo run -- \
+    --chain dev \
+    --force-authoring \
+    --rpc-cors=all \
+    --tmp \
+    --port 30334 \
+    --bob \
+    --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
