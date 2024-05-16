@@ -250,7 +250,6 @@ else
     Your node is now running. Useful commands:
         Check status: $sudo_cmd launchctl list | grep com.atleta.node
         Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.atleta.node.plist
-        Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.atleta.node.plist
         Start: $sudo_cmd launchctl load /Library/LaunchDaemons/com.atleta.node.plist
         Logs: cat /var/log/atleta-validator.log
     Node data is stored in $base_path.
