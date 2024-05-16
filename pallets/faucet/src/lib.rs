@@ -34,7 +34,7 @@ type BalanceOf<T> =
 #[frame_support::pallet]
 pub mod pallet {
     use super::*;
-    use frame_support::pallet_prelude::*;
+    use frame_support::pallet_prelude::{TransactionValidity, *};
     use frame_support::traits::ExistenceRequirement;
     use frame_system::pallet_prelude::*;
 
@@ -157,6 +157,21 @@ pub mod pallet {
             Self::deposit_event(Event::FundsSent { who, amount });
 
             Ok(())
+        }
+    }
+
+    #[pallet::validate_unsigned]
+    impl<T: Config> ValidateUnsigned for Pallet<T> {
+        type Call = Call<T>;
+
+        fn validate_unsigned(_source: TransactionSource, call: &Self::Call) -> TransactionValidity {
+            match call {
+                Call::request_funds { who, amount } => ValidTransaction::with_tag_prefix("Faucet")
+                    .and_provides((who, amount))
+                    .propagate(true)
+                    .build(),
+                _ => InvalidTransaction::Call.into(),
+            }
         }
     }
 }
