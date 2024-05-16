@@ -1,18 +1,34 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# Script for installing Atleta node automatically on Linux/MacOS.
+# Example usage:
+#     curl -sSL https://raw.githubusercontent.com/Atleta-network/atleta/bugfix/build-envs/scripts/run_validator_node.sh | bash
 
 set -ue
 set -o pipefail
 
+# The path where the node files will be saved.
+base_path=""
 sudo_cmd=""
-files_path=""
 chain_spec_name=""
 keychain_exists=""
 session_keys=""
-binary_path=""
+release_version=""
+binary_path="/opt/atleta"
+binary_url=""
 
 echo "This script will setup a Atleta Validator on your PC. Press Ctrl-C at any time to cancel."
+echo "Detecting your architecture... "
+operating_system=$(uname -s)
+if [ "$operating_system" != "Linux" ] && [ "$operating_system" != "Darwin" ]; then
+    echo "$operating_system is currently not supported by Atleta Node, only Linux or Darwin are supported. Exiting." >&2
+    exit 1
+else
+    echo "OK ($operating_system)"
+fi
+
 echo "Checking privileges... "
-if [ $(id -u) -eq 0 ]; then
+if [ "$(id -u)" -eq 0 ]; then
     echo "OK (root)"
 elif command -v sudo &> /dev/null; then
     echo "OK (sudo)"
@@ -21,15 +37,6 @@ else
     echo "FAIL"
     echo "Not running as root and no sudo detected. Please run this as root or configure sudo. Exiting." >&2
     exit 1
-fi
-
-echo "Detecting your architecture... "
-operating_system=$(uname -s)
-if [ "$operating_system" != "Linux" -a "$operating_system" != "Darwin" ]; then
-    echo "$operating_system is currently not supported by Atleta Node, only Linux or Darwin are supported. Exiting." >&2
-    exit 1
-else
-    echo "OK ($operating_system)"
 fi
 
 if [[ $operating_system == "Linux" ]]; then
@@ -43,20 +50,31 @@ if [[ $operating_system == "Linux" ]]; then
     fi
 fi
 
-if ! command -v jq &>/dev/null || \
-    ! command -v curl &>/dev/null
-then
-    echo "You need to install some dependencies before continuing:"
-    echo "  jq curl"
+# Check for the 'jq' command
+if ! command -v jq &>/dev/null; then
+    echo "'jq' is not installed. Please install jq to continue."
     exit 1
 fi
+
+# Check for the 'curl' command
+if ! command -v curl &>/dev/null; then
+    echo "'curl' is not installed. Please install curl to continue."
+    exit 1
+fi
+
+echo -n "Fetching release info... "
+release_version=$(mktemp)
+curl -Ls https://api.github.com/repos/Atleta-network/atleta/releases/latest -o $release_version
+echo "OK ($(jq -r .name < $release_version))"
+
+echo "All required dependencies are installed."
 
 while [ "$chain_spec_name" == "" ]; do
     echo "Available networks: "
     echo "1) Devnet"
     echo "2) Testnet"
     echo "3) Mainnet"
-    read -p "Select network for your running node: " choice
+    read -r -p "Select network for your running node: " choice
     case $choice in
         1)
             chain_spec_name="devnet"
@@ -76,31 +94,29 @@ done
 
 echo "Your choice is: $chain_spec_name network."
 
-while [ -z "$files_path" ]; do
-    read -p "Enter the path where you want to store at least a few gigabytes of data (or press Enter to use the standard $HOME/atleta/chain directory): " files_path
+while [ -z "$base_path" ]; do
+    read -r -p "Enter the path where you want to store at least a few gigabytes of data (or press Enter to use the standard $HOME/atleta/chain directory): " base_path
 
-    if [ -z "$files_path" ]; then
-        files_path="$HOME/atleta/chain"
-        binary_path="/opt/atleta"
-        $sudo_cmd mkdir -p "$files_path"
-        $sudo_cmd chmod -R 777 "$files_path"
-        echo "Standard directory selected: $files_path"
+    if [ -z "$base_path" ]; then
+        base_path="$HOME/atleta/chain"
+        mkdir -p "$base_path"
+        chmod -R a=rwx "$base_path"
+        echo "Standard directory selected: $base_path"
     else
-        files_path="$HOME/$files_path"
-        binary_path="/usr/local"
-        $sudo_cmd mkdir -p "$files_path"
-        $sudo_cmd chmod -R 777 "$files_path"
+        base_path="$HOME/$base_path"
+        mkdir -p "$base_path"
+        chmod -R a=rwx "$base_path"
     fi
 
-    if [ -w "$files_path" ]; then
+    if [ -w "$base_path" ]; then
         echo "The directory exists and you have write permissions."
     else
         echo "You do not have write permission to the specified directory. Please select another directory."
-        files_path=""
+        base_path=""
     fi
 done
 
-if [ "$(ls -A $files_path/chains &>/dev/null)" ]; then
+if [ "$(ls -A "$base_path/chains" &>/dev/null)" ]; then
     keychain_exists=1
 else
     keychain_exists=0
@@ -115,7 +131,7 @@ else
     echo "  [ ] Data dir already exists, so session keys won't be regenerated."
 fi
 echo "Press Enter to continue or Ctrl-C to cancel."
-read < /dev/tty
+read -r < /dev/tty
 
 echo "Create directories..."
 $sudo_cmd mkdir -p "$binary_path/bin" "$binary_path/etc"
@@ -125,14 +141,21 @@ echo "Stop old node if it's running..."
 if [[ $operating_system == "Linux" ]]; then
     $sudo_cmd systemctl stop atleta-validator &>/dev/null || true
 else
-    $sudo_cmd launchctl unload /Library/LaunchDaemons/com.example.atleta-validator.plist || true
+    $sudo_cmd launchctl unload /Library/LaunchDaemons/com.atleta.node.plist || true
 fi
 
 echo "Download binary..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/atleta-node -o "$binary_path/bin/atleta-node"
+
+if [[ $operating_system == "Linux" ]]; then
+    binary_url="linux_build"
+else
+    binary_url="macos_build"
+fi
+
+$sudo_cmd curl -sSL "https://github.com/Atleta-network/atleta/releases/download/$(jq -r .name < release_version)/$binary_url" -o "$binary_path/bin/atleta-node"
 $sudo_cmd chmod +x "$binary_path/bin/atleta-node"
 echo "Download chain spec..."
-$sudo_cmd curl -sSL https://github.com/Atleta-network/atleta/releases/download/v1.0.0/chain_spec.$chain_spec_name.json -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
+$sudo_cmd curl -sSL "https://github.com/Atleta-network/atleta/releases/download/$(jq -r .name < release_version)/chain-spec.$chain_spec_name.json" -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
 
 echo "Generate atleta-validator.service..."
 
@@ -144,7 +167,7 @@ if [[ $operating_system == "Linux" ]]; then
 
     [Service]
     Type=simple
-    ExecStart=$binary_path/bin/atleta-node --base-path $files_path --chain $binary_path/etc/chain_spec.$chain_spec_name.json --validator
+    ExecStart=$binary_path/bin/atleta-node --base-path $base_path --chain $binary_path/etc/chain_spec.$chain_spec_name.json --validator
     Restart=on-failure
     RestartSec=5m
 
@@ -155,13 +178,13 @@ $sudo_cmd systemctl daemon-reload
 $sudo_cmd systemctl enable atleta-validator
 $sudo_cmd systemctl start atleta-validator
 else
-    cat << EOF | $sudo_cmd tee /Library/LaunchDaemons/com.example.atleta-validator.plist >/dev/null
+    cat << EOF | $sudo_cmd tee /Library/LaunchDaemons/com.atleta.node.plist >/dev/null
     <?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
     <plist version="1.0">
     <dict>
         <key>Label</key>
-        <string>com.example.atleta-validator</string>
+        <string>com.atleta.node</string>
         <key>Program</key>
         <string>$binary_path/bin/atleta-node</string>
         <key>ProgramArguments</key>
@@ -171,7 +194,7 @@ else
             <string>$binary_path/etc/chain_spec.$chain_spec_name.json</string>
             <string>--validator</string>
             <string>--base-path</string>
-            <string>$files_path</string>
+            <string>$base_path</string>
         </array>
         <key>StandardErrorPath</key>
         <string>/var/log/atleta-validator.log</string>
@@ -185,8 +208,8 @@ else
     </dict>
     </plist>
 EOF
-$sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
-$sudo_cmd launchctl start com.example.atleta-validator
+$sudo_cmd launchctl load /Library/LaunchDaemons/com.atleta.node.plist
+$sudo_cmd launchctl start com.atleta.node
 fi
 
 echo "Atleta validator node was started successfully."
@@ -220,19 +243,20 @@ if [[ $operating_system == "Linux" ]]; then
             Stop: $sudo_cmd systemctl stop atleta-validator
             Start: $sudo_cmd systemctl start atleta-validator
             Logs: $sudo_cmd journalctl -u atleta-validator
-        Node data is stored in $files_path.
+        Node data is stored in $base_path.
 EOF
 else
     cat << EOF
     Your node is now running. Useful commands:
-        Check status: $sudo_cmd launchctl list | grep com.example.atleta-validator
-        Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.example.atleta-validator.plist
-        Start: $sudo_cmd launchctl load /Library/LaunchDaemons/com.example.atleta-validator.plist
+        Check status: $sudo_cmd launchctl list | grep com.atleta.node
+        Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.atleta.node.plist
+        Stop: $sudo_cmd launchctl unload /Library/LaunchDaemons/com.atleta.node.plist
+        Start: $sudo_cmd launchctl load /Library/LaunchDaemons/com.atleta.node.plist
         Logs: cat /var/log/atleta-validator.log
-    Node data is stored in $files_path.
+    Node data is stored in $base_path.
 EOF
 fi
 
 if [ $keychain_exists -eq 0 ]; then
-    echo Session keys for your node: $session_keys
+    echo Session keys for your node: "$session_keys"
 fi
