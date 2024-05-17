@@ -84,6 +84,7 @@ pallet-evm-chain-id = { workspace = true }
 pallet-evm-precompile-modexp = { workspace = true }
 pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
+pallet-evm-precompile-dispatch = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
 
 pallet-faucet = { workspace = true }
@@ -160,13 +161,14 @@ std = [
     "pallet-base-fee/std",
     "pallet-dynamic-fee/std",
     "pallet-ethereum/std",
-    "pallet-evm/std",
     "pallet-evm-chain-id/std",
+    "pallet-evm-precompile-dispatch/std",
     "pallet-evm-precompile-modexp/std",
     "pallet-evm-precompile-sha3fips/std",
     "pallet-evm-precompile-simple/std",
-    "pallet-hotfix-sufficients/std",
+    "pallet-evm/std",
     "pallet-faucet/std",
+    "pallet-hotfix-sufficients/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

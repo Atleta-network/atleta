@@ -225,7 +225,7 @@ parameter_types! {
         })
         .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
         .build_or_panic();
-    pub const SS58Prefix: u16 = 2340;
+    pub const SS58Prefix: u16 = 1603;
 }
 
 // Configure FRAME pallets to include in runtime.
