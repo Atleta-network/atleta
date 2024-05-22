@@ -1,6 +1,6 @@
 # Atleta Network
 
-The porject is built on a [frontier template](https://github.com/PureStake/frontier) —
+The project is built on a [frontier template](https://github.com/PureStake/frontier) —
 [FRAME](https://docs.substrate.io/v3/runtime/frame)-based
 [Substrate](https://substrate.io) node with the Ethereum RPC support, ready for
 hacking :rocket:
