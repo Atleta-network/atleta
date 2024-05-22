@@ -7,9 +7,9 @@ services:
     restart: always
     volumes:
       - ./chain-data/archive:/chain-data
-      - ./chain-spec.json:/app/spec.json
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain /app/spec.json
+      --chain /chainspec.json
       --base-path /chain-data
       --name "dev-archive"
       --rpc-port 9944
@@ -34,9 +34,9 @@ services:
       - archive_node
     volumes:
       - ./chain-data/alice:/chain-data
-      - ./chain-spec.json:/app/spec.json
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain /app/spec.json
+      --chain /chainspec.json
       --base-path /chain-data
       --alice
       --validator
@@ -55,9 +55,9 @@ services:
       - archive_node
     volumes:
       - ./chain-data/bob:/chain-data
-      - ./chain-spec.json:/app/spec.json
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain /app/spec.json
+      --chain /chainspec.json
       --base-path /chain-data
       --bob
       --allow-private-ipv4
