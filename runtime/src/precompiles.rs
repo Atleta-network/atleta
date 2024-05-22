@@ -78,6 +78,7 @@ impl DispatchValidateT<AccountId, RuntimeCall> for DispatchCallFilter {
         ) {
             None
         } else if info.pays_fee == Pays::No || info.class == DispatchClass::Mandatory {
+            // forbid feeless and heavy calls to prevent spaming
             Some(fp_evm::PrecompileFailure::Error {
                 exit_status: ExitError::Other("Permission denied calls".into()),
             })
