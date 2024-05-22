@@ -85,7 +85,7 @@ pub fn testnet_config() -> ChainSpec {
     use testnet_keys::*;
 
     ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
-        .with_name("Testnet")
+        .with_name("Olympia")
         .with_id("testnet")
         .with_chain_type(ChainType::Custom("Testnet".to_string()))
         .with_properties(properties())
