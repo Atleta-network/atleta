@@ -7,19 +7,22 @@ services:
     restart: always
     volumes:
       - ./chain-data/archive:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain dev
+      --chain /chainspec.json
       --base-path /chain-data
       --name "dev-archive"
-      --port 30333
       --rpc-port 9944
       --unsafe-rpc-external
       --prometheus-external
       --node-key 0000000000000000000000000000000000000000000000000000000000000001
       --rpc-cors all
+      --allow-private-ipv4
+      --listen-addr /ip4/0.0.0.0/tcp/30333
       --state-pruning archive
     ports:
       - "0.0.0.0:9944:9944/tcp"
+      - "0.0.0.0:30333:30333/tcp"
     networks:
       - sportchain-node-network
 
@@ -31,11 +34,15 @@ services:
       - archive_node
     volumes:
       - ./chain-data/alice:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain dev
+      --chain /chainspec.json
       --base-path /chain-data
       --alice
       --validator
+      --allow-private-ipv4
+      --port 30333
+      --rpc-port 9944
       --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
     networks:
       - sportchain-node-network
@@ -48,16 +55,18 @@ services:
       - archive_node
     volumes:
       - ./chain-data/bob:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain dev
+      --chain /chainspec.json
       --base-path /chain-data
       --bob
+      --allow-private-ipv4
       --validator
+      --port 30333
+      --rpc-port 9944
       --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
     networks:
       - sportchain-node-network
-
-
 
 networks:
   sportchain-node-network:
