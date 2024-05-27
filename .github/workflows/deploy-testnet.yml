@@ -55,6 +55,7 @@ jobs:
         scp deploy/testnet/run.sh ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/run.sh
         scp deploy/testnet/nginx.conf ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/nginx.conf
         scp deploy/testnet.keys.env ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/testnet.keys.env
+        scp chainspecs/chain-spec.testnet.yaml ${{ secrets.TESTNET_USERNAME}}@${{ secrets.TESTNET_HOST }}:/sportchain/chainspec.json
 
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
