@@ -7,8 +7,9 @@ services:
     container_name: sportchain-bootnode
     volumes:
       - ./chain-data/bootnode:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain testnet
+      --chain /chainspec.json
       --base-path /chain-data
       --node-key 66d0f50a1293fb0e042b409ae0715b8e82bb6d01528e164c6694fa6fc876d585
       --name bootnode
@@ -28,8 +29,9 @@ services:
       - bootnode
     volumes:
       - ./chain-data/archive:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain testnet
+      --chain /chainspec.json
       --base-path /chain-data
       --name "testnet-archive"
       --rpc-port 9944
@@ -51,8 +53,9 @@ services:
       - archive_node
     volumes:
       - ./chain-data/diego:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain testnet
+      --chain /chainspec.json
       --base-path /chain-data
       --force-authoring
       --rpc-port 9944
@@ -75,8 +78,9 @@ services:
       - archive_node
     volumes:
       - ./chain-data/pele:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain testnet
+      --chain /chainspec.json
       --base-path /chain-data
       --force-authoring
       --rpc-port 9944
@@ -99,8 +103,9 @@ services:
       - archive_node
     volumes:
       - ./chain-data/franz:/chain-data
+      - ./chainspec.json:/chainspec.json
     command: >
-      --chain testnet
+      --chain /chainspec.json
       --base-path /chain-data
       --force-authoring
       --rpc-port 9944
