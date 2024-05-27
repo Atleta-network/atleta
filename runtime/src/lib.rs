@@ -762,12 +762,12 @@ impl pallet_session::historical::Config for Runtime {
 
 // Democracy
 parameter_types! {
-    pub const LaunchPeriod: BlockNumber = 8 * 60 * MINUTES;
-    pub const VotingPeriod: BlockNumber = 8 * 60 * MINUTES;
-    pub const FastTrackVotingPeriod: BlockNumber = 2 * 60 * MINUTES;
+    pub const LaunchPeriod: BlockNumber = 8 * HOURS;
+    pub const VotingPeriod: BlockNumber = 8 * HOURS;
+    pub const FastTrackVotingPeriod: BlockNumber = 2 * HOURS;
     pub const MinimumDeposit: Balance = 100 * DOLLARS;
-    pub const EnactmentPeriod: BlockNumber = 60 * MINUTES;
-    pub const CooloffPeriod: BlockNumber = 60 * MINUTES;
+    pub const EnactmentPeriod: BlockNumber = HOURS;
+    pub const CooloffPeriod: BlockNumber = HOURS;
     pub const MaxProposals: u32 = 100;
 }
 
