@@ -30,4 +30,4 @@ jobs:
     - name: Check format
       run: cargo fmt -- --check
     - name: Clippy checks
-      run: cargo clippy -- -D warnings
+      run: cargo clippy --all-targets -- --deny warnings
