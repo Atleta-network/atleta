@@ -17,6 +17,7 @@ RUN apt update -y && \
     libclang-dev \
     protobuf-compiler \
     jq \
+    ntp \
     libpq-dev
 
 RUN rustup target add wasm32-unknown-unknown
