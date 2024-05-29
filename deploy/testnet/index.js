@@ -26,18 +26,19 @@ async function main() {
     const setKeysTx = api.tx.session.setKeys(sessionKeys.toHex(), '');
 
     // Sign and send the transaction
-    const unsub = await setKeysTx.signAndSend(validator, (result) => {
+    const unsub = await setKeysTx.signAndSend(validator, async (result) => {
         console.log(`Current status: ${result.status}`);
 
         if (result.status.isInBlock) {
             console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
             unsub();
+            await api.disconnect();
         } else if (result.status.isFinalized) {
             console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
             unsub();
+            await api.disconnect();
         }
     });
-    await api.disconnect();
 }
 
 main().catch(console.error);
