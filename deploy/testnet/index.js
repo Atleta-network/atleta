@@ -26,17 +26,12 @@ async function main() {
     const setKeysTx = api.tx.session.setKeys(sessionKeys.toHex(), '');
 
     // Sign and send the transaction
-<<<<<<< HEAD
     const unsub = await setKeysTx.signAndSend(validator, async (result) => {
-=======
-    const unsub = await setKeysTx.signAndSend(validator, (result) => {
->>>>>>> 695444d (Configure testnet deploy)
         console.log(`Current status: ${result.status}`);
 
         if (result.status.isInBlock) {
             console.log(`Transaction included at blockHash ${result.status.asInBlock}`);
             unsub();
-<<<<<<< HEAD
             await api.disconnect();
         } else if (result.status.isFinalized) {
             console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
@@ -44,14 +39,6 @@ async function main() {
             await api.disconnect();
         }
     });
-=======
-        } else if (result.status.isFinalized) {
-            console.log(`Transaction finalized at blockHash ${result.status.asFinalized}`);
-            unsub();
-        }
-    });
-    await api.disconnect();
->>>>>>> 695444d (Configure testnet deploy)
 }
 
 main().catch(console.error);
