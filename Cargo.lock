@@ -750,6 +750,7 @@ dependencies = [
  "pallet-im-online",
  "pallet-insecure-randomness-collective-flip",
  "pallet-membership",
+ "pallet-metamask",
  "pallet-nomination-pools",
  "pallet-nomination-pools-runtime-api",
  "pallet-offences",

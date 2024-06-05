@@ -1223,6 +1223,17 @@ impl pallet_base_fee::Config for Runtime {
     type DefaultElasticity = DefaultElasticity;
 }
 
+
+impl pallet_metamask::Config for Runtime {
+    type Sender = AccountId;
+    type Nonce = Nonce;
+
+    type RuntimeEvent = RuntimeEvent;
+    type RuntimeCall = RuntimeCall;
+    type WeightInfo = pallet_metamask::weights::MetamaskWeight<Self>;
+}
+
+
 // hotfix sufficients
 impl pallet_hotfix_sufficients::Config for Runtime {
     type AddressMapping = IdentityAddressMapping;
@@ -1268,6 +1279,7 @@ construct_runtime!(
         EVMChainId: pallet_evm_chain_id,
         DynamicFee: pallet_dynamic_fee,
         BaseFee: pallet_base_fee,
+        Metamask: pallet_metamask,
         HotfixSufficients: pallet_hotfix_sufficients,
         // Smart contracts
         RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,

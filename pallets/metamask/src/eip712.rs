@@ -1,10 +1,13 @@
-use sp_core::{ecdsa::Signature, H160, H256, U256};
-use sp_std as std;
+use sp_core::{H160, H256, U256};
+use sp_std::{mem, prelude::*, str, vec::Vec};
 
-type Bytes = Vec<u8>;
+const _: () = {
+    assert!(mem::size_of::<H256>() == 32);
+    assert!(mem::size_of::<U256>() == 32);
+};
 
-fn keccak_256(data: &[u8]) -> H256 {
-    H256::from_slice(&sp_core::keccak_256(data))
+fn keccak_256(data: impl AsRef<[u8]>) -> H256 {
+    H256::from_slice(&sp_io::hashing::keccak_256(data.as_ref()))
 }
 
 pub struct Member {
@@ -14,30 +17,39 @@ pub struct Member {
 
 pub trait Typeable {
     fn type_name() -> &'static str;
+    // NOTE: probably can't be const as member of optionals are omitted when is none
     fn members(&self) -> Vec<Member>;
 
-    fn encode_type(&self) -> Bytes {
-        let type_name = Self::type_name();
+    // TODO: append here recursive types definition
+    // https://eips.ethereum.org/EIPS/eip-712#definition-of-encodetype
+    fn encode_type(&self) -> Vec<u8> {
+        let mut bytes = Vec::new();
 
-        let members = self
-            .members()
-            .into_iter()
-            .map(|Member { name, type_ }| format!("{type_} {name}")) // TODO: de-alloc
-            .collect::<Vec<_>>()
-            .join(",");
+        // 'type'
+        bytes.extend_from_slice(Self::type_name().as_bytes());
 
-        // TODO: append here recursive types definition
-        // https://eips.ethereum.org/EIPS/eip-712#definition-of-encodetype
-        format!("{type_name}({members})").as_bytes().to_vec()
+        // 'type(name type,name type)'
+        bytes.push(b'(');
+        for (i, Member { name, type_ }) in self.members().into_iter().enumerate() {
+            if i > 0 {
+                bytes.push(b',');
+            }
+            bytes.extend_from_slice(type_.as_bytes());
+            bytes.push(b' ');
+            bytes.extend_from_slice(name.as_bytes());
+        }
+        bytes.push(b')');
+
+        bytes
     }
 }
 
 pub trait HashableStruct: Typeable {
-    fn encode_data(&self) -> Bytes;
+    fn encode_data(&self) -> Vec<u8>;
 
     fn hash_struct(&self) -> H256 {
         let encoded_type = self.encode_type();
-        let type_hash = keccak_256(&encoded_type);
+        let type_hash = keccak_256(encoded_type);
 
         let encoded_data = self.encode_data();
 
@@ -51,10 +63,10 @@ pub trait HashableStruct: Typeable {
 
 #[derive(Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-#[cfg_attr(test, serde(rename_all_fields = "camelCase"))]
+#[cfg_attr(test, serde(rename_all = "camelCase"))]
 pub struct Domain {
-    pub name: String,
-    pub version: String,
+    pub name: Vec<u8>,
+    pub version: Vec<u8>,
     pub chain_id: U256,
     pub verifying_contract: H160, // 0x0 for native or?
                                   // pub salt: Option<H256>,
@@ -75,11 +87,11 @@ impl Typeable for Domain {
 }
 
 impl HashableStruct for Domain {
-    fn encode_data(&self) -> Bytes {
+    fn encode_data(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(4 * 32); // TODO: members.len()
 
-        bytes.extend_from_slice(keccak_256(self.name.as_bytes()).as_bytes());
-        bytes.extend_from_slice(keccak_256(self.version.as_bytes()).as_bytes());
+        bytes.extend_from_slice(keccak_256(&self.name).as_bytes());
+        bytes.extend_from_slice(keccak_256(&self.version).as_bytes());
 
         let mut buf = [0u8; 32];
 
@@ -88,7 +100,7 @@ impl HashableStruct for Domain {
 
         buf.fill(0);
         buf[12..].copy_from_slice(self.verifying_contract.as_bytes());
-        bytes.extend_from_slice(&buf);
+        bytes.extend_from_slice(&buf[..]);
 
         bytes
     }
@@ -96,7 +108,7 @@ impl HashableStruct for Domain {
 
 #[derive(Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
-#[cfg_attr(test, serde(rename_all_fields = "camelCase"))]
+#[cfg_attr(test, serde(rename_all = "camelCase"))]
 pub struct Payload {
     pub sender: H160,
     pub nonce: U256,
@@ -117,7 +129,7 @@ impl Typeable for Payload {
 }
 
 impl HashableStruct for Payload {
-    fn encode_data(&self) -> Bytes {
+    fn encode_data(&self) -> Vec<u8> {
         let mut bytes = Vec::with_capacity(3 * 32);
 
         let mut buf = [0u8; 32];
@@ -155,11 +167,10 @@ impl<T> TypedData<T> {
         let domain_separator = self.domain.hash_struct();
         let message_hash = self.message.hash_struct();
 
-        const PRE: &'static [u8] = b"\x19\x01";
+        const PRE: &[u8] = b"\x19\x01";
 
-        let mut bytes = Vec::with_capacity(
-            PRE.len() + std::mem::size_of::<H256>() + std::mem::size_of::<H256>(),
-        );
+        let mut bytes =
+            Vec::with_capacity(PRE.len() + mem::size_of::<H256>() + mem::size_of::<H256>());
         bytes.extend_from_slice(PRE);
         bytes.extend_from_slice(domain_separator.as_bytes());
         bytes.extend_from_slice(message_hash.as_bytes());
@@ -168,75 +179,81 @@ impl<T> TypedData<T> {
     }
 }
 
-#[derive(Debug)]
-pub enum SignatureParseError {
-    InvalidFormat(String),
-    InvalidChars(std::str::Utf8Error),
-    InvalidHex(std::num::ParseIntError),
-}
-
-pub fn parse_signature(hex: &str) -> Result<Signature, SignatureParseError> {
-    if hex.len() != 132 {
-        return Err(SignatureParseError::InvalidFormat(hex.to_string()));
-    }
-    let sh = match hex.strip_prefix("0x") {
-        Some(sh) if sh.len() == 130 => sh,
-        _ => return Err(SignatureParseError::InvalidFormat(hex.to_string())),
-    };
-
-    let mut bytes = [0u8; 65]; // r: 32, s: 32, v: 1
-    for (i, chunk) in sh.as_bytes().chunks(2).enumerate() {
-        let s = std::str::from_utf8(chunk).map_err(SignatureParseError::InvalidChars)?;
-        bytes[i] = u8::from_str_radix(s, 16).map_err(SignatureParseError::InvalidHex)?;
-    }
-
-    Ok(Signature::from_raw(bytes))
-}
-
-pub fn recover(signature: Signature, data_hash: H256) -> Option<H160> {
-    let public = signature.recover_prehashed(data_hash.as_fixed_bytes())?;
-    let hash = sp_core::keccak_256(public.as_ref());
-    Some(H160::from_slice(&hash[12..]))
-}
-
 #[cfg(test)]
 mod tests {
-    use super::*;
-    use std::str::FromStr;
+    use super::{str::FromStr, *};
+
+    fn hex(bytes: impl AsRef<[u8]>) -> String {
+        use std::fmt::Write;
+        let bytes = bytes.as_ref();
+        let mut s = String::with_capacity(2 * bytes.len());
+        for b in bytes {
+            write!(&mut s, "{:02x}", b).expect("byte conversion");
+        }
+        assert_eq!(s.len(), bytes.len() * 2);
+        s
+    }
+
+    fn btos(bytes: impl AsRef<[u8]>) -> String {
+        str::from_utf8(bytes.as_ref()).expect("valid str repr").to_string()
+    }
 
     #[test]
-    fn it_works() {
+    fn it_matches_hashes() {
         let domain = Domain {
-            name: "ATLA".to_string(),
-            version: "1".to_string(),
+            name: b"ATLA".into(),
+            version: b"1".into(),
             chain_id: 1.into(),
             verifying_contract: H160::zero(),
         };
 
-        let sender = H160::from_str("0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC").unwrap();
-        let nonce = 1.into();
-        let call = vec![];
+        {
+            let t = domain.encode_type();
+            println!("domain type: {}", btos(&t));
+            println!("domain type hash: {}", hex(keccak_256(t)));
+            println!("domain data: {}", hex(domain.encode_data()));
+            println!("domain hash: {}", hex(domain.hash_struct()));
+        }
 
-        let call = Call { sender, nonce, call };
+        assert_eq!(
+            domain.hash_struct(),
+            H256::from_str("0xa5440927468f230d9b651709493ed582eb82abe21461b95d0e7dbc5932cac64f")
+                .expect("valid hash")
+        );
 
-        let typed_data = TypedData::new(domain, call);
+        let payload = Payload {
+            sender: H160::from_str("0xcccccccccccccccccccccccccccccccccccccccc").expect("address"),
+            nonce: 1.into(),
+            call: Vec::new(),
+        };
 
-        let message_hash = dbg!(typed_data).message_hash();
+        {
+            let t = payload.encode_type();
+            println!("payload type: {}", btos(&t));
+            println!("payload type hash: {}", hex(keccak_256(t)));
+            println!("payload data: {}", hex(payload.encode_data()));
+            println!("payload hash: {}", hex(payload.hash_struct()));
+        }
 
-        /*
-         * const accounts = await ethereum.enable();
-         *
-         */
-    }
+        let typed_data = dbg!(TypedData::new(domain, payload));
+        // TODO: populate with types for easy use of 'eth_signTypedData_v4'
+        // let json = serde_json::to_string(&typed_data).expect("json");
+        // println!("{}", json);
 
-    #[test]
-    fn it_signs_then_recovers() {
-        // TODO: sign the message used sp_core Pair
+        let message_hash = dbg!(typed_data.message_hash());
+        assert_eq!(
+            message_hash,
+            H256::from_str("0x7e972c35e3505118083e81f940180bc7433c78d67edc5a2685d39063464eff80")
+                .expect("hash")
+        );
     }
 
     #[test]
     #[ignore]
     fn it_signs_verifies_and_recovers_using_external_tools() {
+        // TODO: try one of this:
+        // - sign the message used `sp_core::Pair`
+        // - call `eth-sig-util` JS package
         unimplemented!("yet")
     }
 }

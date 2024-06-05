@@ -1,9 +1,10 @@
+#![allow(unused_imports, dead_code)]
+
 use super::*;
 use crate as metamask;
 use frame_support::derive_impl;
-// use sp_io;
 
-#[frame_support::pallet]
+#[frame_support::pallet(dev_mode)]
 pub mod logger {
     use frame_support::pallet_prelude::*;
     use frame_system::pallet_prelude::*;
@@ -20,9 +21,9 @@ pub mod logger {
     impl<T: Config> Pallet<T> {
         #[pallet::call_index(0)]
         #[pallet::weight(Weight::from(42_000))]
-        pub fn log_data(origin: OriginFor<T>, data: Vec<u8>) -> DispatchResult {
+        pub fn log(origin: OriginFor<T>, data: Vec<u8>) -> DispatchResult {
             let sender = ensure_signed(origin)?;
-            Self::deposit_event(Event::Logged { by: sender, data });
+            Self::deposit_event(Event::Log { signed_by: sender, data });
             Ok(())
         }
     }
@@ -30,15 +31,16 @@ pub mod logger {
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
-        Logged { by: T::AccountId, data: Vec<u8> },
+        Log { signed_by: T::AccountId, data: Vec<u8> },
     }
 }
 
 frame_support::construct_runtime!(
     pub enum TestRuntime {
         System: frame_system,
-        Metamask: metamask,
+        EVMChainId: pallet_evm_chain_id,
         Logger: logger,
+        Metamask: metamask,
     }
 );
 
@@ -47,13 +49,20 @@ type Block = frame_system::mocking::MockBlock<TestRuntime>;
 #[derive_impl(frame_system::config_preludes::TestDefaultConfig as frame_system::pallet::DefaultConfig)]
 impl frame_system::Config for TestRuntime {
     type Block = Block;
+    type AccountId = sp_core::H160;
+    type Lookup = sp_runtime::traits::IdentityLookup<sp_core::H160>;
 }
+
+impl pallet_evm_chain_id::Config for TestRuntime {}
 
 impl logger::Config for TestRuntime {
     type RuntimeEvent = RuntimeEvent;
 }
 
 impl Config for TestRuntime {
+    type Sender = <Self as frame_system::Config>::AccountId;
+    type Nonce = <Self as frame_system::Config>::Nonce;
+
     type RuntimeEvent = RuntimeEvent;
     type RuntimeCall = RuntimeCall;
     type WeightInfo = ();

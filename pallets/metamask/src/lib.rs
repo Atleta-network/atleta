@@ -1,6 +1,14 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{dispatch::GetDispatchInfo, traits::UnfilteredDispatchable};
+use frame_support::{
+    crypto::ecdsa::ECDSAExt, dispatch::GetDispatchInfo, traits::UnfilteredDispatchable,
+};
+use sp_core::{
+    ecdsa::{Public, Signature},
+    H160, H256,
+};
+use sp_io::crypto::secp256k1_ecdsa_recover_compressed;
+use sp_std::{boxed::Box, vec::Vec};
 
 #[cfg(test)]
 mod mock;
@@ -51,7 +59,7 @@ pub mod pallet {
             _: OriginFor<T>,
             sender: <T as Config>::Sender,
             nonce: <T as Config>::Nonce, // sender nonce, part of signed data to prevent replay attack
-            signature: String,           // 'eth_signTypedData_v4' result
+            signature: Vec<u8>,          // 'eth_signTypedData_v4' result
             call: Box<<T as Config>::RuntimeCall>,
         ) -> DispatchResultWithPostInfo {
             // TODO: mess with the nonce: synch check with `validate_unsigned` and increment
@@ -63,8 +71,8 @@ pub mod pallet {
                 let nonce: sp_core::U256 = nonce.into();
 
                 let domain = Domain {
-                    name: "ATLA".to_string(),
-                    version: "1".to_string(),
+                    name: b"ATLA".into(),
+                    version: b"1".into(),
                     chain_id: chain_id.into(),
                     verifying_contract: sp_core::H160::zero(),
                 };
@@ -74,10 +82,11 @@ pub mod pallet {
 
                 let hash = typed_data.message_hash();
 
-                let signature = eip712::parse_signature(&signature)
-                    .map_err(|_| Error::<T>::SigntatureParseErr)?;
+                let signature =
+                    parse_signature(&signature).map_err(|_| Error::<T>::BadSignatureFormat)?;
 
-                let origin = eip712::recover(signature, hash).ok_or(Error::<T>::UnableToRecover)?;
+                let origin = recover_signer_address(signature, hash)
+                    .map_err(|_| Error::<T>::EcdsaRecoverErr)?;
 
                 frame_support::ensure!(sender == origin, Error::<T>::SignerMismath);
             }
@@ -101,8 +110,8 @@ pub mod pallet {
 
     #[pallet::error]
     pub enum Error<T> {
-        SigntatureParseErr,
-        UnableToRecover,
+        BadSignatureFormat,
+        EcdsaRecoverErr,
         SignerMismath,
     }
 
@@ -131,4 +140,45 @@ pub mod pallet {
             }
         }
     }
+}
+
+#[derive(Debug)]
+pub struct SignatureParseError;
+
+pub fn parse_signature(hex: &[u8]) -> Result<Signature, SignatureParseError> {
+    use sp_std::str;
+
+    if hex.len() != 132 {
+        return Err(SignatureParseError);
+    }
+    let sh = match hex.strip_prefix(b"0x") {
+        Some(sh) if sh.len() == 130 => sh,
+        _ => return Err(SignatureParseError),
+    };
+
+    let mut bytes = [0u8; 65]; // r: 32, s: 32, v: 1
+    for (i, chunk) in sh.chunks(2).enumerate() {
+        let s = str::from_utf8(chunk).map_err(|_| SignatureParseError)?;
+        bytes[i] = u8::from_str_radix(s, 16).map_err(|_| SignatureParseError)?;
+    }
+
+    Ok(Signature::from_raw(bytes))
+}
+
+#[derive(Debug)]
+pub struct SignerRecoverError;
+
+pub fn recover_signer_address(
+    signature: Signature,
+    hash: H256,
+) -> Result<H160, SignerRecoverError> {
+    secp256k1_ecdsa_recover_compressed(signature.as_ref(), hash.as_fixed_bytes())
+        .map(Public)
+        .and_then(|pubkey| {
+            pubkey
+                .to_eth_address()
+                .map(H160)
+                .map_err(|_| panic!("Public to H160 identity conversion must exists"))
+        })
+        .map_err(|_| SignerRecoverError)
 }
