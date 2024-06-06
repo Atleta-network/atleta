@@ -132,7 +132,7 @@ fi
 $sudo_cmd curl -sSL "https://github.com/Atleta-network/atleta/releases/download/$(jq -r .name < release_version)/$binary_url" -o "$binary_path/bin/atleta-node"
 $sudo_cmd chmod +x "$binary_path/bin/atleta-node"
 echo "Download chain spec..."
-$sudo_cmd curl -sSL ".$chain_spec_name.json" -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
+$sudo_cmd curl -sSL "https://raw.githubusercontent.com/Atleta-network/atleta/testnet/chainspecs/chain-spec.$chain_spec_name.json" -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
 
 echo "Generate atleta-validator.service..."
 
