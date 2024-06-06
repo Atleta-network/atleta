@@ -10,7 +10,7 @@ set -o pipefail
 # The path where the node files will be saved.
 base_path=""
 sudo_cmd=""
-chain_spec_name=""
+chain_spec_name="testnet"
 keychain_exists=""
 session_keys=""
 release_version=""
@@ -68,29 +68,6 @@ curl -Ls https://api.github.com/repos/Atleta-network/atleta/releases/latest -o $
 echo "OK ($(jq -r .name < $release_version))"
 
 echo "All required dependencies are installed."
-
-while [ "$chain_spec_name" == "" ]; do
-    echo "Available networks: "
-    echo "1) Devnet"
-    echo "2) Testnet"
-    echo "3) Mainnet"
-    read -r -p "Select network for your running node: " choice
-    case $choice in
-        1)
-            chain_spec_name="devnet"
-            ;;
-        2)
-            chain_spec_name="testnet"
-            ;;
-        3)
-            chain_spec_name="mainnet"
-            ;;
-        *)
-            echo "Invalid choice. Please select a right number."
-            continue
-            ;;
-    esac
-done
 
 echo "Your choice is: $chain_spec_name network."
 
@@ -155,7 +132,7 @@ fi
 $sudo_cmd curl -sSL "https://github.com/Atleta-network/atleta/releases/download/$(jq -r .name < release_version)/$binary_url" -o "$binary_path/bin/atleta-node"
 $sudo_cmd chmod +x "$binary_path/bin/atleta-node"
 echo "Download chain spec..."
-$sudo_cmd curl -sSL "https://github.com/Atleta-network/atleta/releases/download/$(jq -r .name < release_version)/chain-spec.$chain_spec_name.json" -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
+$sudo_cmd curl -sSL ".$chain_spec_name.json" -o "$binary_path/etc/chain_spec.$chain_spec_name.json"
 
 echo "Generate atleta-validator.service..."
 
