@@ -161,6 +161,18 @@ jobs:
             user_key: VALIDATOR_7_USER
             priv_key_key: VALIDATOR_7_PRIV_KEY
 
+          - host_key: VALIDATOR_8_HOST
+            user_key: VALIDATOR_8_USER
+            priv_key_key: VALIDATOR_8_PRIV_KEY
+
+          - host_key: VALIDATOR_9_HOST
+            user_key: VALIDATOR_9_USER
+            priv_key_key: VALIDATOR_9_PRIV_KEY
+
+          - host_key: VALIDATOR_10_HOST
+            user_key: VALIDATOR_10_USER
+            priv_key_key: VALIDATOR_10_PRIV_KEY
+
     steps:
     - uses: actions/checkout@v3
       with:
@@ -175,18 +187,6 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         eval $(ssh-agent)
         ssh-add ~/.ssh/id_rsa
-
-    - name: Ensure target directory exists and set permissions
-      uses: appleboy/ssh-action@v1.0.0
-      with:
-        host: ${{ secrets[matrix.host_key] }}
-        username: ${{ secrets[matrix.user_key] }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          mkdir -p ~/atleta
-          sudo chmod 777 ~/atleta
-          touch ~/atleta/test
-          echo "it's working" >> ~/atleta/test
 
     - name: Generate config.env
       run: |
