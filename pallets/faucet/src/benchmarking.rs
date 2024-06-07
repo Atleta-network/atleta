@@ -15,8 +15,9 @@ mod benchmarks {
     fn request_funds() {
         let amount = 100u32.into();
         let caller: T::AccountId = whitelisted_caller();
+        let who: T::AccountId = caller.clone();
         #[extrinsic_call]
-        request_funds(RawOrigin::Signed(caller.clone()), amount);
+        request_funds(RawOrigin::Signed(caller.clone()), who, amount);
 
         assert!(Requests::<T>::contains_key(&caller));
     }

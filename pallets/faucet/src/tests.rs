@@ -6,9 +6,9 @@ fn faucet_works() {
     ExtBuilder::default().build_and_execute(|| {
         let balance = 200;
         let receiver = 1;
-        assert_eq!(Balances::free_balance(&receiver), 0);
+        assert_eq!(Balances::free_balance(receiver), 0);
         assert_ok!(Faucet::request_funds(RuntimeOrigin::none(), receiver, balance));
-        assert_eq!(Balances::free_balance(&receiver), balance);
+        assert_eq!(Balances::free_balance(receiver), balance);
     })
 }
 
