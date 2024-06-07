@@ -5,7 +5,8 @@
     "main": "index.js",
     "type": "module",
     "scripts": {
-        "start": "node index.js"
+        "set_keys": "node set_session_keys.js",
+        "validate": "node validate.js"
     },
     "author": "",
     "license": "ISC",

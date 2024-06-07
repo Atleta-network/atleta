@@ -1,7 +1,7 @@
 #!/bin/bash
 # Runs a validator node:
 #
-# 1. Starts the archive node;
+# 1. Starts an archive node;
 # 2. Adds session keys;
 
 # expects files in the same directory:
@@ -34,7 +34,7 @@ maybe_cleanup() {
         docker stop $container_name
     fi
 
-    if [ "$(docker ps -aq -f status=exited -f name=$container_name)" ]; then
+    if [ "$(docker ps -aq -f name=$container_name)" ]; then
         echo "Removing existing container..."
         docker rm $container_name
     fi
@@ -44,15 +44,17 @@ start_node() {
     echo "Starting the validator node..."
     docker run -d --name "$container_name" \
         -v "$chainspec":"/chainspec.json" \
+        -v "$(pwd)/chain-data":"/chain-data" \
         -p 30333:30333 \
         -p 9944:9944 \
         --platform linux/amd64 \
+        --restart always \
         "$DOCKER_IMAGE" \
         --chain "/chainspec.json" \
         --validator \
         --name "Atleta Validator" \
         --bootnodes "$BOOTNODE_ADDRESS" \
-        --base-path ./chain-data \
+        --base-path /chain-data \
         --rpc-port 9944 \
         --unsafe-rpc-external \
         --rpc-methods=Unsafe \
@@ -60,7 +62,10 @@ start_node() {
         --rpc-cors all \
         --allow-private-ipv4 \
         --listen-addr /ip4/0.0.0.0/tcp/30333 \
-        --state-pruning archive
+        --state-pruning archive \
+        --log warn \
+        --enable-log-reloading \
+        --rpc-max-connections 10000
 }
 
 wait_availability() {
@@ -95,4 +100,11 @@ start_node
 wait_availability
 
 # the rest is done via js
-npm i && npm start
+
+# FIXME: it doesn't work via CD.
+# I don't know why yet, but the script always fails via CD, while working when
+# you run it manually on the server.
+
+# npm i 
+# npm run set_keys
+# npm run validate

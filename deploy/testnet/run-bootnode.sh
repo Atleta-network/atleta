@@ -47,9 +47,10 @@ start_node() {
     echo "Starting the validator node..."
     docker run -d --name "$container_name" \
         -v "$chainspec":"/chainspec.json" \
-        -v "./chain-data":"/chain-data" \
+        -v "$(pwd)/chain-data":"/chain-data" \
         -p 30333:30333 \
         --platform linux/amd64 \
+        --restart always \
         "$docker_image" \
         --chain "/chainspec.json" \
         --name "Atleta Bootnode" \

@@ -36,3 +36,24 @@ scripts are located.
 > the chainspec. Thus the accounts should be prefunded with enough balance to
 > become validators. And you need to run a dedicated script to prepare
 > everything. Also, the validators should be nominated afterwards.
+
+
+
+
+## Deployment
+
+The workflow is defined in `.github/workflows/deploy-testnet.yml`.
+
+The predefined validators are deployed on a single server. The job is called
+`deploy_technical_validators`.
+
+The each of the rest of the validators is deployed on a dedicated server. The
+job is called `deploy_validators`.
+
+While the setup of the session keys is automated for the technical
+validators, we manually run a script `set_session_keys.js` (`npm run set_keys`) to
+add them for the normal validators. Also, we manually run script `validate.js`
+(`npm run validate`) to start being a validator. Luckily, it should be done only
+once in normal circumstances. And the validators should be updated via `setCode`
+in the feature. But anyway, we should improve this workflow and automate what's
+currently done manually.

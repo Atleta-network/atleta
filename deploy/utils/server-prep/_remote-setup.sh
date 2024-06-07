@@ -1,15 +1,9 @@
 #!/bin/bash
 
 disable_password() {
-    {
-        echo "PasswordAuthentication no"
-        echo "ChallengeResponseAuthentication no"
-        echo "PubkeyAuthentication yes"
-        echo "UsePAM yes"
-        echo "PermitRootLogin prohibit-password"
-    } >>/etc/ssh/sshd_config
-    sudo systemctl reload ssh
-    sudo systemctl restart ssh
+    sed -i -E 's/#?PasswordAuthentication (yes|no)/PasswordAuthentication no/' /etc/ssh/sshd_config
+    sudo systemctl reload sshd
+    sudo systemctl restart sshd
 }
 
 install_docker() {
@@ -20,6 +14,7 @@ install_docker() {
     sudo apt-get update
     sudo apt-get install -y docker-ce
     sudo usermod -aG docker "$USER"
+    sudo systemctl start docker
     sudo systemctl enable docker
 
     echo "Docker installation completed."
@@ -32,6 +27,11 @@ install_nodejs() {
     sudo apt install nodejs
 }
 
+prepare_directory_structure() {
+    sudo mkdir -p ~/atleta
+}
+
 disable_password
 install_docker
 install_nodejs
+prepare_directory_structure
