@@ -11,6 +11,80 @@
 - Sign _message :: { sender, nonce: senderNonce, call: callData }_ -> _signature_
 - Send unsigned extrinsic to pallet with _[\_, sender, nonce, signature, call]_
 
+## Debug using JS
+
+Install required dependencies:
+```shell
+yarn install @metamask/eth-sig-util
+yarn install ethereum-cryptography
+yarn install @ethereumjs/util
+```
+
+Run it as interactive `node` script (`.load <file.js>`):
+```js
+const fs = require('fs');
+const ethSigUtil = require('@metamask/eth-sig-util');
+const { secp256k1 } = await import("ethereum-cryptography/secp256k1.js");
+const { Address, ecrecover, bytesToHex, hexToBytes } = await import("@ethereumjs/util");
+
+const privateKey = secp256k1.utils.randomPrivateKey();
+const publicKey = secp256k1.getPublicKey(privateKey);
+
+const address = Address.fromPrivateKey(privateKey);
+const data = JSON.parse(fs.readFileSync('Payload.json'));
+const version = ethSigUtil.SignTypedDataVersion['V4'];
+
+console.log('Domain hash: ', bytesToHex(ethSigUtil.TypedDataUtils.eip712DomainHash(data, version)));
+console.log('EIP-712 hash:', bytesToHex(ethSigUtil.TypedDataUtils.eip712Hash(data, version)));
+
+const signature = ethSigUtil.signTypedData({ data, privateKey, version });
+const recovered = ethSigUtil.recoverTypedSignature({ data, signature, version });
+
+if (recovered == address.toString()) {
+    console.log('recovered address matches origin');
+} else {
+    console.error('recovered address mismathes origin');
+    process.exit(1);
+}
+
+console.log('PrivateKey:', bytesToHex(privateKey));
+console.log('Address:', address.toString());
+console.log('Signature:', signature);
+```
+
+Here the example of `Payload.json`:
+```json
+{
+  "types": {
+    "EIP712Domain": [
+      { "name": "name",              "type": "string"  },
+      { "name": "version",           "type": "string"  },
+      { "name": "chainId",           "type": "uint256" },
+      { "name": "verifyingContract", "type": "address" }
+    ],
+    "Payload": [
+        { "name": "sender", "type": "address" },
+        { "name": "nonce",  "type": "uint256" },
+        { "name": "call",   "type": "bytes"   }
+    ]
+  },
+
+  "primaryType": "Payload",
+  "domain": {
+    "name": "ATLA",
+    "version": "1",
+    "chainId": 1,
+    "verifyingContract": "0x0000000000000000000000000000000000000000"
+  },
+
+  "message": {
+    "sender": "0xcccccccccccccccccccccccccccccccccccccccc",
+    "nonce": "0x1",
+    "call": ""
+  }
+}
+```
+
 
 [1]: https://eips.ethereum.org/EIPS/eip-712 'EIP-712'
 [2]: https://docs.substrate.io/reference/scale-codec/ 'SCALE'
