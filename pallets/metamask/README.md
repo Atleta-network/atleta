@@ -11,6 +11,12 @@
 - Sign _message :: { sender, nonce: senderNonce, call: callData }_ -> _signature_
 - Send unsigned extrinsic to pallet with _[\_, sender, nonce, signature, call]_
 
+## TODO to complete
+- Increment Nonce
+- Weights Benchmarks
+- Share secret (mnemonic) between Metamask and tests to simplify flow
+- derive macros for struct (macro_rules! { field: Type as EthAbiType, + })
+
 ## Debug using JS
 
 Install required dependencies:
