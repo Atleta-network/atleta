@@ -67,7 +67,8 @@ pub mod pallet {
 
             {
                 let sender: sp_core::H160 = sender.clone().into();
-                let call = call.encode();
+                let call = call.encode(); // SCALE
+                let call = bs58::encode(call).as_cb58(None).into_vec();
                 let nonce: sp_core::U256 = nonce.into();
 
                 let domain = Domain {

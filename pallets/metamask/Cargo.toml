@@ -19,6 +19,7 @@ sp-runtime = { workspace = true }
 scale-info = { workspace = true }
 parity-scale-codec = { workspace = true }
 pallet-evm-chain-id = { workspace = true }
+bs58 = { version = "0.5.1", default-features = false, features = ["cb58"] }
 
 frame-benchmarking = { workspace = true, optional = true }
 
