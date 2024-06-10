@@ -1223,7 +1223,6 @@ impl pallet_base_fee::Config for Runtime {
     type DefaultElasticity = DefaultElasticity;
 }
 
-
 impl pallet_metamask::Config for Runtime {
     type Sender = AccountId;
     type Nonce = Nonce;
@@ -1232,7 +1231,6 @@ impl pallet_metamask::Config for Runtime {
     type RuntimeCall = RuntimeCall;
     type WeightInfo = pallet_metamask::weights::MetamaskWeight<Self>;
 }
-
 
 // hotfix sufficients
 impl pallet_hotfix_sufficients::Config for Runtime {
