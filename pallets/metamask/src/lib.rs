@@ -18,7 +18,7 @@ mod tests;
 pub mod weights;
 pub use weights::WeightInfo;
 
-mod eip712;
+pub mod eip712;
 use eip712::{Domain, Payload, TypedData};
 
 pub use pallet::*;
@@ -31,17 +31,22 @@ pub mod pallet {
 
     #[pallet::config(with_default)]
     pub trait Config: frame_system::Config + pallet_evm_chain_id::Config {
+        /// The sender type (requires identity conversion into runtime AccountId and ECDSA address).
         type Sender: Parameter + Into<sp_core::H160> + Into<Self::AccountId>;
+        /// The sender account nonce.
         type Nonce: Parameter + Into<sp_core::U256> + PartialEq;
 
+        /// The type of events defined by pallet.
         #[pallet::no_default_bounds]
         type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
+        /// The type of dispatchable runtime call.
         #[pallet::no_default_bounds]
         type RuntimeCall: Parameter
             + UnfilteredDispatchable<RuntimeOrigin = Self::RuntimeOrigin>
             + GetDispatchInfo;
 
+        /// Type representing the weight of this pallet.
         type WeightInfo: WeightInfo;
     }
 
@@ -50,6 +55,12 @@ pub mod pallet {
 
     #[pallet::call]
     impl<T: Config> Pallet<T> {
+        /// Dispatches `call` as signed by `sender`.
+        /// * `_` - Origin is unused as unsigned calls are allowed.
+        /// * `sender` - Sender and expected signer of `signature`.
+        /// * `nonce` - Sender account nonce, part of signed data to preven replay attack.
+        /// * `signature` - Signature, `eth_signTypedData_v4` result
+        /// * `call` - Dispatchable call.
         #[pallet::call_index(0)]
         #[pallet::weight({
             let dispatch_info = call.get_dispatch_info();
@@ -58,8 +69,8 @@ pub mod pallet {
         pub fn signed_call(
             _: OriginFor<T>,
             sender: <T as Config>::Sender,
-            nonce: <T as Config>::Nonce, // sender nonce, part of signed data to prevent replay attack
-            signature: Vec<u8>,          // 'eth_signTypedData_v4' result
+            nonce: <T as Config>::Nonce,
+            signature: Vec<u8>,
             call: Box<<T as Config>::RuntimeCall>,
         ) -> DispatchResultWithPostInfo {
             // TODO: mess with the nonce: synch check with `validate_unsigned` and increment
@@ -87,9 +98,9 @@ pub mod pallet {
                     parse_signature(&signature).map_err(|_| Error::<T>::BadSignatureFormat)?;
 
                 let origin = recover_signer_address(signature, hash)
-                    .map_err(|_| Error::<T>::EcdsaRecoverErr)?;
+                    .map_err(|_| Error::<T>::EcdsaRecoverFailed)?;
 
-                frame_support::ensure!(sender == origin, Error::<T>::SignerMismath);
+                frame_support::ensure!(sender == origin, Error::<T>::SignerMismatch);
             }
 
             let signer: <T as frame_system::Config>::AccountId = sender.into();
@@ -106,14 +117,18 @@ pub mod pallet {
     #[pallet::event]
     #[pallet::generate_deposit(pub(super) fn deposit_event)]
     pub enum Event<T: Config> {
+        /// The call was authorized and return `call_result`.
         Authorized { signed_by: T::AccountId, call_result: DispatchResult },
     }
 
     #[pallet::error]
     pub enum Error<T> {
+        /// Unable to parse signature.
         BadSignatureFormat,
-        EcdsaRecoverErr,
-        SignerMismath,
+        /// Unable to recover signer origin from `(signature, data_hash)` pair
+        EcdsaRecoverFailed,
+        /// Signer address mismatches recovered one from `(signature, data_hash)` pair
+        SignerMismatch,
     }
 
     #[pallet::validate_unsigned]

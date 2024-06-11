@@ -10,18 +10,21 @@ fn keccak_256(data: impl AsRef<[u8]>) -> H256 {
     H256::from_slice(&sp_io::hashing::keccak_256(data.as_ref()))
 }
 
+/// Reflection of type members
 pub struct Member {
-    name: &'static str,
-    type_: &'static str,
+    pub name: &'static str,
+    pub type_: &'static str,
 }
 
+/// Type info used for construct
+/// [encodeType](https://eips.ethereum.org/EIPS/eip-712#definition-of-encodetype)
 pub trait Typeable {
     fn type_name() -> &'static str;
-    // NOTE: probably can't be const as member of optionals are omitted when is none
+
+    // NOTE: probably can't be const as optionals are omitted when is none
     fn members(&self) -> Vec<Member>;
 
     // TODO: append here recursive types definition
-    // https://eips.ethereum.org/EIPS/eip-712#definition-of-encodetype
     fn encode_type(&self) -> Vec<u8> {
         let mut bytes = Vec::new();
 
@@ -44,9 +47,13 @@ pub trait Typeable {
     }
 }
 
+/// Extension of [Typeable]
+/// to construct [hashStruct](HashableStruct::hash_struct)
 pub trait HashableStruct: Typeable {
+    /// [encodeData](https://eips.ethereum.org/EIPS/eip-712#definition-of-encodedata)
     fn encode_data(&self) -> Vec<u8>;
 
+    /// [hashStruct](https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct)
     fn hash_struct(&self) -> H256 {
         let encoded_type = self.encode_type();
         let type_hash = keccak_256(encoded_type);
@@ -61,6 +68,8 @@ pub trait HashableStruct: Typeable {
     }
 }
 
+/// `EIP712Domain` type, also knowns as
+/// [domainSeparator](https://eips.ethereum.org/EIPS/eip-712#definition-of-domainseparator)
 #[derive(Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 #[cfg_attr(test, serde(rename_all = "camelCase"))]
@@ -68,8 +77,8 @@ pub struct Domain {
     pub name: Vec<u8>,
     pub version: Vec<u8>,
     pub chain_id: U256,
-    pub verifying_contract: H160, // 0x0 for native or?
-                                  // pub salt: Option<H256>,
+    pub verifying_contract: H160,
+    // pub salt: Option<H256>,
 }
 
 impl Typeable for Domain {
@@ -106,12 +115,17 @@ impl HashableStruct for Domain {
     }
 }
 
+/// Typed structured data,
+/// `message` field of [typed data](https://eips.ethereum.org/EIPS/eip-712#specification-of-the-eth_signtypeddata-json-rpc)
 #[derive(Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 #[cfg_attr(test, serde(rename_all = "camelCase"))]
 pub struct Payload {
+    /// Who signs the message
     pub sender: H160,
+    /// Account nonce
     pub nonce: U256,
+    /// Dispatch call encoded as bytes (BS58 . SCALE)
     pub call: Vec<u8>,
 }
 
@@ -146,12 +160,13 @@ impl HashableStruct for Payload {
     }
 }
 
+/// The whole `TypedData` type.
 #[derive(Debug)]
 #[cfg_attr(test, derive(serde::Serialize))]
 pub struct TypedData<T> {
-    // pub types: Vec<(&'static str, Vec<Member>)>,
-    // pub primary_type: &'static str,
+    /// EIP712Domain
     pub domain: Domain,
+    /// Payload
     pub message: T,
 }
 
@@ -160,6 +175,7 @@ impl<T> TypedData<T> {
         Self { domain, message }
     }
 
+    /// <https://eips.ethereum.org/EIPS/eip-712#definition-of-hashstruct>
     pub fn message_hash(&self) -> H256
     where
         T: HashableStruct,
