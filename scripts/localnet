@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+
+# runs local testnet (for devnet you can just `cargo run -- --dev`)
+
+set -ue
+
+scripts=$(dirname "$(readlink -f "$0")")
+root="${scripts}/.."
+logs=$(mktemp --directory)
+
+init() {
+    pushd "$root" >/dev/null
+    cargo build --release
+    bin="$(pwd)/target/release/atleta-node"
+    popd >/dev/null
+}
+
+# alice is validator and bootnode
+alice() {
+    "$bin" \
+        --chain local \
+        --force-authoring \
+        --rpc-cors=all \
+        --tmp \
+        --alice \
+        --node-key 0000000000000000000000000000000000000000000000000000000000000001 \
+        >"${logs}/alice" 2>&1 &
+    echo $!
+}
+
+# bob is just validator
+bob() {
+    "$bin" \
+        --chain local \
+        --force-authoring \
+        --rpc-cors=all \
+        --tmp \
+        --bob \
+        --port 30334 \
+        --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp \
+        >"${logs}/bob" 2>&1 &
+    echo $!
+}
+
+
+init
+pid_alice=$(alice)
+pid_bob=$(bob)
+
+
+handle_sigint() {
+    kill "$pid_alice" || echo "Ignored alice PID: $pid_alice"
+    kill "$pid_bob" || echo "Ignored bob PID: $pid_bob"
+    rm -rf "$logs"
+}
+
+trap 'handle_sigint' SIGINT
+
+
+tail -f "${logs}/alice" "${logs}/bob"
+
