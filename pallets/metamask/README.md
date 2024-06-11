@@ -21,9 +21,7 @@
 
 Install required dependencies:
 ```shell
-yarn install @metamask/eth-sig-util
-yarn install ethereum-cryptography
-yarn install @ethereumjs/util
+yarn install @metamask/eth-sig-util ethereum-cryptography @ethereumjs/util
 ```
 
 Run it as interactive `node` script (`.load <file.js>`):
