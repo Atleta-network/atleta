@@ -57,7 +57,7 @@ start_node() {
         --base-path /chain-data \
         --rpc-port 9944 \
         --unsafe-rpc-external \
-        --rpc-methods=Unsafe \
+        --rpc-methods=safe \
         --prometheus-external \
         --rpc-cors all \
         --allow-private-ipv4 \

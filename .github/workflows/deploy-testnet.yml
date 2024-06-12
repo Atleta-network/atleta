@@ -173,6 +173,30 @@ jobs:
             user_key: VALIDATOR_10_USER
             priv_key_key: VALIDATOR_10_PRIV_KEY
 
+          - host_key: VALIDATOR_11_HOST
+            user_key: VALIDATOR_11_USER
+            priv_key_key: VALIDATOR_11_PRIV_KEY
+
+          - host_key: VALIDATOR_12_HOST
+            user_key: VALIDATOR_12_USER
+            priv_key_key: VALIDATOR_12_PRIV_KEY
+
+          - host_key: VALIDATOR_13_HOST
+            user_key: VALIDATOR_13_USER
+            priv_key_key: VALIDATOR_13_PRIV_KEY
+
+          - host_key: VALIDATOR_14_HOST
+            user_key: VALIDATOR_14_USER
+            priv_key_key: VALIDATOR_14_PRIV_KEY
+
+          - host_key: VALIDATOR_15_HOST
+            user_key: VALIDATOR_15_USER
+            priv_key_key: VALIDATOR_15_PRIV_KEY
+
+          - host_key: VALIDATOR_16_HOST
+            user_key: VALIDATOR_16_USER
+            priv_key_key: VALIDATOR_16_PRIV_KEY
+
     steps:
     - uses: actions/checkout@v3
       with:

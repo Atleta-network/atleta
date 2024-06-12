@@ -14,6 +14,7 @@ services:
       --name "dev-archive"
       --rpc-port 9944
       --unsafe-rpc-external
+      --rpc-methods=safe
       --prometheus-external
       --node-key 0000000000000000000000000000000000000000000000000000000000000001
       --rpc-cors all

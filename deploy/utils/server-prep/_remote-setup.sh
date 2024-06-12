@@ -28,7 +28,8 @@ install_nodejs() {
 }
 
 prepare_directory_structure() {
-    sudo mkdir -p ~/atleta
+    sudo mkdir -p "/home/$USER/atleta"
+    sudo chmod 777 "/home/$USER/atleta"
 }
 
 disable_password

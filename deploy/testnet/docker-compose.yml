@@ -36,6 +36,7 @@ services:
       --name "testnet-archive"
       --rpc-port 9944
       --unsafe-rpc-external
+      --rpc-methods=safe
       --prometheus-external
       --rpc-cors all
       --state-pruning archive
