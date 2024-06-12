@@ -37,4 +37,4 @@ jobs:
         cargo metadata --format-version=1 --no-deps \
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
-          | xargs -I _ cargo clippy --package _ --all-targets --all-features -- --deny warnings
+          | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
