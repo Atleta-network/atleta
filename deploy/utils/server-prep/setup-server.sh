@@ -16,7 +16,7 @@ check_args() {
 
 usage() {
     echo "Usage: ./setup-server.sh <priv_key> <user_host>"
-    printf "\t<priv_key>   private ssh key to use\n"
+    printf "\t<priv_key>  private ssh key to use\n"
     printf "\t<user_host> user@host to connect to\n"
 }
 
