@@ -1036,6 +1036,27 @@ impl pallet_staking::Config for Runtime {
     type BenchmarkingConfig = StakingBenchmarkingConfig;
 }
 
+parameter_types! {
+    pub const Deposit: u128 = DOLLARS;
+    pub const BatchSize: u32 = 64;
+    pub const MaxErasToCheckPerBlock: u32 = 1;
+}
+
+// fast unstake
+impl pallet_fast_unstake::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type Deposit = Deposit;
+    type ControlOrigin = EitherOfDiverse<
+        EnsureRoot<AccountId>,
+        pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
+    >;
+    type BatchSize = BatchSize;
+    type MaxErasToCheckPerBlock = MaxErasToCheckPerBlock;
+    type WeightInfo = pallet_fast_unstake::weights::SubstrateWeight<Runtime>;
+    type Staking = Staking;
+}
+
 // authorship
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
@@ -1252,6 +1273,7 @@ construct_runtime!(
         // staking related pallets
         ElectionProviderMultiPhase: pallet_election_provider_multi_phase,
         Staking: pallet_staking,
+        FastUnstake: pallet_fast_unstake,
         Session: pallet_session,
         Democracy: pallet_democracy,
         Council: pallet_collective::<Instance1>,
