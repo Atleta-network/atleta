@@ -1,5 +1,4 @@
 //! Benchmarking setup for pallet-faucet.
-#![cfg(feature = "runtime-benchmarks")]
 use super::*;
 
 #[allow(unused)]
