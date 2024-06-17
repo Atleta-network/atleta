@@ -1049,7 +1049,7 @@ impl pallet_fast_unstake::Config for Runtime {
     type Deposit = Deposit;
     type ControlOrigin = EitherOfDiverse<
         EnsureRoot<AccountId>,
-        pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
+        pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
     >;
     type BatchSize = BatchSize;
     type MaxErasToCheckPerBlock = MaxErasToCheckPerBlock;
