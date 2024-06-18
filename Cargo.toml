@@ -10,7 +10,7 @@ resolver = "2"
 [workspace.package]
 authors = []
 edition = "2021"
-repository = ""
+repository = "https://github.com/Atleta-network/atleta"
 
 [workspace.dependencies]
 atleta-runtime = { path = "runtime", default-features = false }
@@ -40,16 +40,9 @@ parity-db = "0.4.13"
 parking_lot = "0.12.1"
 rand = "0.8"
 rlp = { version = "0.5.2", default-features = false }
-parity-scale-codec = { version = "3.6.4", default-features = false, features = [
-    "derive",
-] }
-scale-info = { version = "2.10.0", default-features = false, features = [
-    "derive",
-] }
-serde = { version = "1.0", default-features = false, features = [
-    "derive",
-    "alloc",
-] }
+parity-scale-codec = { version = "3.6.4", default-features = false, features = ["derive"] }
+scale-info = { version = "2.10.0", default-features = false, features = ["derive"] }
+serde = { version = "1.0", default-features = false, features = ["derive", "alloc"] }
 serde_json = { version = "1.0", features = ["arbitrary_precision"] }
 similar-asserts = "1.5.0"
 sqlx = { version = "0.7.3", default-features = false, features = ["macros"] }
@@ -192,13 +185,11 @@ pallet-evm-test-vector-support = { git = "https://github.com/polkadot-evm/fronti
 pallet-hotfix-sufficients = { git = "https://github.com/polkadot-evm/frontier", branch = "polkadot-v1.8.0", default-features = false }
 
 # Frontier Utility
-# precompile-utils = { path = "precompiles", default-features = false }
+precompile-utils = { git = "https://github.com/polkadot-evm/frontier", branch = "polkadot-v1.8.0", default-features = false }
 
 # Se
 # Arkworks
-ark-bls12-377 = { version = "0.4.0", default-features = false, features = [
-    "curve",
-] }
+ark-bls12-377 = { version = "0.4.0", default-features = false, features = ["curve"] }
 ark-bw6-761 = { version = "0.4.0", default-features = false }
 ark-ec = { version = "0.4.0", default-features = false }
 ark-ff = { version = "0.4.0", default-features = false }
