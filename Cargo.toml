@@ -3,7 +3,7 @@ members = [
     "node",
     "runtime",
     "pallets/*",
-    # "precompiles",
+    "precompiles/*",
 ]
 resolver = "2"
 
@@ -16,6 +16,7 @@ repository = "https://github.com/Atleta-network/atleta"
 atleta-runtime = { path = "runtime", default-features = false }
 pallet-faucet = { path = "pallets/faucet", default-features = false }
 pallet-democracy = { path = "pallets/democracy-patched", default-features = false }
+pallet-evm-precompile-dumb = { path = "precompiles/dumb", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
