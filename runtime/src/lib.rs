@@ -31,7 +31,8 @@ use sp_runtime::{
     transaction_validity::{
         TransactionPriority, TransactionSource, TransactionValidity, TransactionValidityError,
     },
-    ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
+    ApplyExtrinsicResult, ConsensusEngineId, ExtrinsicInclusionMode, FixedU128, Perbill, Percent,
+    Permill,
 };
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -279,6 +280,19 @@ impl frame_system::Config for Runtime {
     /// The set code logic, just the default since we're not a parachain.
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+
+    /// All migrations that should run in the next runtime upgrade.
+    type SingleBlockMigrations = ();
+    /// The migrator that is used to run Multi-Block-Migrations.
+    type MultiBlockMigrator = ();
+
+    /// A callback that executes in _every block_ directly before all inherents were applied.
+    type PreInherents = ();
+    /// A callback that executes in _every block_ directly after all inherents were applied.
+    type PostInherents = ();
+
+    /// A callback that executes in _every block_ directly after all transactions were applied.
+    type PostTransactions = ();
 }
 
 parameter_types! {
@@ -498,6 +512,8 @@ impl pallet_contracts::Config for Runtime {
     type Migrations = ();
     type Xcm = ();
     type ApiVersion = ();
+    type UploadOrigin = EnsureSigned<AccountId>;
+    type InstantiateOrigin = EnsureSigned<AccountId>;
 }
 
 // election provider
@@ -1451,7 +1467,7 @@ impl_runtime_apis! {
             Executive::execute_block(block)
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
