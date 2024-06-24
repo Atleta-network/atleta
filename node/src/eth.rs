@@ -176,7 +176,7 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
                     b.clone(),
                     client.import_notification_stream(),
                     fc_mapping_sync::sql::SyncWorkerConfig {
-                        read_notification_timeout: Duration::from_secs(30), // TODO: tbd
+                        read_notification_timeout: Duration::from_secs(10),
                         check_indexed_blocks_interval: Duration::from_secs(60),
                     },
                     fc_mapping_sync::SyncStrategy::Parachain,
