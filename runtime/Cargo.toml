@@ -88,6 +88,8 @@ pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-dispatch = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
 
+pallet-evm-precompile-staking = { workspace = true }
+
 pallet-faucet = { workspace = true }
 
 [build-dependencies]
@@ -169,6 +171,7 @@ std = [
     "pallet-evm-precompile-sha3fips/std",
     "pallet-evm-precompile-simple/std",
     "pallet-evm/std",
+    "pallet-evm-precompile-staking/std",
     "pallet-faucet/std",
     "pallet-hotfix-sufficients/std",
 ]
