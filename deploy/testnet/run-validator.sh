@@ -64,7 +64,6 @@ start_node() {
         --allow-private-ipv4 \
         --listen-addr /ip4/0.0.0.0/tcp/30333 \
         --state-pruning archive \
-        --log warn \
         --enable-log-reloading \
         --rpc-max-connections 10000
 }
