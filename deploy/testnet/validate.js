@@ -22,10 +22,11 @@ async function main() {
 
     const unsub = await api.tx.utility
         .batch(txs)
-        .signAndSend(validator, ({ status }) => {
+        .signAndSend(validator, async ({ status }) => {
             if (status.isInBlock) {
                 console.log(`included in ${status.asInBlock}`);
                 unsub();
+                await api.disconnect();
             }
         });
 }

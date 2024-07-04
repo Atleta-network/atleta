@@ -1,18 +1,12 @@
 #!/bin/bash
-# Runs a validator node:
-#
-# 1. Starts an archive node;
-# 2. Adds session keys;
+
+# 1. Runs node with unsafe methods;
+# 2. Adds session keys and validate;
+# 3. Stops the node.
 
 # expects files in the same directory:
 # - config.env
 # - chainspec.json
-
-# config.env should be created and uploaded by CD worker, it should contain:
-
-# BOOTNODE_ADDRESS=<node address in libp2p form>
-# PRIVATE_KEY=<key in hex>
-# DOCKER_IMAGE=<image name>
 
 source ./config.env
 
@@ -28,7 +22,6 @@ check_chainspec() {
 }
 
 maybe_cleanup() {
-
     if [ "$(docker ps -q -f name=$container_name)" ]; then
         echo "Stopping existing container..."
         docker stop $container_name
@@ -40,8 +33,8 @@ maybe_cleanup() {
     fi
 }
 
-start_node() {
-    echo "Starting the validator node..."
+run_unsafe() {
+    echo "Starting the validator node with unsafe methods enabled..."
     docker pull "$DOCKER_IMAGE"
     docker run -d --name "$container_name" \
         -v "$chainspec":"/chainspec.json" \
@@ -58,12 +51,13 @@ start_node() {
         --base-path /chain-data \
         --rpc-port 9944 \
         --unsafe-rpc-external \
-        --rpc-methods=safe \
+        --rpc-methods=unsafe \
         --prometheus-external \
         --rpc-cors all \
         --allow-private-ipv4 \
         --listen-addr /ip4/0.0.0.0/tcp/30333 \
         --state-pruning archive \
+        --log warn \
         --enable-log-reloading \
         --rpc-max-connections 10000
 }
@@ -94,17 +88,20 @@ wait_availability() {
     fi
 }
 
+add_session_keys_and_validate() {
+    npm i 
+    npm run set_keys
+    npm run validate
+}
+
+stop_node() {
+    echo "Done. Restart the node with ./run.sh"
+    kill $$
+}
+
 check_chainspec
 maybe_cleanup
-start_node
+run_unsafe
 wait_availability
-
-# the rest is done via js
-
-# FIXME: it doesn't work via CD.
-# I don't know why yet, but the script always fails via CD, while working when
-# you run it manually on the server.
-
-# npm i 
-# npm run set_keys
-# npm run validate
+add_session_keys_and_validate
+stop_node
