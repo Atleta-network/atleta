@@ -6080,6 +6080,7 @@ dependencies = [
  "frame-system",
  "pallet-democracy",
  "pallet-evm",
+ "pallet-preimage",
  "pallet-treasury",
  "precompile-utils",
  "sp-core",

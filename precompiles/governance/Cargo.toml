@@ -8,6 +8,7 @@ version = "0.0.1"
 precompile-utils = { workspace = true }
 pallet-democracy = { workspace = true }
 pallet-treasury = { workspace = true }
+pallet-preimage = { workspace = true }
 
 evm = { workspace = true }
 fp-evm = { workspace = true }
@@ -30,6 +31,7 @@ std = [
     "precompile-utils/std",
     "pallet-democracy/std",
     "pallet-treasury/std",
+    "pallet-preimage/std",
 
     "evm/std",
     "fp-evm/std",

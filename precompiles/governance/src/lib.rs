@@ -9,7 +9,7 @@ use pallet_evm::{AddressMapping, PrecompileFailure};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
-use sp_std::marker::PhantomData;
+use sp_std::{marker::PhantomData, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Currency<
     <Runtime as frame_system::Config>::AccountId,
@@ -24,14 +24,18 @@ pub struct GovernanceFlowPrecompile<Runtime>(PhantomData<Runtime>);
 #[precompile_utils::precompile]
 impl<Runtime> GovernanceFlowPrecompile<Runtime>
 where
-    Runtime: pallet_evm::Config + pallet_democracy::Config + pallet_treasury::Config,
+    Runtime: pallet_evm::Config
+        + pallet_democracy::Config
+        + pallet_treasury::Config
+        + pallet_preimage::Config,
     Runtime::AccountId: Into<H160>,
     Runtime::Hash: IsType<H256>,
     BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
     TreasuryBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
     Runtime::Lookup: StaticLookup<Source = Runtime::AccountId>,
-    Runtime::RuntimeCall:
-        From<pallet_democracy::Call<Runtime>> + From<pallet_treasury::Call<Runtime>>,
+    Runtime::RuntimeCall: From<pallet_democracy::Call<Runtime>>
+        + From<pallet_treasury::Call<Runtime>>
+        + From<pallet_preimage::Call<Runtime>>,
     <Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
     Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
@@ -131,6 +135,14 @@ where
                 .map_err(|_| Self::custom_err("Unable to lookup address"))?;
 
         let call = pallet_treasury::Call::<Runtime>::propose_spend { value, beneficiary };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("notePreimage(uint8[])")]
+    fn note_preimage(h: &mut impl PrecompileHandle, bytes: Vec<u8>) -> EvmResult<()> {
+        let call = pallet_preimage::Call::<Runtime>::note_preimage { bytes };
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
