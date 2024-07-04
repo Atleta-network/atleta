@@ -15,17 +15,23 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
     <Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
+type TreasuryBalanceOf<Runtime> = <<Runtime as pallet_treasury::Config>::Currency as Currency<
+    <Runtime as frame_system::Config>::AccountId,
+>>::Balance;
+
 pub struct GovernanceFlowPrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
 impl<Runtime> GovernanceFlowPrecompile<Runtime>
 where
-    Runtime: pallet_evm::Config + pallet_democracy::Config,
+    Runtime: pallet_evm::Config + pallet_democracy::Config + pallet_treasury::Config,
     Runtime::AccountId: Into<H160>,
     Runtime::Hash: IsType<H256>,
     BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
+    TreasuryBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
     Runtime::Lookup: StaticLookup<Source = Runtime::AccountId>,
-    Runtime::RuntimeCall: From<pallet_democracy::Call<Runtime>>,
+    Runtime::RuntimeCall:
+        From<pallet_democracy::Call<Runtime>> + From<pallet_treasury::Call<Runtime>>,
     <Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
     Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
@@ -107,6 +113,24 @@ where
     #[precompile::public("removeVote(uint32)")]
     fn remove_vote(h: &mut impl PrecompileHandle, index: u32) -> EvmResult<()> {
         let call = pallet_democracy::Call::<Runtime>::remove_vote { index };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("proposeSpend(uint256,address)")]
+    fn propose_spend(
+        h: &mut impl PrecompileHandle,
+        value: U256,
+        beneficiary: Address,
+    ) -> EvmResult<()> {
+        let value =
+            value.try_into().map_err(|_| RevertReason::value_is_too_large("amount type"))?;
+        let beneficiary =
+            Runtime::Lookup::lookup(Runtime::AddressMapping::into_account_id(beneficiary.0))
+                .map_err(|_| Self::custom_err("Unable to lookup address"))?;
+
+        let call = pallet_treasury::Call::<Runtime>::propose_spend { value, beneficiary };
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
