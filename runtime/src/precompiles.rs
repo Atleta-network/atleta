@@ -75,6 +75,7 @@ impl DispatchValidateT<AccountId, RuntimeCall> for DispatchCallFilter {
                 | RuntimeCall::Elections(..)
                 | RuntimeCall::Preimage(..)
                 | RuntimeCall::NominationPools(..)
+                | RuntimeCall::Treasury(..)
         ) {
             None
         } else if info.pays_fee == Pays::No || info.class == DispatchClass::Mandatory {
