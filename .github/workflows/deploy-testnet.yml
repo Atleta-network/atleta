@@ -6,124 +6,124 @@ on:
     branches: [ "testnet" ]
 
 jobs:
-  # deploy_image:
-  #
-  #   environment: testnet
-  #
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: "recursive"
-  #
-  #   - name: Set up docker buildx
-  #     uses: docker/setup-buildx-action@v1
-  #
-  #   - name: Login to docker hub
-  #     run: docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
-  #     
-  #   - name: Set timestamp variables
-  #     run: |
-  #         DATE=$(date +%d%m%y)
-  #         HMS=$(date +%H%M%S)
-  #         echo "DATE: $DATE, HMS: $HMS"
-  #
-  #   - name: Build and push docker image
-  #     run: |
-  #         docker build -t docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} .
-  #         docker tag docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
-  #         docker push docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS}
-  #         docker push docker.io/atletanetwork/atleta-node:testnet-latest
-  #
-  # deploy_public_bootnode:
-  #
-  #   needs: deploy_image
-  #
-  #   environment: testnet
-  #
-  #   runs-on: ubuntu-latest
-  #
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: "recursive"
-  #
-  #   - name: Set up SSH
-  #     run: |
-  #       mkdir -p ~/.ssh/
-  #       touch ~/.ssh/known_hosts
-  #       ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
-  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-  #       chmod 600 ~/.ssh/id_rsa
-  #       eval $(ssh-agent)
-  #
-  #   - name: Copy files to the server
-  #     run: |
-  #       scp deploy/testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
-  #       scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
-  #
-  #   - name: Run bootnode
-  #     uses: appleboy/ssh-action@v1.0.0
-  #     with:
-  #       host: ${{ secrets.BOOTNODE_HOST }}
-  #       username: ${{ secrets.BOOTNODE_USER }}
-  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
-  #       script: |
-  #         cd ~/atleta
-  #         ./run.sh "atletanetwork/atleta-node:testnet-latest" ${{ secrets.BOOTNODE_P2P_ADDRESS }}
+  deploy_image:
 
-  # # deploy the validators, which are predefined in the chainspec
-  # deploy_technical_validators:
-  #
-  #   runs-on: ubuntu-latest
-  #   needs: deploy_image
-  #   environment: testnet
-  #
-  #   steps:
-  #   - uses: actions/checkout@v3
-  #     with:
-  #       submodules: "recursive"
-  #
-  #   - name: Set up SSH
-  #     run: |
-  #       mkdir -p ~/.ssh/
-  #       touch ~/.ssh/known_hosts
-  #       ssh-keyscan ${{ secrets.TECHNICAL_HOST }} >> ~/.ssh/known_hosts
-  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-  #       chmod 600 ~/.ssh/id_rsa
-  #       eval $(ssh-agent)
-  #
-  #   - name: Make Keys File
-  #     run: |
-  #       echo "${{ secrets.DEV_ACCOUNTS_KEYS }}" > deploy/testnet.keys.env
-  #
-  #   - name: Copy Files to Server
-  #     run: |
-  #       scp deploy/testnet/docker-compose.yml ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/docker-compose.yml
-  #       scp deploy/add-session-keys.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/add-session-keys.sh
-  #       scp deploy/testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
-  #       scp deploy/testnet/nginx.conf ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/nginx.conf
-  #       scp deploy/testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
-  #       scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
-  #
-  #   - name: SSH into Server and Deploy
-  #     uses: appleboy/ssh-action@v1.0.0
-  #     with:
-  #       host: ${{ secrets.TECHNICAL_HOST }}
-  #       username: ${{ secrets.TECHNICAL_USER }}
-  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
-  #       script: |
-  #         cd /sportchain
-  #         docker compose down
-  #         docker compose pull
-  #         ./run.sh testnet.keys.env
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up docker buildx
+      uses: docker/setup-buildx-action@v1
+
+    - name: Login to docker hub
+      run: docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
+      
+    - name: Set timestamp variables
+      run: |
+          DATE=$(date +%d%m%y)
+          HMS=$(date +%H%M%S)
+          echo "DATE: $DATE, HMS: $HMS"
+
+    - name: Build and push docker image
+      run: |
+          docker build -t docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} .
+          docker tag docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
+          docker push docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS}
+          docker push docker.io/atletanetwork/atleta-node:testnet-latest
+
+  deploy_public_bootnode:
+
+    needs: deploy_image
+
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+
+    - name: Copy files to the server
+      run: |
+        scp deploy/testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
+        scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
+
+    - name: Run bootnode
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.BOOTNODE_HOST }}
+        username: ${{ secrets.BOOTNODE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/atleta
+          ./run.sh "atletanetwork/atleta-node:testnet-latest" ${{ secrets.BOOTNODE_P2P_ADDRESS }}
+
+  # deploy the validators, which are predefined in the chainspec
+  deploy_technical_validators:
+
+    runs-on: ubuntu-latest
+    needs: deploy_image
+    environment: testnet
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.TECHNICAL_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+
+    - name: Make Keys File
+      run: |
+        echo "${{ secrets.DEV_ACCOUNTS_KEYS }}" > deploy/testnet.keys.env
+
+    - name: Copy Files to Server
+      run: |
+        scp deploy/testnet/docker-compose.yml ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/docker-compose.yml
+        scp deploy/add-session-keys.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/add-session-keys.sh
+        scp deploy/testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
+        scp deploy/testnet/nginx.conf ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/nginx.conf
+        scp deploy/testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
+        scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
+
+    - name: SSH into Server and Deploy
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.TECHNICAL_HOST }}
+        username: ${{ secrets.TECHNICAL_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /sportchain
+          docker compose down
+          docker compose pull
+          ./run.sh testnet.keys.env
 
   deploy_validators:
 
-    # needs: 
-      # - deploy_image
-      # - deploy_technical_validators # technical validators have private bootnode
+    needs: 
+      - deploy_image
+      - deploy_technical_validators # technical validators have private bootnode
 
     environment: testnet
 
