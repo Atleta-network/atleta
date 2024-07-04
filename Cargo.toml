@@ -2,7 +2,7 @@
 members = [
     "node",
     "runtime",
-    "pallets/faucet",
+    "pallets/*",
     # "precompiles",
 ]
 resolver = "2"
@@ -15,6 +15,7 @@ repository = ""
 [workspace.dependencies]
 atleta-runtime = { path = "runtime", default-features = false }
 pallet-faucet = { path = "pallets/faucet", default-features = false }
+pallet-democracy = { path = "pallets/democracy-patched", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
@@ -125,7 +126,7 @@ pallet-bags-list = { git = "https://github.com/paritytech/polkadot-sdk", branch 
 pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 pallet-collective = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 pallet-contracts = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
-pallet-democracy = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
+# pallet-democracy = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 pallet-election-provider-multi-phase = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 pallet-elections-phragmen = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
 pallet-grandpa = { git = "https://github.com/paritytech/polkadot-sdk", branch = "release-polkadot-v1.8.0", default-features = false }
