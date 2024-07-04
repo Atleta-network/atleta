@@ -170,10 +170,10 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("atleta"),
     impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
-    spec_version: 1,
+    spec_version: 4,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
-    transaction_version: 1,
+    transaction_version: 3,
     state_version: 1,
 };
 
@@ -516,7 +516,7 @@ parameter_types! {
 
     // miner configs
     /// We prioritize im-online heartbeats over election solution submission.
-    pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::max_value() / 2;
+    pub const StakingUnsignedPriority: TransactionPriority = TransactionPriority::MAX / 2;
     pub const MultiPhaseUnsignedPriority: TransactionPriority = StakingUnsignedPriority::get() - 1u64;
     pub MinerMaxWeight: Weight = RuntimeBlockWeights::get()
         .get(DispatchClass::Normal)
@@ -722,7 +722,7 @@ impl Convert<Balance, sp_core::U256> for BalanceToU256 {
 pub struct U256ToBalance;
 impl Convert<sp_core::U256, Balance> for U256ToBalance {
     fn convert(n: sp_core::U256) -> Balance {
-        n.try_into().unwrap_or(Balance::max_value())
+        n.try_into().unwrap_or(Balance::MAX)
     }
 }
 
@@ -1036,6 +1036,27 @@ impl pallet_staking::Config for Runtime {
     type BenchmarkingConfig = StakingBenchmarkingConfig;
 }
 
+parameter_types! {
+    pub const Deposit: u128 = DOLLARS;
+    pub const BatchSize: u32 = 64;
+    pub const MaxErasToCheckPerBlock: u32 = 1;
+}
+
+// fast unstake
+impl pallet_fast_unstake::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type Deposit = Deposit;
+    type ControlOrigin = EitherOfDiverse<
+        EnsureRoot<AccountId>,
+        pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCollective, 1, 1>,
+    >;
+    type BatchSize = BatchSize;
+    type MaxErasToCheckPerBlock = MaxErasToCheckPerBlock;
+    type WeightInfo = pallet_fast_unstake::weights::SubstrateWeight<Runtime>;
+    type Staking = Staking;
+}
+
 // authorship
 impl pallet_authorship::Config for Runtime {
     type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Babe>;
@@ -1059,7 +1080,7 @@ impl pallet_offences::Config for Runtime {
 
 // i'm online
 parameter_types! {
-    pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+    pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
     pub const MaxKeys: u32 = 10_000;
     pub const MaxPeerInHeartbeats: u32 = 10_000;
     pub const MaxPeerDataEncodingSize: u32 = 1_000;
@@ -1252,6 +1273,7 @@ construct_runtime!(
         // staking related pallets
         ElectionProviderMultiPhase: pallet_election_provider_multi_phase,
         Staking: pallet_staking,
+        FastUnstake: pallet_fast_unstake,
         Session: pallet_session,
         Democracy: pallet_democracy,
         Council: pallet_collective::<Instance1>,

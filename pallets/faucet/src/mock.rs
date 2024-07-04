@@ -86,23 +86,17 @@ impl pallet_faucet::Config for Test {
     type WeightInfo = ();
 }
 
+#[derive(Default)]
 pub struct ExtBuilder {}
-
-impl Default for ExtBuilder {
-    fn default() -> Self {
-        Self {}
-    }
-}
 
 impl ExtBuilder {
     pub fn build(self) -> sp_io::TestExternalities {
         let storage = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 
-        let ext = sp_io::TestExternalities::from(storage);
-        ext
+        sp_io::TestExternalities::from(storage)
     }
 
-    pub fn build_and_execute(self, test: impl FnOnce() -> ()) {
+    pub fn build_and_execute(self, test: impl FnOnce()) {
         let mut ext = self.build();
         ext.execute_with(test);
         ext.execute_with(|| System::set_block_number(1));
