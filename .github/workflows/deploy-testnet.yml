@@ -60,8 +60,8 @@ jobs:
 
     - name: Copy files to the server
       run: |
-        scp deploy/testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
-        scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER}}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
+        scp deploy/testnet/run-bootnode.sh ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/run.sh
+        scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
 
     - name: Run bootnode
       uses: appleboy/ssh-action@v1.0.0
