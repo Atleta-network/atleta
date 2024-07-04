@@ -3,6 +3,7 @@ members = [
     "node",
     "runtime",
     "pallets/faucet",
+    "pallets/metamask",
     # "precompiles",
 ]
 resolver = "2"
@@ -15,6 +16,7 @@ repository = ""
 [workspace.dependencies]
 atleta-runtime = { path = "runtime", default-features = false }
 pallet-faucet = { path = "pallets/faucet", default-features = false }
+pallet-metamask= { path = "pallets/metamask", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
