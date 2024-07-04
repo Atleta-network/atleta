@@ -13,6 +13,7 @@ use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripe
 
 use pallet_evm_precompile_babe::BabePrecompile;
 use pallet_evm_precompile_faucet::FaucetPrecompile;
+use pallet_evm_precompile_governance::GovernanceFlowPrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_staking::StakingPrecompile;
 
@@ -52,6 +53,7 @@ where
             a if a == hash(1028) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
             a if a == hash(1029) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
             a if a == hash(1030) => Some(BabePrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2001) => Some(GovernanceFlowPrecompile::<Runtime>::execute(handle)),
             _ => None,
         }
     }

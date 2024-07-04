@@ -761,6 +761,7 @@ dependencies = [
  "pallet-evm-precompile-babe",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-faucet",
+ "pallet-evm-precompile-governance",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-nomination-pools",
  "pallet-evm-precompile-sha3fips",
