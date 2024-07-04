@@ -104,6 +104,14 @@ where
         Ok(())
     }
 
+    #[precompile::public("removeVote(uint32)")]
+    fn remove_vote(h: &mut impl PrecompileHandle, index: u32) -> EvmResult<()> {
+        let call = pallet_democracy::Call::<Runtime>::remove_vote { index };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()
