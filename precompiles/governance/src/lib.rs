@@ -64,6 +64,46 @@ where
         Ok(())
     }
 
+    #[precompile::public("vote(uint32,bool,uint8,uint256)")]
+    fn vote_standard(
+        h: &mut impl PrecompileHandle,
+        ref_index: u32,
+        aye: bool,
+        conviction: u8,
+        balance: U256,
+    ) -> EvmResult<()> {
+        let conviction = pallet_democracy::Conviction::try_from(conviction)
+            .map_err(|_| Self::custom_err("Unable to parse conviction"))?;
+        let vote = pallet_democracy::Vote { aye, conviction };
+        let balance = Self::u256_to_amount(balance)?;
+        let vote = pallet_democracy::AccountVote::Standard { vote, balance };
+        Self::_vote(h, ref_index, vote)
+    }
+
+    #[precompile::public("vote(uint32,uint256,uint256)")]
+    fn vote_split(
+        h: &mut impl PrecompileHandle,
+        ref_index: u32,
+        aye: U256,
+        nay: U256,
+    ) -> EvmResult<()> {
+        let aye = Self::u256_to_amount(aye)?;
+        let nay = Self::u256_to_amount(nay)?;
+        let vote = pallet_democracy::AccountVote::Split { aye, nay };
+        Self::_vote(h, ref_index, vote)
+    }
+
+    fn _vote(
+        h: &mut impl PrecompileHandle,
+        ref_index: pallet_democracy::ReferendumIndex,
+        vote: pallet_democracy::AccountVote<BalanceOf<Runtime>>,
+    ) -> EvmResult<()> {
+        let call = pallet_democracy::Call::<Runtime>::vote { ref_index, vote };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()
