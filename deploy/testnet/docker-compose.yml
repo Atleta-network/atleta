@@ -21,6 +21,32 @@ services:
       sportchain-node-network:
         ipv4_address: 172.16.238.10
 
+  archive_node:
+    image: atletanetwork/atleta-node:testnet-latest
+    container_name: sportchain-archive-node
+    restart: always
+    depends_on:
+      - bootnode
+    volumes:
+      - ./chain-data/archive:/chain-data
+      - ./chainspec.json:/chainspec.json
+    command: >
+      --chain /chainspec.json
+      --base-path /chain-data
+      --name "testnet-archive"
+      --rpc-port 9944
+      --unsafe-rpc-external
+      --rpc-methods=safe
+      --prometheus-external
+      --rpc-cors all
+      --state-pruning archive
+      --allow-private-ipv4
+      --unsafe-force-node-key-generation
+      --bootnodes /ip4/172.16.238.10/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp
+    networks:
+      sportchain-node-network:
+        ipv4_address: 172.16.238.11
+
   diego:
     image: atletanetwork/atleta-node:testnet-latest
     container_name: sportchain-diego
