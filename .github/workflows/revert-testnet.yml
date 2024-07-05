@@ -1,0 +1,335 @@
+name: Revert all unfinalized blocks
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+
+  # TODO: revert the validators, which are predefined in the chainspec
+  # revert_technical_validators:
+  #
+  #   runs-on: ubuntu-latest
+  #   needs: deploy_image
+  #   environment: testnet
+  #
+  #   steps:
+  #   - uses: actions/checkout@v3
+  #     with:
+  #       submodules: "recursive"
+  #
+  #   - name: Set up SSH
+  #     run: |
+  #       mkdir -p ~/.ssh/
+  #       touch ~/.ssh/known_hosts
+  #       ssh-keyscan ${{ secrets.TECHNICAL_HOST }} >> ~/.ssh/known_hosts
+  #       echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+  #       chmod 600 ~/.ssh/id_rsa
+  #       eval $(ssh-agent)
+  #
+  #   - name: Make Keys File
+  #     run: |
+  #       echo "${{ secrets.DEV_ACCOUNTS_KEYS }}" > deploy/testnet.keys.env
+  #
+  #   - name: Copy Files to Server
+  #     run: |
+  #       scp deploy/testnet/docker-compose.yml ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/docker-compose.yml
+  #       scp deploy/add-session-keys.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/add-session-keys.sh
+  #       scp deploy/testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
+  #       scp deploy/testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
+  #       scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
+  #
+  #   - name: SSH into Server and Deploy
+  #     uses: appleboy/ssh-action@v1.0.0
+  #     with:
+  #       host: ${{ secrets.TECHNICAL_HOST }}
+  #       username: ${{ secrets.TECHNICAL_USER }}
+  #       key: ${{ secrets.SSH_PRIVATE_KEY }}
+  #       script: |
+  #         cd /sportchain
+  #         docker compose down
+  #         docker compose pull
+  #         ./run.sh testnet.keys.env
+
+  stop_validators:
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+
+          - host_key: VALIDATOR_1_HOST
+            user_key: VALIDATOR_1_USER
+            priv_key_key: VALIDATOR_1_PRIV_KEY
+
+          - host_key: VALIDATOR_2_HOST
+            user_key: VALIDATOR_2_USER
+            priv_key_key: VALIDATOR_2_PRIV_KEY
+
+          - host_key: VALIDATOR_3_HOST
+            user_key: VALIDATOR_3_USER
+            priv_key_key: VALIDATOR_3_PRIV_KEY
+
+          - host_key: VALIDATOR_4_HOST
+            user_key: VALIDATOR_4_USER
+            priv_key_key: VALIDATOR_4_PRIV_KEY
+
+          - host_key: VALIDATOR_5_HOST
+            user_key: VALIDATOR_5_USER
+            priv_key_key: VALIDATOR_5_PRIV_KEY
+
+          - host_key: VALIDATOR_6_HOST
+            user_key: VALIDATOR_6_USER
+            priv_key_key: VALIDATOR_6_PRIV_KEY
+
+          - host_key: VALIDATOR_7_HOST
+            user_key: VALIDATOR_7_USER
+            priv_key_key: VALIDATOR_7_PRIV_KEY
+
+          - host_key: VALIDATOR_8_HOST
+            user_key: VALIDATOR_8_USER
+            priv_key_key: VALIDATOR_8_PRIV_KEY
+
+          - host_key: VALIDATOR_9_HOST
+            user_key: VALIDATOR_9_USER
+            priv_key_key: VALIDATOR_9_PRIV_KEY
+
+          - host_key: VALIDATOR_10_HOST
+            user_key: VALIDATOR_10_USER
+            priv_key_key: VALIDATOR_10_PRIV_KEY
+
+          - host_key: VALIDATOR_11_HOST
+            user_key: VALIDATOR_11_USER
+            priv_key_key: VALIDATOR_11_PRIV_KEY
+
+          - host_key: VALIDATOR_12_HOST
+            user_key: VALIDATOR_12_USER
+            priv_key_key: VALIDATOR_12_PRIV_KEY
+
+          - host_key: VALIDATOR_13_HOST
+            user_key: VALIDATOR_13_USER
+            priv_key_key: VALIDATOR_13_PRIV_KEY
+
+          - host_key: VALIDATOR_14_HOST
+            user_key: VALIDATOR_14_USER
+            priv_key_key: VALIDATOR_14_PRIV_KEY
+
+          - host_key: VALIDATOR_15_HOST
+            user_key: VALIDATOR_15_USER
+            priv_key_key: VALIDATOR_15_PRIV_KEY
+
+          - host_key: VALIDATOR_16_HOST
+            user_key: VALIDATOR_16_USER
+            priv_key_key: VALIDATOR_16_PRIV_KEY
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{secrets[matrix.host_key]}} >> ~/.ssh/known_hosts
+        echo "${{secrets.SSH_PRIVATE_KEY}}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+        ssh-add ~/.ssh/id_rsa
+
+    - name: Down
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets[matrix.host_key] }}
+        username: ${{ secrets[matrix.user_key] }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          docker stop honest_worker
+
+  stop_public_bootnode:
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+
+    - name: Stop
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.BOOTNODE_HOST }}
+        username: ${{ secrets.BOOTNODE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          docker stop very_honest_worker
+          docker rm very_honest_worker
+
+  revert_public_bootnode:
+
+    needs: 
+      - stop_public_bootnode
+      - stop_validators
+
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{ secrets.BOOTNODE_HOST }} >> ~/.ssh/known_hosts
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+
+    - name: Copy files to the server
+      run: |
+        scp deploy/config.env ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:~/atleta/config.env
+        scp chainspecs/chain-spec.testnet.json ${{ secrets.BOOTNODE_USER }}@${{ secrets.BOOTNODE_HOST }}:~/atleta/chainspec.json
+        scp deploy/testnet/revert.sh ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:~/atleta/revert.sh
+
+    - name: Revert
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets.BOOTNODE_HOST }}
+        username: ${{ secrets.BOOTNODE_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd ~/atleta
+          ./revert.sh
+
+  revert_validators:
+
+    needs: 
+      - stop_validators
+
+    environment: testnet
+
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        include:
+
+          - host_key: VALIDATOR_1_HOST
+            user_key: VALIDATOR_1_USER
+            priv_key_key: VALIDATOR_1_PRIV_KEY
+
+          - host_key: VALIDATOR_2_HOST
+            user_key: VALIDATOR_2_USER
+            priv_key_key: VALIDATOR_2_PRIV_KEY
+
+          - host_key: VALIDATOR_3_HOST
+            user_key: VALIDATOR_3_USER
+            priv_key_key: VALIDATOR_3_PRIV_KEY
+
+          - host_key: VALIDATOR_4_HOST
+            user_key: VALIDATOR_4_USER
+            priv_key_key: VALIDATOR_4_PRIV_KEY
+
+          - host_key: VALIDATOR_5_HOST
+            user_key: VALIDATOR_5_USER
+            priv_key_key: VALIDATOR_5_PRIV_KEY
+
+          - host_key: VALIDATOR_6_HOST
+            user_key: VALIDATOR_6_USER
+            priv_key_key: VALIDATOR_6_PRIV_KEY
+
+          - host_key: VALIDATOR_7_HOST
+            user_key: VALIDATOR_7_USER
+            priv_key_key: VALIDATOR_7_PRIV_KEY
+
+          - host_key: VALIDATOR_8_HOST
+            user_key: VALIDATOR_8_USER
+            priv_key_key: VALIDATOR_8_PRIV_KEY
+
+          - host_key: VALIDATOR_9_HOST
+            user_key: VALIDATOR_9_USER
+            priv_key_key: VALIDATOR_9_PRIV_KEY
+
+          - host_key: VALIDATOR_10_HOST
+            user_key: VALIDATOR_10_USER
+            priv_key_key: VALIDATOR_10_PRIV_KEY
+
+          - host_key: VALIDATOR_11_HOST
+            user_key: VALIDATOR_11_USER
+            priv_key_key: VALIDATOR_11_PRIV_KEY
+
+          - host_key: VALIDATOR_12_HOST
+            user_key: VALIDATOR_12_USER
+            priv_key_key: VALIDATOR_12_PRIV_KEY
+
+          - host_key: VALIDATOR_13_HOST
+            user_key: VALIDATOR_13_USER
+            priv_key_key: VALIDATOR_13_PRIV_KEY
+
+          - host_key: VALIDATOR_14_HOST
+            user_key: VALIDATOR_14_USER
+            priv_key_key: VALIDATOR_14_PRIV_KEY
+
+          - host_key: VALIDATOR_15_HOST
+            user_key: VALIDATOR_15_USER
+            priv_key_key: VALIDATOR_15_PRIV_KEY
+
+          - host_key: VALIDATOR_16_HOST
+            user_key: VALIDATOR_16_USER
+            priv_key_key: VALIDATOR_16_PRIV_KEY
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: "recursive"
+
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        touch ~/.ssh/known_hosts
+        ssh-keyscan ${{secrets[matrix.host_key]}} >> ~/.ssh/known_hosts
+        echo "${{secrets.SSH_PRIVATE_KEY}}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        eval $(ssh-agent)
+        ssh-add ~/.ssh/id_rsa
+
+    - name: Generate config.env
+      run: |
+        mkdir -p deploy
+        touch deploy/config.env
+        echo "PRIVATE_KEY=${{secrets[matrix.priv_key_key]}}" >> deploy/config.env
+        echo "DOCKER_IMAGE=atletanetwork/atleta-node:testnet-latest" >> deploy/config.env
+        echo "BOOTNODE_ADDRESS=${{secrets.BOOTNODE_P2P_ADDRESS}}" >> deploy/config.env
+
+    - name: Copy files to the server
+      run: |
+        scp deploy/testnet/revert.sh ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/revert.sh
+        scp deploy/config.env ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/config.env
+        scp chainspecs/chain-spec.testnet.json ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/chainspec.json
+
+    - name: Revert
+      uses: appleboy/ssh-action@v1.0.0
+      with:
+        host: ${{ secrets[matrix.host_key] }}
+        username: ${{ secrets[matrix.user_key] }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          cd /home/${{secrets[matrix.user_key]}}/atleta
+          ./revert.sh
+          ./run.sh
