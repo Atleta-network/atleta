@@ -19,6 +19,7 @@ chain-data
 deploy/testnet/config.env
 deploy/testnet/chainspec.json
 testenv
+exported.blocks
 
 blockscout/services/blockscout-db-data 
 blockscout/services/logs 

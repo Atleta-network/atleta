@@ -4,7 +4,8 @@ use std::{collections::BTreeMap, str::FromStr};
 use hex_literal::hex;
 
 // Substrate
-use sc_chain_spec::{ChainType, Properties};
+use sc_chain_spec::{ChainType, ChainSpecExtension, Properties};
+use serde::{Deserialize, Serialize};
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 #[allow(unused_imports)]
@@ -17,7 +18,7 @@ use sp_runtime::{
 
 // Frontier
 use atleta_runtime::{
-    constants::currency::*, opaque::SessionKeys, AccountId, Balance, MaxNominations,
+    constants::currency::*, opaque::SessionKeys, AccountId, Balance, Block, MaxNominations,
     RuntimeGenesisConfig, SS58Prefix, Signature, StakerStatus, BABE_GENESIS_EPOCH_CONFIG,
     WASM_BINARY,
 };
@@ -26,8 +27,21 @@ use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
+/// Node `ChainSpec` extensions.
+///
+/// Additional parameters for some Substrate core modules,
+/// customizable from the chain spec.
+#[derive(Default, Clone, Serialize, Deserialize, ChainSpecExtension)]
+#[serde(rename_all = "camelCase")]
+pub struct Extensions {
+    /// Block numbers with known hashes.
+    pub fork_blocks: sc_client_api::ForkBlocks<Block>,
+    /// Known bad block hashes.
+    pub bad_blocks: sc_client_api::BadBlocks<Block>,
+}
+
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
-pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig>;
+pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensions>;
 
 // Public accoint type
 #[allow(dead_code)]
