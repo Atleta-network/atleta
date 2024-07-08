@@ -94,7 +94,7 @@ impl<
 	fn approved(&self, tally: Tally<Balance>, electorate: Balance) -> bool {
 		let sqrt_voters = tally.turnout.integer_sqrt();
 		let sqrt_electorate = electorate.integer_sqrt();
-		if sqrt_voters.is_zero() {
+		if sqrt_voters.is_zero() || electorate.is_zero() {
 			return false
 		}
 		match *self {
