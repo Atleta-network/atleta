@@ -18,7 +18,7 @@
 //! The vote datatype.
 
 use crate::{Conviction, Delegations, ReferendumIndex};
-use codec::{Decode, Encode, EncodeLike, Input, MaxEncodedLen, Output};
+use parity_scale_codec::{Decode, Encode, EncodeLike, Input, MaxEncodedLen, Output};
 use frame_support::traits::Get;
 use scale_info::TypeInfo;
 use sp_runtime::{
@@ -49,12 +49,12 @@ impl MaxEncodedLen for Vote {
 impl EncodeLike for Vote {}
 
 impl Decode for Vote {
-	fn decode<I: Input>(input: &mut I) -> Result<Self, codec::Error> {
+	fn decode<I: Input>(input: &mut I) -> Result<Self, parity_scale_codec::Error> {
 		let b = input.read_byte()?;
 		Ok(Vote {
 			aye: (b & 0b1000_0000) == 0b1000_0000,
 			conviction: Conviction::try_from(b & 0b0111_1111)
-				.map_err(|_| codec::Error::from("Invalid conviction"))?,
+				.map_err(|_| parity_scale_codec::Error::from("Invalid conviction"))?,
 		})
 	}
 }

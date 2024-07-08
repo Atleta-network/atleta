@@ -170,7 +170,7 @@ where
 	/// the actual total reserved amount for any accounts.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
-		use codec::Encode;
+		use parity_scale_codec::Encode;
 		use sp_std::collections::btree_set::BTreeSet;
 
 		// Get staked and deposited balances as reported by this pallet.
@@ -258,7 +258,7 @@ where
 	fn post_upgrade(
 		account_reserved_before_bytes: Vec<u8>,
 	) -> Result<(), sp_runtime::TryRuntimeError> {
-		use codec::Decode;
+		use parity_scale_codec::Decode;
 
 		let account_reserved_before =
 			BTreeMap::<T::AccountId, BalanceOf<T>>::decode(&mut &account_reserved_before_bytes[..])

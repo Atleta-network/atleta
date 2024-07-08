@@ -18,7 +18,7 @@
 //! Miscellaneous additional datatypes.
 
 use crate::{AccountVote, Conviction, Vote, VoteThreshold};
-use codec::{Decode, Encode, MaxEncodedLen};
+use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
 use sp_runtime::{
 	traits::{Bounded, CheckedAdd, CheckedDiv, CheckedMul, CheckedSub, Saturating, Zero},
