@@ -767,6 +767,7 @@ dependencies = [
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-staking",
+ "pallet-evm-precompile-treasury",
  "pallet-fast-unstake",
  "pallet-faucet",
  "pallet-grandpa",
@@ -6082,7 +6083,6 @@ dependencies = [
  "pallet-democracy",
  "pallet-evm",
  "pallet-preimage",
- "pallet-treasury",
  "precompile-utils",
  "sp-core",
  "sp-io",
@@ -6152,6 +6152,24 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-staking",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
+name = "pallet-evm-precompile-treasury"
+version = "0.0.1"
+dependencies = [
+ "environmental",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "pallet-treasury",
+ "precompile-utils",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
 ]
 
