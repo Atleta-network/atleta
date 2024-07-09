@@ -328,15 +328,15 @@ mod testnet_keys {
         (
             AccountId::from(hex!("FFa4645462F429E8FB9a6534E22f9f4f75094aB4")), // stash
             diego(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "562cd8c70c00ec3a3a031f5c9885978dd03a3a4fdb27bcf126887a9da11ff405"
             ))
             .into(),
-            sp_core::ed25519::Public(hex!(
+            sp_core::ed25519::Public::from_raw(hex!(
                 "ffe39c882d4ec6800a7501e1ccf3193b1f4d789d599d37f03db7f92bffb26471"
             ))
             .into(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
             ))
             .into(),
@@ -347,15 +347,15 @@ mod testnet_keys {
         (
             AccountId::from(hex!("55DE108cb01Acf946A0ddE3C40D5EdE3AE9201C1")), // stash
             pele(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "84bb180709195c3f12bc22e16fb971a0369ebd45b6b8334f6f03d50aa986c213"
             ))
             .into(),
-            sp_core::ed25519::Public(hex!(
+            sp_core::ed25519::Public::from_raw(hex!(
                 "16ec13de87e30ee2eb9be5874558a9a82a39d2707d3ab67670c5e94bb64646ac"
             ))
             .into(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
             ))
             .into(),
@@ -366,15 +366,15 @@ mod testnet_keys {
         (
             AccountId::from(hex!("F87EfACD0e08cF7F6667B2a8BEc9fC3a2DB1572F")), // stash
             franz(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "22c09973a99e38bcf899411fac369257bd8971eddc167e718b1a9014279a2415"
             ))
             .into(),
-            sp_core::ed25519::Public(hex!(
+            sp_core::ed25519::Public::from_raw(hex!(
                 "e73dc222fb879f67add8aeedf30156a47fd8740d02432e3db5d4ebe8c78f1b87"
             ))
             .into(),
-            sp_core::sr25519::Public(hex!(
+            sp_core::sr25519::Public::from_raw(hex!(
                 "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
             ))
             .into(),

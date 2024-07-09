@@ -31,7 +31,8 @@ use sp_runtime::{
     transaction_validity::{
         TransactionPriority, TransactionSource, TransactionValidity, TransactionValidityError,
     },
-    ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
+    ApplyExtrinsicResult, ConsensusEngineId, ExtrinsicInclusionMode, FixedU128, Perbill, Percent,
+    Permill,
 };
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -48,7 +49,7 @@ use frame_support::weights::constants::RocksDbWeight as RuntimeDbWeight;
 use frame_support::{
     construct_runtime,
     dispatch::DispatchClass,
-    genesis_builder_helper::{build_config, create_default_config},
+    genesis_builder_helper::{build_state, get_preset},
     parameter_types,
     traits::{
         fungible::HoldConsideration,
@@ -65,7 +66,7 @@ use frame_support::{
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter};
+use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter};
 // Frontier
 use fp_account::EthereumSignature;
 use fp_evm::weight_per_gas;
@@ -279,6 +280,19 @@ impl frame_system::Config for Runtime {
     /// The set code logic, just the default since we're not a parachain.
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+
+    /// All migrations that should run in the next runtime upgrade.
+    type SingleBlockMigrations = ();
+    /// The migrator that is used to run Multi-Block-Migrations.
+    type MultiBlockMigrator = ();
+
+    /// A callback that executes in _every block_ directly before all inherents were applied.
+    type PreInherents = ();
+    /// A callback that executes in _every block_ directly after all inherents were applied.
+    type PostInherents = ();
+
+    /// A callback that executes in _every block_ directly after all transactions were applied.
+    type PostTransactions = ();
 }
 
 parameter_types! {
@@ -360,7 +374,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
     type WeightToFee = IdentityFee<Balance>;
     type LengthToFee = IdentityFee<Balance>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
@@ -498,6 +512,8 @@ impl pallet_contracts::Config for Runtime {
     type Migrations = ();
     type Xcm = ();
     type ApiVersion = ();
+    type UploadOrigin = EnsureSigned<AccountId>;
+    type InstantiateOrigin = EnsureSigned<AccountId>;
 }
 
 // election provider
@@ -740,6 +756,10 @@ impl pallet_nomination_pools::Config for Runtime {
     type MaxUnbonding = ConstU32<8>;
     type PalletId = NominationPoolsPalletId;
     type MaxPointsToBalance = MaxPointsToBalance;
+    type AdminOrigin = EitherOfDiverse<
+        EnsureRoot<AccountId>,
+        pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
+    >;
 }
 
 // session
@@ -1451,7 +1471,7 @@ impl_runtime_apis! {
             Executive::execute_block(block)
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
@@ -1607,12 +1627,16 @@ impl_runtime_apis! {
     }
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-        fn create_default_config() -> Vec<u8> {
-            create_default_config::<RuntimeGenesisConfig>()
+        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+            build_state::<RuntimeGenesisConfig>(config)
         }
 
-        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            build_config::<RuntimeGenesisConfig>(config)
+        fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+            get_preset::<RuntimeGenesisConfig>(id, |_| None)
+        }
+
+        fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+            vec![]
         }
     }
 
