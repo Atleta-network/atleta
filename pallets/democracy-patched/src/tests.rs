@@ -27,7 +27,7 @@ use frame_support::{
 	},
 	weights::Weight,
 };
-use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy, DefaultConfig};
+use frame_system::{EnsureRoot, EnsureSigned, EnsureSignedBy};
 use pallet_balances::{BalanceLock, Error as BalancesError};
 use sp_runtime::{
 	traits::{BadOrigin, BlakeTwo256, Hash},
