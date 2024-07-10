@@ -3,12 +3,12 @@
 use fp_evm::PrecompileHandle;
 use frame_support::{
     dispatch::{GetDispatchInfo, PostDispatchInfo},
-    traits::{fungible::Inspect, Currency},
+    traits::fungible::Inspect,
 };
 use pallet_evm::{AddressMapping, PrecompileFailure};
 use pallet_nomination_pools::BondExtra;
 use precompile_utils::prelude::*;
-use sp_core::{Get, H160, U256};
+use sp_core::{H160, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
 use sp_std::{marker::PhantomData, vec::Vec};
 
@@ -18,25 +18,14 @@ type BalanceOf<Runtime> = <<Runtime as pallet_nomination_pools::Config>::Currenc
     <Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-type FaucetBalanceOf<Runtime> = <<Runtime as pallet_faucet::Config>::Currency as Currency<
-    <Runtime as frame_system::Config>::AccountId,
->>::Balance;
-
 #[precompile_utils::precompile]
 impl<Runtime> StakingFlowPrecompile<Runtime>
 where
-    Runtime: pallet_evm::Config
-        + pallet_nomination_pools::Config
-        + pallet_staking::Config
-        + pallet_faucet::Config,
+    Runtime: pallet_evm::Config + pallet_nomination_pools::Config + pallet_staking::Config,
     Runtime::AccountId: Into<H160>,
     BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
-    FaucetBalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
-    <Runtime as pallet_faucet::Config>::Currency:
-        frame_support::traits::fungible::Inspect<<Runtime as frame_system::Config>::AccountId>,
     Runtime::Lookup: StaticLookup<Source = Runtime::AccountId>,
-    Runtime::RuntimeCall:
-        From<pallet_nomination_pools::Call<Runtime>> + From<pallet_faucet::Call<Runtime>>,
+    Runtime::RuntimeCall: From<pallet_nomination_pools::Call<Runtime>>,
     <Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
     Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
@@ -141,6 +130,7 @@ where
 
     #[precompile::public("poolMembers(address)")]
     #[precompile::view]
+    #[allow(clippy::type_complexity)]
     fn pool_members(
         _: &mut impl PrecompileHandle,
         address: Address,
@@ -158,18 +148,6 @@ where
                 .map(|(era, points)| (era, points.into()))
                 .collect::<Vec<_>>(),
         ))
-    }
-
-    #[precompile::public("requestFunds(address,uint256)")]
-    fn request_funds(h: &mut impl PrecompileHandle, who: Address, amount: U256) -> EvmResult<()> {
-        let who = Runtime::AddressMapping::into_account_id(who.0);
-        let amount =
-            amount.try_into().map_err(|_| RevertReason::value_is_too_large("amount type"))?;
-
-        let call = pallet_faucet::Call::<Runtime>::request_funds { who, amount };
-        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
-        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
-        Ok(())
     }
 
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {

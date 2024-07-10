@@ -1,13 +1,12 @@
 [package]
-name = "pallet-evm-precompile-staking"
+name = "pallet-evm-precompile-faucet"
 authors = { workspace = true }
 edition = "2021"
 version = "0.0.1"
 
 [dependencies]
 precompile-utils = { workspace = true }
-pallet-staking = { workspace = true }
-pallet-nomination-pools = { workspace = true }
+pallet-faucet = { workspace = true }
 
 evm = { workspace = true }
 fp-evm = { workspace = true }
@@ -29,8 +28,7 @@ environmental = { workspace = true }
 default = ["std"]
 std = [
     "precompile-utils/std",
-    "pallet-staking/std",
-    "pallet-nomination-pools/std",
+    "pallet-faucet/std",
 
     "evm/std",
     "fp-evm/std",
