@@ -12,7 +12,8 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
 use pallet_evm_precompile_faucet::FaucetPrecompile;
-use pallet_evm_precompile_staking::StakingFlowPrecompile;
+use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
+use pallet_evm_precompile_staking::StakingPrecompile;
 
 use crate::*;
 
@@ -46,8 +47,9 @@ where
             a if a == hash(1025) => Some(ECRecoverPublicKey::execute(handle)),
             a if a == hash(1026) => Some(Dispatch::<Runtime, DispatchCallFilter>::execute(handle)),
             // TODO: exact address is subject of tbd
-            a if a == hash(1027) => Some(StakingFlowPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(1027) => Some(StakingPrecompile::<Runtime>::execute(handle)),
             a if a == hash(1028) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(1029) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
             _ => None,
         }
     }

@@ -94,6 +94,7 @@ pallet-faucet = { workspace = true }
 # Atleta Precompile Pallets
 pallet-evm-precompile-staking = { workspace = true }
 pallet-evm-precompile-faucet = { workspace = true }
+pallet-evm-precompile-nomination-pools = { workspace = true }
 
 
 [build-dependencies]
@@ -182,6 +183,7 @@ std = [
     # Atleta Precompile Pallets
     "pallet-evm-precompile-staking/std",
     "pallet-evm-precompile-faucet/std",
+    "pallet-evm-precompile-nomination-pools/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
