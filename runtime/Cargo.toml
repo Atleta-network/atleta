@@ -95,6 +95,7 @@ pallet-faucet = { workspace = true }
 pallet-evm-precompile-staking = { workspace = true }
 pallet-evm-precompile-faucet = { workspace = true }
 pallet-evm-precompile-nomination-pools = { workspace = true }
+pallet-evm-precompile-babe = { workspace = true }
 
 
 [build-dependencies]
@@ -184,6 +185,7 @@ std = [
     "pallet-evm-precompile-staking/std",
     "pallet-evm-precompile-faucet/std",
     "pallet-evm-precompile-nomination-pools/std",
+    "pallet-evm-precompile-babe/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",

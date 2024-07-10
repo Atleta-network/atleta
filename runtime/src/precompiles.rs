@@ -11,6 +11,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
+use pallet_evm_precompile_babe::BabePrecompile;
 use pallet_evm_precompile_faucet::FaucetPrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_staking::StakingPrecompile;
@@ -50,6 +51,7 @@ where
             a if a == hash(1027) => Some(StakingPrecompile::<Runtime>::execute(handle)),
             a if a == hash(1028) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
             a if a == hash(1029) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(1030) => Some(BabePrecompile::<Runtime>::execute(handle)),
             _ => None,
         }
     }
