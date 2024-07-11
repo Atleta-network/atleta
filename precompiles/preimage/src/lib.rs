@@ -1,4 +1,5 @@
 #![cfg_attr(not(feature = "std"), no_std)]
+#![allow(missing_docs)]
 
 use fp_evm::PrecompileHandle;
 use frame_support::{
