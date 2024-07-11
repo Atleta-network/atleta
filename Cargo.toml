@@ -21,6 +21,7 @@ pallet-evm-precompile-nomination-pools = { path = "precompiles/nomination-pools"
 pallet-evm-precompile-babe = { path = "precompiles/babe", default-features = false }
 pallet-evm-precompile-governance = { path = "precompiles/governance", default-features = false }
 pallet-evm-precompile-treasury = { path = "precompiles/treasury", default-features = false }
+pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }

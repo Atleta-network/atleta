@@ -1,12 +1,12 @@
 [package]
-name = "pallet-evm-precompile-governance"
+name = "pallet-evm-precompile-preimage"
 authors = { workspace = true }
 edition = "2021"
 version = "0.0.1"
 
 [dependencies]
 precompile-utils = { workspace = true }
-pallet-democracy = { workspace = true }
+pallet-preimage = { workspace = true }
 
 evm = { workspace = true }
 fp-evm = { workspace = true }
@@ -27,7 +27,7 @@ environmental = { workspace = true }
 default = ["std"]
 std = [
     "precompile-utils/std",
-    "pallet-democracy/std",
+    "pallet-preimage/std",
 
     "evm/std",
     "fp-evm/std",

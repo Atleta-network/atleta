@@ -15,18 +15,17 @@ type BalanceOf<Runtime> = <<Runtime as pallet_democracy::Config>::Currency as Cu
     <Runtime as frame_system::Config>::AccountId,
 >>::Balance;
 
-pub struct GovernanceFlowPrecompile<Runtime>(PhantomData<Runtime>);
+pub struct GovernancePrecompile<Runtime>(PhantomData<Runtime>);
 
 #[precompile_utils::precompile]
-impl<Runtime> GovernanceFlowPrecompile<Runtime>
+impl<Runtime> GovernancePrecompile<Runtime>
 where
-    Runtime: pallet_evm::Config + pallet_democracy::Config + pallet_preimage::Config,
+    Runtime: pallet_evm::Config + pallet_democracy::Config,
     Runtime::AccountId: Into<H160>,
     Runtime::Hash: IsType<H256>,
     BalanceOf<Runtime>: TryFrom<U256> + Into<U256> + solidity::Codec,
     Runtime::Lookup: StaticLookup<Source = Runtime::AccountId>,
-    Runtime::RuntimeCall:
-        From<pallet_democracy::Call<Runtime>> + From<pallet_preimage::Call<Runtime>>,
+    Runtime::RuntimeCall: From<pallet_democracy::Call<Runtime>>,
     <Runtime::RuntimeCall as Dispatchable>::RuntimeOrigin: From<Option<Runtime::AccountId>>,
     Runtime::RuntimeCall: Dispatchable<PostInfo = PostDispatchInfo> + GetDispatchInfo,
 {
@@ -108,14 +107,6 @@ where
     #[precompile::public("removeVote(uint32)")]
     fn remove_vote(h: &mut impl PrecompileHandle, index: u32) -> EvmResult<()> {
         let call = pallet_democracy::Call::<Runtime>::remove_vote { index };
-        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
-        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
-        Ok(())
-    }
-
-    #[precompile::public("notePreimage(uint8[])")]
-    fn note_preimage(h: &mut impl PrecompileHandle, bytes: Vec<u8>) -> EvmResult<()> {
-        let call = pallet_preimage::Call::<Runtime>::note_preimage { bytes };
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())

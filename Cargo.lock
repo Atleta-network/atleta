@@ -764,6 +764,7 @@ dependencies = [
  "pallet-evm-precompile-governance",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-nomination-pools",
+ "pallet-evm-precompile-preimage",
  "pallet-evm-precompile-sha3fips",
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-staking",
@@ -6082,7 +6083,6 @@ dependencies = [
  "frame-system",
  "pallet-democracy",
  "pallet-evm",
- "pallet-preimage",
  "precompile-utils",
  "sp-core",
  "sp-io",
@@ -6110,6 +6110,24 @@ dependencies = [
  "frame-system",
  "pallet-evm",
  "pallet-nomination-pools",
+ "precompile-utils",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
+name = "pallet-evm-precompile-preimage"
+version = "0.0.1"
+dependencies = [
+ "environmental",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "pallet-preimage",
  "precompile-utils",
  "sp-core",
  "sp-io",
