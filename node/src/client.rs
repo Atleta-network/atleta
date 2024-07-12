@@ -1,38 +1,19 @@
-// Substrate
-use sc_executor::{NativeElseWasmExecutor, NativeExecutionDispatch, NativeVersion};
-
-// Local
-use atleta_runtime::{opaque::Block, AccountId, Balance, Nonce};
+use atleta_runtime::{opaque::Block, AccountId, Balance, RuntimeApi, Nonce};
+use sc_executor::WasmExecutor;
 
 use crate::eth::EthCompatRuntimeApiCollection;
 
+/// Only enable the benchmarking host functions when we actually want to benchmark.
+#[cfg(feature = "runtime-benchmarks")]
+pub type HostFunctions =
+    (sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
+/// Otherwise we use empty host functions for ext host functions.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type HostFunctions = sp_io::SubstrateHostFunctions;
 /// Full backend.
 pub type FullBackend = sc_service::TFullBackend<Block>;
 /// Full client.
-pub type FullClient<RuntimeApi, Executor> =
-    sc_service::TFullClient<Block, RuntimeApi, NativeElseWasmExecutor<Executor>>;
-
-pub type Client = FullClient<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor>;
-
-/// Only enable the benchmarking host functions when we actually want to benchmark.
-#[cfg(feature = "runtime-benchmarks")]
-pub type HostFunctions = frame_benchmarking::benchmarking::HostFunctions;
-/// Otherwise we use empty host functions for ext host functions.
-#[cfg(not(feature = "runtime-benchmarks"))]
-pub type HostFunctions = ();
-
-pub struct AtletaRuntimeExecutor;
-impl NativeExecutionDispatch for AtletaRuntimeExecutor {
-    type ExtendHostFunctions = HostFunctions;
-
-    fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-        atleta_runtime::api::dispatch(method, data)
-    }
-
-    fn native_version() -> NativeVersion {
-        atleta_runtime::native_version()
-    }
-}
+pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 
 /// A set of APIs that every runtimes must implement.
 pub trait BaseRuntimeApiCollection:

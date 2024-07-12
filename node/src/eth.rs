@@ -8,7 +8,6 @@ use std::{
 use futures::{future, prelude::*};
 // Substrate
 use sc_client_api::BlockchainEvents;
-use sc_executor::NativeExecutionDispatch;
 use sc_network_sync::SyncingService;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 use sp_api::ConstructRuntimeApi;
@@ -17,9 +16,8 @@ pub use fc_consensus::FrontierBlockImport;
 use fc_rpc::EthTask;
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 pub use fc_storage::{StorageOverride, StorageOverrideHandler};
-// Local
 use atleta_runtime::opaque::Block;
-
+// Local
 use crate::client::{FullBackend, FullClient};
 
 /// Frontier DB backend type.
@@ -123,11 +121,11 @@ impl<Api> EthCompatRuntimeApiCollection for Api where
 {
 }
 
-pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
+pub async fn spawn_frontier_tasks(
     task_manager: &TaskManager,
-    client: Arc<FullClient<RuntimeApi, Executor>>,
+    client: Arc<FullClient>,
     backend: Arc<FullBackend>,
-    frontier_backend: Arc<FrontierBackend<FullClient<RuntimeApi, Executor>>>,
+    frontier_backend: Arc<FrontierBackend<FullClient>>,
     filter_pool: Option<FilterPool>,
     storage_override: Arc<dyn StorageOverride<Block>>,
     fee_history_cache: FeeHistoryCache,
@@ -139,10 +137,6 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
         >,
     >,
 ) where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: EthCompatRuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
 {
     // Spawn main mapping sync worker background task.
     match &*frontier_backend {

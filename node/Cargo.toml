@@ -55,6 +55,7 @@ sp-consensus-babe = { workspace = true, features = ["default"] }
 sp-consensus-grandpa = { workspace = true, features = ["default"] }
 sp-core = { workspace = true, features = ["default"] }
 sp-inherents = { workspace = true, features = ["default"] }
+sp-io = { workspace = true, features = ["default"] }
 sp-keystore = { workspace = true, features = ["default"] }
 sp-offchain = { workspace = true, features = ["default"] }
 sp-runtime = { workspace = true, features = ["default"] }
@@ -80,7 +81,7 @@ fc-cli = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true }
-fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"]}
+fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"] }
 fc-rpc-core = { workspace = true }
 fc-storage = { workspace = true }
 fp-account = { workspace = true }
