@@ -7,29 +7,38 @@ use futures::{channel::mpsc, prelude::*};
 use sc_client_api::{Backend as BackendT, BlockBackend};
 use sc_consensus::{BasicQueue, BoxBlockImport};
 use sc_consensus_babe::{BabeLink, BabeWorkerHandle, SlotProportion};
-use sc_consensus_grandpa::BlockNumberOps;
+use sc_executor::WasmExecutor;
 use sc_network_sync::strategy::warp::{WarpSyncParams, WarpSyncProvider};
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_api::ConstructRuntimeApi;
-use sp_core::{H256, U256};
-use sp_runtime::traits::{Block as BlockT, NumberFor};
+use sp_core::U256;
+use sp_runtime::traits::Block as BlockT;
 use substrate_prometheus_endpoint::Registry;
 // Runtime
-use atleta_runtime::{opaque::Block, AccountId, Balance, Nonce, RuntimeApi, TransactionConverter};
+use atleta_runtime::{opaque::Block, RuntimeApi, TransactionConverter};
 
 pub use crate::eth::{db_config_dir, EthConfiguration};
 use crate::{
     cli::Sealing,
-    client::{BaseRuntimeApiCollection, FullBackend, FullClient, RuntimeApiCollection},
     eth::{
-        new_frontier_partial, spawn_frontier_tasks, BackendType, EthCompatRuntimeApiCollection,
+        new_frontier_partial, spawn_frontier_tasks, BackendType,
         FrontierBackend, FrontierBlockImport, FrontierPartialComponents, StorageOverride,
         StorageOverrideHandler,
     },
 };
 
+/// Only enable the benchmarking host functions when we actually want to benchmark.
+#[cfg(feature = "runtime-benchmarks")]
+pub type HostFunctions =
+    (sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
+/// Otherwise we use empty host functions for ext host functions.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type HostFunctions = sp_io::SubstrateHostFunctions;
+/// Full backend.
+pub type FullBackend = sc_service::TFullBackend<Block>;
+/// Full client.
+pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type BasicImportQueue = sc_consensus::DefaultImportQueue<Block>;
 type FullPool = sc_transaction_pool::FullPool<Block, FullClient>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;

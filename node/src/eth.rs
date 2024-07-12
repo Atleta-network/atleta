@@ -10,7 +10,6 @@ use futures::{future, prelude::*};
 use sc_client_api::BlockchainEvents;
 use sc_network_sync::SyncingService;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
-use sp_api::ConstructRuntimeApi;
 // Frontier
 pub use fc_consensus::FrontierBlockImport;
 use fc_rpc::EthTask;
@@ -18,7 +17,7 @@ pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 pub use fc_storage::{StorageOverride, StorageOverrideHandler};
 use atleta_runtime::opaque::Block;
 // Local
-use crate::client::{FullBackend, FullClient};
+use crate::service::{FullBackend, FullClient};
 
 /// Frontier DB backend type.
 pub type FrontierBackend<C> = fc_db::Backend<Block, C>;
@@ -104,21 +103,6 @@ pub fn new_frontier_partial(
         fee_history_cache: Arc::new(Mutex::new(BTreeMap::new())),
         fee_history_cache_limit: config.fee_history_limit,
     })
-}
-
-/// A set of APIs that ethereum-compatible runtimes must implement.
-pub trait EthCompatRuntimeApiCollection:
-    sp_api::ApiExt<Block>
-    + fp_rpc::ConvertTransactionRuntimeApi<Block>
-    + fp_rpc::EthereumRuntimeRPCApi<Block>
-{
-}
-
-impl<Api> EthCompatRuntimeApiCollection for Api where
-    Api: sp_api::ApiExt<Block>
-        + fp_rpc::ConvertTransactionRuntimeApi<Block>
-        + fp_rpc::EthereumRuntimeRPCApi<Block>
-{
 }
 
 pub async fn spawn_frontier_tasks(
