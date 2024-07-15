@@ -1,13 +1,13 @@
 #!/bin/bash
 
-#This script may be added to crontab. Example usage:
+# This script may be added to crontab. Example usage:
 # 0 * * * * /sportchain/backup_script/run_backup.sh <node_URL> <path_to_gcloud> <path_to_gcp_key_file> <S3-bucket name> >/dev/null 2>&1
 
 set -e
 
 LOCKFILE=/tmp/backup_script.lock
 
-#The script will not start executing until the execution of the previous script is finished
+# The script will not start executing until the execution of the previous script is finished
 if [ -e "$LOCKFILE" ]; then
     echo "Script is running now. Lockfile enabled."
     exit 1
@@ -15,9 +15,10 @@ fi
 
 touch $LOCKFILE
 
-#Check whether the CMD arguments were passed
+# Check whether the CMD arguments were passed
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
-  echo "Error. Usage: $0 <node_URL> <path_to_gcloud> <path_to_gcp_key_file> <S3-bucket name>"
+  echo "Error. Usage: $0 <node_URL> <path_to_gcloud> <path_to_gcp_key_file> <bucket_name>"
+  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -25,6 +26,9 @@ node_URL=$1
 gcloud_path=$2
 gcp_key_file=$3
 bucket_name=$4
+
+gcloud_bin="$gcloud_path/gcloud"
+gsutil_bin="$gcloud_path/gsutil"
 
 response=$(curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "system_health", "params":[]}' "$node_URL")
 
@@ -34,28 +38,30 @@ if [ -n "$response" ]; then
   echo "$response" | jq
 else
   echo "Error. No response was received from node"
+  rm -f $LOCKFILE
   exit 1
 fi
 
-export PATH=$PATH:$gcloud_path
-
-#Checking the path to gcloud
-if ! command -v gcloud &> /dev/null; then
+# Checking the path to gcloud
+if ! command -v $gcloud_bin &> /dev/null; then
   echo "Error. gcloud not found in PATH"
+  rm -f $LOCKFILE
   exit 1
 fi
 
 # Checking the gcp_key_file by the specified argument in CMD
 if [ ! -f "$gcp_key_file" ]; then
   echo "Error. GCP key file $gcp_key_file not found."
+  rm -f $LOCKFILE
   exit 1
 fi
 
-gcloud auth activate-service-account --key-file="$gcp_key_file"
+$gcloud_bin auth activate-service-account --key-file="$gcp_key_file"
 
-#Verification of authorization in GCP
+# Verification of authorization in GCP
 if [ $? -ne 0 ]; then
   echo "Error. GCP service account could not be activated."
+  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -66,7 +72,7 @@ mkdir -p $log_dir
 
 log_file="$log_dir/backup_$(date +%F_%H-%M-%S).log"
 
-exec > >(tee -a "$log_file") 2>&1 #Redirect stdout to log_file
+exec > >(tee -a "$log_file") 2>&1 # Redirect stdout to log_file
 
 max_logs=23
 log_count=$(ls -1q "$log_dir" | wc -l)
@@ -84,6 +90,7 @@ block=$(curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0"
 # Checking the return of the last block number from node
 if [ -z "$block" ]; then
   echo "Error. Failed to get the block number from node."
+  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -99,8 +106,8 @@ exclude_folder_2="/sportchain/chain-data/diego/chains/testnet/network"
 
 bucket_path="gs://${bucket_name}"
 
-max_backups_allowed=23 #S3-bucket num of backups quota
-storage_capacity=2199023255552 #S3-bucket storage quota, in bytes (2TB)
+max_backups_allowed=23 # S3-bucket num of backups quota
+storage_capacity=2199023255552 # S3-bucket storage quota, in bytes (2TB)
 
 echo "Start script: $current_date"
 
@@ -108,26 +115,26 @@ tar -czPf $archive_name --exclude=$exclude_folder_1 --exclude=$exclude_folder_2 
 
 stat -c %s $archive_name
 
-file_count=$(gsutil du ${bucket_path} | wc -l)
+file_count=$($gsutil_bin du ${bucket_path} | wc -l)
 echo "Number of files in bucket: $file_count"
 
-storage_count=$(gsutil du -s ${bucket_path} | awk '{print $1}')
+storage_count=$($gsutil_bin du -s ${bucket_path} | awk '{print $1}')
 echo "Busy bytes in bucket: $storage_count"
 
 while [ $file_count -ge $max_backups_allowed ] || [ $storage_count -gt $storage_capacity ]
 do
-    oldest_file=$(gsutil ls -l ${bucket_path} | tail -n +2 | sort -k2 | head -n 1 | awk '{print $NF}')
+    oldest_file=$($gsutil_bin ls -l ${bucket_path} | tail -n +2 | sort -k2 | head -n 1 | awk '{print $NF}')
     echo "Deleting oldest backup: $oldest_file"
-    gsutil rm $oldest_file
+    $gsutil_bin rm $oldest_file
     ((file_count--))
-    storage_count=$(gsutil du -s ${bucket_path} | awk '{print $1}')
+    storage_count=$($gsutil_bin du -s ${bucket_path} | awk '{print $1}')
 done
 
-gsutil -o GSUtil:parallel_composite_upload_threshold=100M cp $archive_name $bucket_path
+$gsutil_bin -o GSUtil:parallel_composite_upload_threshold=100M cp $archive_name $bucket_path
 
 rm -rf $archive_name
 
-rm $LOCKFILE
+rm -f $LOCKFILE
 
-current_date=$(date +%F_%H-%M-%S) #Override current_date
+current_date=$(date +%F_%H-%M-%S) # Override current_date
 echo "End script: $current_date"

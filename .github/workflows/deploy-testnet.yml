@@ -105,6 +105,7 @@ jobs:
         scp deploy/testnet/run-technical-validators.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run.sh
         scp deploy/testnet.keys.env ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/testnet.keys.env
         scp chainspecs/chain-spec.testnet.json ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/chainspec.json
+        scp deploy/utils/backup_script/run_backup.sh ${{ secrets.TECHNICAL_USER }}@${{ secrets.TECHNICAL_HOST }}:/sportchain/run_backup.sh
 
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
