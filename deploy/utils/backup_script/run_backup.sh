@@ -15,10 +15,18 @@ fi
 
 touch $LOCKFILE
 
+terminate() {
+    echo "Removed $LOCKFILE"
+    rm -f $LOCKFILE
+    exit 1
+}
+
+# Set up trap to call terminate function on EXIT, SIGINT and SIGTERM
+trap terminate EXIT SIGINT SIGTERM
+
 # Check whether the CMD arguments were passed
 if [ -z "$1" ] || [ -z "$2" ] || [ -z "$3" ] || [ -z "$4" ]; then
   echo "Error. Usage: $0 <node_URL> <path_to_gcloud> <path_to_gcp_key_file> <bucket_name>"
-  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -38,21 +46,18 @@ if [ -n "$response" ]; then
   echo "$response" | jq
 else
   echo "Error. No response was received from node"
-  rm -f $LOCKFILE
   exit 1
 fi
 
 # Checking the path to gcloud
 if ! command -v $gcloud_bin &> /dev/null; then
-  echo "Error. gcloud not found in PATH"
-  rm -f $LOCKFILE
+  echo "Error. gcloud not found in: $gcloud_path"
   exit 1
 fi
 
 # Checking the gcp_key_file by the specified argument in CMD
 if [ ! -f "$gcp_key_file" ]; then
   echo "Error. GCP key file $gcp_key_file not found."
-  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -61,7 +66,6 @@ $gcloud_bin auth activate-service-account --key-file="$gcp_key_file"
 # Verification of authorization in GCP
 if [ $? -ne 0 ]; then
   echo "Error. GCP service account could not be activated."
-  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -90,7 +94,6 @@ block=$(curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0"
 # Checking the return of the last block number from node
 if [ -z "$block" ]; then
   echo "Error. Failed to get the block number from node."
-  rm -f $LOCKFILE
   exit 1
 fi
 
@@ -133,8 +136,6 @@ done
 $gsutil_bin -o GSUtil:parallel_composite_upload_threshold=100M cp $archive_name $bucket_path
 
 rm -rf $archive_name
-
-rm -f $LOCKFILE
 
 current_date=$(date +%F_%H-%M-%S) # Override current_date
 echo "End script: $current_date"
