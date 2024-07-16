@@ -38,3 +38,5 @@ jobs:
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
+    - name: Run Shellcheck
+      run: docker run --rm -v "$GITHUB_WORKSPACE:/mnt" koalaman/shellcheck deploy/utils/backup_script/test_gcp.sh
