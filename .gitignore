@@ -5,7 +5,7 @@
 **/*.rs.bk
 
 .nvim/
-.vscode
+.vscode/
 
 .DS_Store
 
