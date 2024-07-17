@@ -2,6 +2,7 @@
 
 FROM rust:latest as builder
 
+ARG BUILD_FEATURES
 WORKDIR /app
 
 # Update system packages and install build dependencies
@@ -27,7 +28,7 @@ RUN rustup component add rustfmt clippy rust-src
 COPY . .
 
 # Build the application
-RUN cargo build --locked --release
+RUN cargo build --features "$BUILD_FEATURES" --locked --release
 
 #Stage 2: Create the final image
 FROM ubuntu:latest

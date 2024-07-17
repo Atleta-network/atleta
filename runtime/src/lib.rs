@@ -97,7 +97,7 @@ pub use pallet_staking::StakerStatus;
 pub mod constants;
 mod precompiles;
 mod voter_bags;
-
+mod utils;
 // Type aliases
 
 /// Type of block number.
@@ -970,8 +970,8 @@ impl pallet_scheduler::Config for Runtime {
 
 // staking
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-    pub const BondingDuration: sp_staking::EraIndex = 2; // 2 eras
+    pub const SessionsPerEra: sp_staking::SessionIndex = prod_or_fast!(6, 6);
+    pub const BondingDuration: sp_staking::EraIndex = prod_or_fast!(2, 2); // 2 eras
     pub const SlashDeferDuration: sp_staking::EraIndex = 1;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxExposurePageSize: u32 = 256;
