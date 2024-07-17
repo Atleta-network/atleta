@@ -96,8 +96,8 @@ pub use pallet_staking::StakerStatus;
 // Module definitions
 pub mod constants;
 mod precompiles;
-mod voter_bags;
 mod utils;
+mod voter_bags;
 // Type aliases
 
 /// Type of block number.

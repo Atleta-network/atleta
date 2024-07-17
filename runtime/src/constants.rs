@@ -15,7 +15,7 @@ pub mod currency {
 
 /// Time.
 pub mod time {
-    use crate::{BlockNumber, prod_or_fast};
+    use crate::{prod_or_fast, BlockNumber};
 
     pub const MILLISECS_PER_BLOCK: u64 = 6000;
 
