@@ -373,22 +373,22 @@ parameter_types! {
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub ProposalBondMinimum: Balance = 10 * DOLLARS;
     pub ProposalBondMaximum: Balance = 50 * DOLLARS;
-    pub const SpendPeriod: BlockNumber = prod_or_fast!(30 * DAYS, 30 * DAYS);
+    pub const SpendPeriod: BlockNumber = conf!(mainnet: 30 * DAYS, testnet: 30 * DAYS);
     pub const Burn: Permill = Permill::from_percent(1);
 
     pub const TipCountdown: BlockNumber = 2 * DAYS;
     pub const TipFindersFee: Percent = Percent::from_percent(5);
     pub TipReportDepositBase: Balance = deposit(1, 0);
     pub BountyDepositBase: Balance = deposit(1, 0);
-    pub const BountyDepositPayoutDelay: BlockNumber = prod_or_fast!(6 * DAYS, 6 * DAYS);
-    pub const BountyUpdatePeriod: BlockNumber = prod_or_fast!(35 * DAYS, 35 * DAYS);
+    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 6 * DAYS, testnet: 6 * DAYS);
+    pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 35 * DAYS, testnet: 35 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
     pub CuratorDepositMin: Balance = DOLLARS;
     pub CuratorDepositMax: Balance = 100 * DOLLARS;
     pub BountyValueMinimum: Balance = 5 * DOLLARS;
     pub DataDepositPerByte: Balance = deposit(0, 1);
     pub const MaximumReasonLength: u32 = 8192;
-    pub const PayoutSpendPeriod: BlockNumber = prod_or_fast!(30 * DAYS, 30 * DAYS);
+    pub const PayoutSpendPeriod: BlockNumber = conf!(mainnet: 30 * DAYS, testnet: 30 * DAYS);
 
     pub const SevenDays: BlockNumber = 7 * DAYS;
     pub const OneDay: BlockNumber = DAYS;
@@ -970,8 +970,8 @@ impl pallet_scheduler::Config for Runtime {
 
 // staking
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = prod_or_fast!(6, 6);
-    pub const BondingDuration: sp_staking::EraIndex = prod_or_fast!(2, 2); // 2 eras
+    pub const SessionsPerEra: sp_staking::SessionIndex = conf!(mainnet: 6, testnet: 6);
+    pub const BondingDuration: sp_staking::EraIndex = conf!(mainnet:2, testnet: 2); // 2 eras
     pub const SlashDeferDuration: sp_staking::EraIndex = 1;
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxExposurePageSize: u32 = 256;
