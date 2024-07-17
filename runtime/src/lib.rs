@@ -373,22 +373,22 @@ parameter_types! {
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub ProposalBondMinimum: Balance = 10 * DOLLARS;
     pub ProposalBondMaximum: Balance = 50 * DOLLARS;
-    pub const SpendPeriod: BlockNumber = 30 * DAYS;
+    pub const SpendPeriod: BlockNumber = prod_or_fast!(30 * DAYS, 30 * DAYS);
     pub const Burn: Permill = Permill::from_percent(1);
 
     pub const TipCountdown: BlockNumber = 2 * DAYS;
     pub const TipFindersFee: Percent = Percent::from_percent(5);
     pub TipReportDepositBase: Balance = deposit(1, 0);
     pub BountyDepositBase: Balance = deposit(1, 0);
-    pub const BountyDepositPayoutDelay: BlockNumber = 6 * DAYS;
-    pub const BountyUpdatePeriod: BlockNumber = 35 * DAYS;
+    pub const BountyDepositPayoutDelay: BlockNumber = prod_or_fast!(6 * DAYS, 6 * DAYS);
+    pub const BountyUpdatePeriod: BlockNumber = prod_or_fast!(35 * DAYS, 35 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
     pub CuratorDepositMin: Balance = DOLLARS;
     pub CuratorDepositMax: Balance = 100 * DOLLARS;
     pub BountyValueMinimum: Balance = 5 * DOLLARS;
     pub DataDepositPerByte: Balance = deposit(0, 1);
     pub const MaximumReasonLength: u32 = 8192;
-    pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+    pub const PayoutSpendPeriod: BlockNumber = prod_or_fast!(30 * DAYS, 30 * DAYS);
 
     pub const SevenDays: BlockNumber = 7 * DAYS;
     pub const OneDay: BlockNumber = DAYS;
