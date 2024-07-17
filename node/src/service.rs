@@ -23,7 +23,7 @@ use crate::{
     cli::Sealing,
     eth::{
         new_frontier_partial, spawn_frontier_tasks, BackendType,
-        FrontierBackend, FrontierBlockImport, FrontierPartialComponents, StorageOverride,
+        FrontierBackend, FrontierPartialComponents, StorageOverride,
         StorageOverrideHandler,
     },
 };
@@ -208,8 +208,9 @@ pub fn build_babe_grandpa_import_queue(
     ServiceError,
 >
 {
-    let _frontier_block_import =
-        FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
+    // TODO should we use this instead of babe block import?
+    // let _frontier_block_import =
+    //     FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
 
     let (block_import, babe_link) = sc_consensus_babe::block_import(
         sc_consensus_babe::configuration(&*client)?,
