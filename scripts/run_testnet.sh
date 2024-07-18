@@ -4,14 +4,14 @@
 num_of_args=$#
 base_path="$1"
 envs="$2"
-chainspec_path="chainspecs/chain-spec.testnet.json"
+chainspec_path="$3"
 
 # network_pid is the global array of pids for all the nodes
 network_pids=()
-node=./target/debug/atleta-node
+node=./target/release/atleta-node
 
 check_args() {
-    if [ $num_of_args -ne 2 ]; then
+    if [ $num_of_args -ne 3 ]; then
         printf "\033[31mError: wrong number of arguments\033[0m\n"
         usage
         exit 1
@@ -19,9 +19,10 @@ check_args() {
 }
 
 usage() {
-    echo "Usage: ./run_testnet.sh <base_path> <envs_file>"
-    printf "\t<base_path> is the nodes storage directory\n"
-    printf "\t<envs_file> contains the environment variables with session keys\n"
+    echo "Usage: ./run_testnet.sh <BASE_PATH> <ENVS_FILE> <CHAINSPEC_PATH>"
+    printf "\t<BASE_PATH>      is the nodes storage directory\n"
+    printf "\t<ENVS_FILE>      contains the environment variables with session keys\n"
+    printf "\t<CHAINSPEC_PATH> path to the chainspec file\n"
     printf "\n\033[31m"
     echo "The envs file should contain the variables:"
     printf "\t<DIEGO, PELE, FRANZ>_<BABE, GRAN, IMON>_<PRIVATE, PUBLIC>\n" 
@@ -67,11 +68,11 @@ run_node() {
         --rpc-cors=all \
         --validator \
         --state-pruning archive \
-        --discover-local \
         --allow-private-ipv4 \
-        --rpc-port $rpc_port \
+        --rpc-port "$rpc_port" \
         --base-path "${base_path}/node-${rpc_port}/" \
-        --port $p2p_port &
+        --unsafe-force-node-key-generation \
+        --listen-addr /ip4/127.0.0.1/tcp/"$p2p_port" &
 
     network_pids+=($!)
 }
@@ -93,10 +94,10 @@ check_availability() {
 
     while [ $retry_count -lt $max_retries ]; do
         # Use curl to test the connection without making an actual request
-        curl --connect-timeout 10 "$rpc_api_endpoint"
+        # curl --connect-timeout 10 "$rpc_api_endpoint"
         
         # Check the exit status of curl
-        if [ $? -eq 0 ]; then
+        if curl --connect-timeout 10 "$rpc_api_endpoint"; then
             echo "Connected to $rpc_api_endpoint"
             break
         else
@@ -107,7 +108,7 @@ check_availability() {
     done
     
     if [ $retry_count -eq $max_retries ]; then
-        printf "\033[31mError: Couldn't connect to $rpc_api_endpoint\033[0m\n"
+        printf "\033[31mError: Couldn't connect to %s \033[0m\n" "$rpc_api_endpoint"
         kill $$
     fi
 }
@@ -148,7 +149,7 @@ add_key() {
 check_args
 load_envs
 print_info
-cargo build
+cargo build --release
 
 start_network
 
