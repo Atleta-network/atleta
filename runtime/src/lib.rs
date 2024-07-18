@@ -767,7 +767,7 @@ parameter_types! {
     pub const FastTrackVotingPeriod: BlockNumber = conf!(mainnet: 3 * HOURS, testnet: 2 * HOURS);
     pub const MinimumDeposit: Balance = 100 * DOLLARS;
     pub const EnactmentPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: HOURS);
-    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: HOURS);;
+    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: HOURS);
     pub const MaxProposals: u32 = 100;
 }
 
