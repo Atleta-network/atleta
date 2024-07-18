@@ -373,22 +373,22 @@ parameter_types! {
     pub const ProposalBond: Permill = Permill::from_percent(5);
     pub ProposalBondMinimum: Balance = 10 * DOLLARS;
     pub ProposalBondMaximum: Balance = 50 * DOLLARS;
-    pub const SpendPeriod: BlockNumber = conf!(mainnet: 30 * DAYS, testnet: 30 * DAYS);
+    pub const SpendPeriod: BlockNumber = 30 * DAYS;
     pub const Burn: Permill = Permill::from_percent(1);
 
     pub const TipCountdown: BlockNumber = 2 * DAYS;
     pub const TipFindersFee: Percent = Percent::from_percent(5);
     pub TipReportDepositBase: Balance = deposit(1, 0);
     pub BountyDepositBase: Balance = deposit(1, 0);
-    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 6 * DAYS, testnet: 6 * DAYS);
-    pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 35 * DAYS, testnet: 35 * DAYS);
+    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS);
+    pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 45 * DAYS, testnet: 35 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
     pub CuratorDepositMin: Balance = DOLLARS;
     pub CuratorDepositMax: Balance = 100 * DOLLARS;
     pub BountyValueMinimum: Balance = 5 * DOLLARS;
     pub DataDepositPerByte: Balance = deposit(0, 1);
     pub const MaximumReasonLength: u32 = 8192;
-    pub const PayoutSpendPeriod: BlockNumber = conf!(mainnet: 30 * DAYS, testnet: 30 * DAYS);
+    pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
 
     pub const SevenDays: BlockNumber = 7 * DAYS;
     pub const OneDay: BlockNumber = DAYS;
@@ -762,12 +762,12 @@ impl pallet_session::historical::Config for Runtime {
 
 // Democracy
 parameter_types! {
-    pub const LaunchPeriod: BlockNumber = 8 * HOURS;
-    pub const VotingPeriod: BlockNumber = 8 * HOURS;
-    pub const FastTrackVotingPeriod: BlockNumber = 2 * HOURS;
+    pub const LaunchPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 8 * HOURS);
+    pub const VotingPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 8 * HOURS);
+    pub const FastTrackVotingPeriod: BlockNumber = conf!(mainnet: 3 * HOURS, testnet: 2 * HOURS);
     pub const MinimumDeposit: Balance = 100 * DOLLARS;
-    pub const EnactmentPeriod: BlockNumber = HOURS;
-    pub const CooloffPeriod: BlockNumber = HOURS;
+    pub const EnactmentPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: HOURS);
+    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: HOURS);;
     pub const MaxProposals: u32 = 100;
 }
 
@@ -826,7 +826,7 @@ impl pallet_democracy::Config for Runtime {
 // Council
 parameter_types! {
     pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
-    pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
+    pub const CouncilMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS);
     pub const CouncilMaxProposals: u32 = 100;
     pub const CouncilMaxMembers: u32 = 100;
 }
@@ -888,7 +888,7 @@ impl pallet_elections_phragmen::Config for Runtime {
 
 // Technical Committee
 parameter_types! {
-    pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
+    pub const TechnicalMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS);
     pub const TechnicalMaxProposals: u32 = 100;
     pub const TechnicalMaxMembers: u32 = 100;
 }
@@ -970,9 +970,9 @@ impl pallet_scheduler::Config for Runtime {
 
 // staking
 parameter_types! {
-    pub const SessionsPerEra: sp_staking::SessionIndex = conf!(mainnet: 6, testnet: 6);
-    pub const BondingDuration: sp_staking::EraIndex = conf!(mainnet:2, testnet: 2); // 2 eras
-    pub const SlashDeferDuration: sp_staking::EraIndex = 1;
+    pub const SessionsPerEra: sp_staking::SessionIndex = 6;
+    pub const BondingDuration: sp_staking::EraIndex = conf!(mainnet:6, testnet: 2);
+    pub const SlashDeferDuration: sp_staking::EraIndex = conf!(mainnet:5, testnet: 1);
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxExposurePageSize: u32 = 256;
     pub const MaxControllersInDeprecationBatch: u32 = 5900;
