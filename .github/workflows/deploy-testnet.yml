@@ -231,6 +231,10 @@ jobs:
         scp deploy/testnet/package-lock.json ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/package-lock.json
         scp deploy/config.env ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/config.env
         scp chainspecs/chain-spec.testnet.json ${{secrets[matrix.user_key]}}@${{secrets[matrix.host_key]}}:/home/${{ secrets[matrix.user_key] }}/atleta/chainspec.json
+        ssh -o StrictHostKeyChecking=no ${{secrets.VALIDATOR_16_USER}}@${{secrets.VALIDATOR_16_HOST}} "mkdir -p /home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script"
+        ssh -o StrictHostKeyChecking=no ${{secrets.VALIDATOR_16_USER}}@${{secrets.VALIDATOR_16_HOST}} "echo ${{ secrets.GCP_S3_KEY }} > /home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script/gcp_key.json"
+        sed "s|\${VALIDATOR_16_USER}|${{secrets.VALIDATOR_16_USER}}|g" deploy/utils/backup_script/run_backup.sh > deploy/utils/backup_script/run_backup_fill.sh        
+        scp deploy/utils/backup_script/run_backup_fill.sh ${{secrets.VALIDATOR_16_USER}}@${{secrets.VALIDATOR_16_HOST}}:/home/${{ secrets.VALIDATOR_16_USER }}/atleta/backup_script/run_backup.sh
 
     - name: Run the validator
       uses: appleboy/ssh-action@v1.0.0
