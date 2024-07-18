@@ -22,9 +22,8 @@ pub use crate::eth::{db_config_dir, EthConfiguration};
 use crate::{
     cli::Sealing,
     eth::{
-        new_frontier_partial, spawn_frontier_tasks, BackendType,
-        FrontierBackend, FrontierPartialComponents, StorageOverride,
-        StorageOverrideHandler,
+        new_frontier_partial, spawn_frontier_tasks, BackendType, FrontierBackend,
+        FrontierPartialComponents, StorageOverride, StorageOverrideHandler,
     },
 };
 
@@ -206,8 +205,7 @@ pub fn build_babe_grandpa_import_queue(
 ) -> Result<
     ((BasicImportQueue, BabeWorkerHandle<Block>), BoxBlockImport<Block>, BabeLink<Block>),
     ServiceError,
->
-{
+> {
     // TODO should we use this instead of babe block import?
     // let _frontier_block_import =
     //     FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
@@ -631,8 +629,7 @@ fn run_manual_seal_authorship(
     commands_stream: mpsc::Receiver<
         sc_consensus_manual_seal::rpc::EngineCommand<<Block as BlockT>::Hash>,
     >,
-) -> Result<(), ServiceError>
-{
+) -> Result<(), ServiceError> {
     let proposer_factory = sc_basic_authorship::ProposerFactory::new(
         task_manager.spawn_handle(),
         client.clone(),

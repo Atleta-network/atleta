@@ -4,7 +4,7 @@ use std::{collections::BTreeMap, str::FromStr};
 use hex_literal::hex;
 
 // Substrate
-use sc_chain_spec::{ChainType, ChainSpecExtension, Properties};
+use sc_chain_spec::{ChainSpecExtension, ChainType, Properties};
 use serde::{Deserialize, Serialize};
 use sp_consensus_babe::AuthorityId as BabeId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;

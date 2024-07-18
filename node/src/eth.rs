@@ -11,10 +11,10 @@ use sc_client_api::BlockchainEvents;
 use sc_network_sync::SyncingService;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
 // Frontier
+use atleta_runtime::opaque::Block;
 use fc_rpc::EthTask;
 pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
 pub use fc_storage::{StorageOverride, StorageOverrideHandler};
-use atleta_runtime::opaque::Block;
 // Local
 use crate::service::{FullBackend, FullClient};
 
@@ -119,8 +119,7 @@ pub async fn spawn_frontier_tasks(
             fc_mapping_sync::EthereumBlockNotification<Block>,
         >,
     >,
-) where
-{
+) {
     // Spawn main mapping sync worker background task.
     match &*frontier_backend {
         fc_db::Backend::KeyValue(b) => {
