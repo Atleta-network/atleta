@@ -73,7 +73,9 @@ log_dir="${script_dir}/logs"
 
 mkdir -p "$log_dir"
 
-log_file="${log_dir}/backup_$(date +%F_%H-%M-%S).log"
+current_date=$(date +%F_%H-%M-%S)
+
+log_file="${log_dir}/backup_${current_date}.log"
 
 exec > >(tee -a "$log_file") 2>&1 # Redirect stdout to log_file
 
@@ -84,8 +86,6 @@ while [ "$(find "$log_dir" -maxdepth 1 -type f | wc -l)" -gt "$max_logs" ]; do
     echo "Deleting oldest log: $oldest_log"
     rm -v "$log_dir/$oldest_log"
 done
-
-current_date=$(date +%F_%H-%M-%S)
 
 block=$(curl -s -H "Content-Type: application/json" -d '{"id":1, "jsonrpc":"2.0", "method": "chain_getBlock", "params":[]}' "$node_URL" | jq -r '.result.block.header.number')
 
