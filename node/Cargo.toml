@@ -114,3 +114,6 @@ runtime-benchmarks = [
     "sc-service/runtime-benchmarks",
     "atleta-runtime/runtime-benchmarks",
 ]
+fast-runtime = [
+    "atleta-runtime/fast-runtime",
+]
