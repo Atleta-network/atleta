@@ -170,7 +170,7 @@ where
 	/// the actual total reserved amount for any accounts.
 	#[cfg(feature = "try-runtime")]
 	fn pre_upgrade() -> Result<Vec<u8>, sp_runtime::TryRuntimeError> {
-		use parity_sclae_codec::Encode;
+		use parity_scale_codec::Encode;
 		use sp_std::collections::btree_set::BTreeSet;
 
 		// Get staked and deposited balances as reported by this pallet.

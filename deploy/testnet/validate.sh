@@ -47,6 +47,7 @@ run_unsafe() {
         --chain "/chainspec.json" \
         --validator \
         --name "Atleta Validator" \
+        --unsafe-force-node-key-generation \
         --bootnodes "$BOOTNODE_ADDRESS" \
         --base-path /chain-data \
         --rpc-port 9944 \

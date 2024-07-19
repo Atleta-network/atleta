@@ -28,7 +28,10 @@ jobs:
     - name: Run tests
       run: cargo test --locked
     - name: Check format
-      run: cargo fmt -- --check
+      run: |
+        rustup toolchain add nightly-x86_64-unknown-linux-gnu
+        rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rustfmt
+        cargo +nightly fmt -- --check
     - name: Clippy checks
       run: cargo clippy --all-targets -- --deny warnings
     - name: Clippy checks all features (exclude node and runtime)

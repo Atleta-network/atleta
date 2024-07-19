@@ -13,24 +13,22 @@ readme = "README.md"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { features = [
-	"derive",
-], workspace = true }
-scale-info = { features = ["derive"], workspace = true }
+parity-scale-codec = { workspace = true, default-features = false, features = ["derive"] }
+scale-info = { workspace = true, default-features = false, features = ["derive"] }
 serde = { features = ["derive"], optional = true, workspace = true, default-features = true }
-frame-benchmarking = { optional = true, workspace = true }
-frame-support = { workspace = true }
-frame-system = { workspace = true }
-sp-io = { workspace = true }
-sp-runtime = { workspace = true }
-sp-std = { workspace = true }
-sp-core = { workspace = true }
+frame-benchmarking = { workspace = true, default-features = false, optional = true }
+frame-support = { workspace = true, default-features = false }
+frame-system = { workspace = true, default-features = false }
+sp-io = { workspace = true, default-features = false }
+sp-runtime = { workspace = true, default-features = false }
+sp-std = { workspace = true, default-features = false }
+sp-core = { workspace = true, default-features = false }
 log = { workspace = true }
 
 [dev-dependencies]
-pallet-balances = { workspace = true, default-features = true }
-pallet-scheduler = { workspace = true, default-features = true }
-pallet-preimage = { workspace = true, default-features = true }
+pallet-balances = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-preimage = { workspace = true }
 
 [features]
 default = ["std"]
