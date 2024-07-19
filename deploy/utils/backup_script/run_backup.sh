@@ -67,7 +67,7 @@ if ! gcloud auth activate-service-account --key-file="$gcp_key_file"; then
   exit 1
 fi
 
-atleta_dir="/home/${VALIDATOR_16_USER}/atleta"
+atleta_dir="/home/${USER}/atleta"
 script_dir="${atleta_dir}/backup_script"
 log_dir="${script_dir}/logs"
 
