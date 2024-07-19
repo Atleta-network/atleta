@@ -1,11 +1,9 @@
 /// Macro to set a value (e.g. when using the `parameter_types` macro) to either a production value
 /// or to an environment variable or testing value (in case the `fast-runtime` feature is selected).
-/// Note that the environment variable is evaluated _at compile time_.
 ///
 /// Usage:
 /// ```Rust
 /// parameter_types! {
-///     // Note that the env variable version parameter cannot be const.
 ///     pub LaunchPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 1);
 ///     pub const VotingPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 1 * MINUTES);
 /// }
