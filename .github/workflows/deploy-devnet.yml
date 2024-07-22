@@ -44,7 +44,7 @@ jobs:
       run: |
         scp deploy/devnet/docker-compose.yml ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/docker-compose.yml
         scp chainspecs/chain-spec.devnet.json ${{ secrets.DEVNET_USERNAME}}@${{ secrets.DEVNET_HOST }}:/sportchain/chainspec.json
-
+        
     - name: SSH into Server and Deploy
       uses: appleboy/ssh-action@v1.0.0
       with:
