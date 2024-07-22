@@ -97,6 +97,7 @@ substrate-wasm-builder = { workspace = true, optional = true }
 default = ["std", "with-rocksdb-weights"]
 with-rocksdb-weights = []
 with-paritydb-weights = []
+fast-runtime = []
 std = [
     "log/std",
     "parity-scale-codec/std",

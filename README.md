@@ -10,11 +10,19 @@ hacking :rocket:
 
 ## Build & Run
 
-To build the chain, execute the following commands from the project root:
+#### Build with "fast-runtime" feature
+To build the test/dev network with the "fast-runtime" feature, execute the following command from the project root:
+```
+$ cargo build --release --features "fast-runtime" 
+```
+
+#### Build without "fast-runtime" feature
+To build the mainnet network execute the following command from the project root:
 
 ```
 $ cargo build --release
 ```
+
 
 To execute the chain, run:
 
