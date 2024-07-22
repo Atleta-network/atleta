@@ -4,87 +4,86 @@ use std::{cell::RefCell, path::Path, sync::Arc, time::Duration};
 
 use futures::{channel::mpsc, prelude::*};
 // Substrate
-use sc_client_api::{Backend, BlockBackend};
-use sc_consensus::BasicQueue;
+use sc_client_api::{Backend as BackendT, BlockBackend};
+use sc_consensus::{BasicQueue, BoxBlockImport};
 use sc_consensus_babe::{BabeLink, BabeWorkerHandle, SlotProportion};
-use sc_executor::NativeExecutionDispatch;
+use sc_executor::WasmExecutor;
 use sc_network_sync::strategy::warp::{WarpSyncParams, WarpSyncProvider};
 use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
-use sp_api::ConstructRuntimeApi;
 use sp_core::U256;
 use sp_runtime::traits::Block as BlockT;
 use substrate_prometheus_endpoint::Registry;
 // Runtime
-use atleta_runtime::{opaque::Block, Hash, TransactionConverter};
+use atleta_runtime::{opaque::Block, RuntimeApi, TransactionConverter};
 
+pub use crate::eth::{db_config_dir, EthConfiguration};
 use crate::{
     cli::Sealing,
-    client::{BaseRuntimeApiCollection, FullBackend, FullClient, RuntimeApiCollection},
     eth::{
-        new_frontier_partial, spawn_frontier_tasks, BackendType, EthCompatRuntimeApiCollection,
-        FrontierBackend, FrontierBlockImport, FrontierPartialComponents, StorageOverride,
-        StorageOverrideHandler,
+        new_frontier_partial, spawn_frontier_tasks, BackendType, FrontierBackend,
+        FrontierPartialComponents, StorageOverride, StorageOverrideHandler,
     },
 };
-pub use crate::{
-    client::{AtletaRuntimeExecutor, Client},
-    eth::{db_config_dir, EthConfiguration},
-};
 
+/// Only enable the benchmarking host functions when we actually want to benchmark.
+#[cfg(feature = "runtime-benchmarks")]
+pub type HostFunctions =
+    (sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
+/// Otherwise we use empty host functions for ext host functions.
+#[cfg(not(feature = "runtime-benchmarks"))]
+pub type HostFunctions = sp_io::SubstrateHostFunctions;
+/// Full backend.
+pub type FullBackend = sc_service::TFullBackend<Block>;
+/// Full client.
+pub type FullClient = sc_service::TFullClient<Block, RuntimeApi, WasmExecutor<HostFunctions>>;
 type BasicImportQueue = sc_consensus::DefaultImportQueue<Block>;
-type FullPool<Client> = sc_transaction_pool::FullPool<Block, Client>;
+type FullPool = sc_transaction_pool::FullPool<Block, FullClient>;
 type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
-
-type GrandpaBlockImport<Client> =
-    sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, Client, FullSelectChain>;
-type GrandpaLinkHalf<Client> = sc_consensus_grandpa::LinkHalf<Block, Client, FullSelectChain>;
-type BoxBlockImport = sc_consensus::BoxBlockImport<Block>;
+type GrandpaBlockImport<C> =
+    sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, C, FullSelectChain>;
+type GrandpaLinkHalf<C> = sc_consensus_grandpa::LinkHalf<Block, C, FullSelectChain>;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
 const GRANDPA_JUSTIFICATION_PERIOD: u32 = 512;
 
-pub fn new_partial<RuntimeApi, Executor, BIQ>(
+pub fn new_partial<BIQ>(
     config: &Configuration,
     eth_config: &EthConfiguration,
     build_import_queue: BIQ,
 ) -> Result<
     PartialComponents<
-        FullClient<RuntimeApi, Executor>,
+        FullClient,
         FullBackend,
         FullSelectChain,
         BasicImportQueue,
-        FullPool<FullClient<RuntimeApi, Executor>>,
+        FullPool,
         (
             Option<Telemetry>,
-            BoxBlockImport,
+            BoxBlockImport<Block>,
             BabeLink<Block>,
             BabeWorkerHandle<Block>,
-            GrandpaLinkHalf<FullClient<RuntimeApi, Executor>>,
-            FrontierBackend<FullClient<RuntimeApi, Executor>>,
+            GrandpaLinkHalf<FullClient>,
+            FrontierBackend<FullClient>,
             Arc<dyn StorageOverride<Block>>,
         ),
     >,
     ServiceError,
 >
 where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: BaseRuntimeApiCollection + EthCompatRuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
     BIQ: FnOnce(
-        Arc<FullClient<RuntimeApi, Executor>>,
+        Arc<FullClient>,
         &Configuration,
         &EthConfiguration,
         &TaskManager,
         Option<TelemetryHandle>,
-        GrandpaBlockImport<FullClient<RuntimeApi, Executor>>,
+        GrandpaBlockImport<FullClient>,
         FullSelectChain,
         OffchainTransactionPoolFactory<Block>,
     ) -> Result<
-        ((BasicImportQueue, BabeWorkerHandle<Block>), BoxBlockImport, BabeLink<Block>),
+        ((BasicImportQueue, BabeWorkerHandle<Block>), BoxBlockImport<Block>, BabeLink<Block>),
         ServiceError,
     >,
 {
@@ -99,7 +98,7 @@ where
         })
         .transpose()?;
 
-    let executor = sc_service::new_native_or_wasm_executor(config);
+    let executor = sc_service::new_wasm_executor(config);
 
     let (client, backend, keystore_container, task_manager) =
         sc_service::new_full_parts::<Block, RuntimeApi, _>(
@@ -194,27 +193,22 @@ where
 }
 
 /// Build the import queue for the template runtime (aura + grandpa).
-pub fn build_babe_grandpa_import_queue<RuntimeApi, Executor>(
-    client: Arc<FullClient<RuntimeApi, Executor>>,
+pub fn build_babe_grandpa_import_queue(
+    client: Arc<FullClient>,
     config: &Configuration,
     eth_config: &EthConfiguration,
     task_manager: &TaskManager,
     telemetry: Option<TelemetryHandle>,
-    grandpa_block_import: GrandpaBlockImport<FullClient<RuntimeApi, Executor>>,
+    grandpa_block_import: GrandpaBlockImport<FullClient>,
     select_chain: FullSelectChain,
     offchain_tx_pool_factory: OffchainTransactionPoolFactory<Block>,
 ) -> Result<
-    ((BasicImportQueue, BabeWorkerHandle<Block>), BoxBlockImport, BabeLink<Block>),
+    ((BasicImportQueue, BabeWorkerHandle<Block>), BoxBlockImport<Block>, BabeLink<Block>),
     ServiceError,
->
-where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: RuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
-{
-    let _frontier_block_import =
-        FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
+> {
+    // TODO should we use this instead of babe block import?
+    // let _frontier_block_import =
+    //     FrontierBlockImport::new(grandpa_block_import.clone(), client.clone());
 
     let (block_import, babe_link) = sc_consensus_babe::block_import(
         sc_consensus_babe::configuration(&*client)?,
@@ -253,24 +247,21 @@ where
 }
 
 /// Builds a new service for a full client.
-pub async fn new_full<RuntimeApi, Executor, N>(
+pub async fn new_full<NB>(
     mut config: Configuration,
     eth_config: EthConfiguration,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError>
 where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: RuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
-    N: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
+    NB: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
 {
+    // TODO we don't have manual sealing
     // let build_import_queue = if sealing.is_some() {
     //     build_manual_seal_import_queue::<RuntimeApi, Executor>
     // } else {
     //     build_babe_grandpa_import_queue::<RuntimeApi, Executor>
     // };
-    let build_import_queue = build_babe_grandpa_import_queue::<RuntimeApi, Executor>;
+    let build_import_queue = build_babe_grandpa_import_queue;
 
     let PartialComponents {
         client,
@@ -298,9 +289,9 @@ where
         new_frontier_partial(&eth_config)?;
 
     let mut net_config =
-        sc_network::config::FullNetworkConfiguration::<_, _, N>::new(&config.network);
+        sc_network::config::FullNetworkConfiguration::<_, _, NB>::new(&config.network);
     let peer_store_handle = net_config.peer_store_handle();
-    let metrics = N::register_notification_metrics(
+    let metrics = NB::register_notification_metrics(
         config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
     );
 
@@ -310,7 +301,7 @@ where
     );
 
     let (grandpa_protocol_config, grandpa_notification_service) =
-        sc_consensus_grandpa::grandpa_peers_set_config::<_, N>(
+        sc_consensus_grandpa::grandpa_peers_set_config::<_, NB>(
             grandpa_protocol_name.clone(),
             metrics.clone(),
             peer_store_handle,
@@ -625,24 +616,20 @@ where
     Ok(task_manager)
 }
 
-fn run_manual_seal_authorship<RuntimeApi, Executor>(
+fn run_manual_seal_authorship(
     eth_config: &EthConfiguration,
     sealing: Sealing,
-    client: Arc<FullClient<RuntimeApi, Executor>>,
-    transaction_pool: Arc<FullPool<FullClient<RuntimeApi, Executor>>>,
+    client: Arc<FullClient>,
+    transaction_pool: Arc<FullPool>,
     select_chain: FullSelectChain,
-    block_import: BoxBlockImport,
+    block_import: BoxBlockImport<Block>,
     task_manager: &TaskManager,
     prometheus_registry: Option<&Registry>,
     telemetry: Option<&Telemetry>,
-    commands_stream: mpsc::Receiver<sc_consensus_manual_seal::rpc::EngineCommand<Hash>>,
-) -> Result<(), ServiceError>
-where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: RuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
-{
+    commands_stream: mpsc::Receiver<
+        sc_consensus_manual_seal::rpc::EngineCommand<<Block as BlockT>::Hash>,
+    >,
+) -> Result<(), ServiceError> {
     let proposer_factory = sc_basic_authorship::ProposerFactory::new(
         task_manager.spawn_handle(),
         client.clone(),
@@ -724,25 +711,24 @@ pub async fn build_full(
     eth_config: EthConfiguration,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError> {
-    new_full::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor, sc_network::NetworkWorker<_, _>>(
-        config, eth_config, sealing,
-    )
-    .await
+    new_full::<sc_network::NetworkWorker<_, _>>(config, eth_config, sealing).await
 }
 
 pub fn new_chain_ops(
     config: &mut Configuration,
     eth_config: &EthConfiguration,
 ) -> Result<
-    (Arc<Client>, Arc<FullBackend>, BasicQueue<Block>, TaskManager, FrontierBackend<Client>),
+    (
+        Arc<FullClient>,
+        Arc<FullBackend>,
+        BasicQueue<Block>,
+        TaskManager,
+        FrontierBackend<FullClient>,
+    ),
     ServiceError,
 > {
     config.keystore = sc_service::config::KeystoreConfig::InMemory;
     let PartialComponents { client, backend, import_queue, task_manager, other, .. } =
-        new_partial::<atleta_runtime::RuntimeApi, AtletaRuntimeExecutor, _>(
-            config,
-            eth_config,
-            build_babe_grandpa_import_queue,
-        )?;
+        new_partial::<_>(config, eth_config, build_babe_grandpa_import_queue)?;
     Ok((client, backend, import_queue, task_manager, other.5))
 }
