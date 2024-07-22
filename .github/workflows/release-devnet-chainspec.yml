@@ -13,6 +13,8 @@ on:
 
 jobs:
   maybe_release:
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -26,7 +28,7 @@ jobs:
           git diff --quiet HEAD^ HEAD chainspecs/chain-spec.devnet.json || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Create timestamp (version)
-        if: steps.check_changes.outputs.changed == 'true'
+        if: steps.check_changed.outputs.changed == 'true'
         id: timestamp
         run: echo "timestamp=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
 
@@ -35,10 +37,12 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: devnet-chainspec-v${{ steps.timestamp.outputs.timestamp }}
-          name: Release ${{ steps.timestamp.outputs.timestamp }}
+          name: devnet-chainspec-${{ steps.timestamp.outputs.timestamp }}
           body: |
             Automated release of Devnet chainnspec.
           draft: false
           prerelease: false
+          files:
+            chainspecs/chain-spec.devnet.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

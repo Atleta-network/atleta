@@ -14,6 +14,8 @@ on:
 jobs:
   maybe_release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,7 +28,7 @@ jobs:
           git diff --quiet HEAD^ HEAD chainspecs/chain-spec.testnet.json || echo "changed=true" >> $GITHUB_OUTPUT
 
       - name: Create timestamp (version)
-        if: steps.check_changes.outputs.changed == 'true'
+        if: steps.check_changed.outputs.changed == 'true'
         id: timestamp
         run: echo "timestamp=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
 
@@ -35,10 +37,12 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           tag_name: testnet-chainspec-v${{ steps.timestamp.outputs.timestamp }}
-          name: Release ${{ steps.timestamp.outputs.timestamp }}
+          name: testnet-chainspec-${{ steps.timestamp.outputs.timestamp }}
           body: |
             Automated release of Testnet chainnspec.
           draft: false
           prerelease: false
+          files:
+            chainspecs/chain-spec.testnet.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
