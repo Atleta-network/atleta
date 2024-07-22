@@ -28,12 +28,12 @@ check_chainspec() {
 maybe_cleanup() {
     if [ "$(docker ps -q -f name=$container_name)" ]; then
         echo "Stopping existing container..."
-        docker stop $container_name
+        docker stop "$container_name"
     fi
 
     if [ "$(docker ps -aq -f name=$container_name)" ]; then
         echo "Removing existing container..."
-        docker rm $container_name
+        docker rm "$container_name"
     fi
 }
 

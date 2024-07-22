@@ -41,5 +41,5 @@ jobs:
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
-    - name:
+    - name: Run shellcheck
       run: fdfind --type executable | xargs -I {} shellcheck {}

@@ -112,12 +112,12 @@ check_availability() {
             break
         else
             echo "$rpc_api_endpoint is not available. Retrying in $retry_interval seconds..."
-            sleep $retry_interval
+            sleep "$retry_interval"
             ((retry_count++))
         fi
     done
     
-    if [ $retry_count -eq $max_retries ]; then
+    if [ "$retry_count" -eq "$max_retries" ]; then
         printf "\033[31mError: Couldn't connect to %s\033[0m\n" "$rpc_api_endpoint"
         kill $$
     fi
