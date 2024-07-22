@@ -16,7 +16,7 @@ source ./config.env
 
 container_name="honest_worker"
 chainspec="./chainspec.json"
-rpc_api_endpoint="http://127.0.0.1:9944"
+#rpc_api_endpoint="http://127.0.0.1:9944"
 
 check_chainspec() {
     if [ ! -f "$chainspec" ]; then

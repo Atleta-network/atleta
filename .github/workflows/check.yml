@@ -22,7 +22,7 @@ jobs:
         target: wasm32-unknown-unknown
         components: rustfmt clippy rust-src
     - name: Install system deps
-      run: sudo apt-get install protobuf-compiler jq ripgrep
+      run: sudo apt-get install protobuf-compiler jq ripgrep fd-find
     - name: Build
       run: cargo build --locked
     - name: Run tests
@@ -41,3 +41,5 @@ jobs:
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
+    - name:
+      run: fdfind --type executable | xargs -I {} shellcheck {}

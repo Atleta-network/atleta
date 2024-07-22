@@ -65,7 +65,7 @@ run_bootnode() {
         --force-authoring \
         --rpc-cors=all \
         --validator \
-        --rpc-port $1 \
+        --rpc-port "$1" \
         --base-path "${base_path}/bootnode/" \
         --node-key 0000000000000000000000000000000000000000000000000000000000000001 &
 
@@ -81,9 +81,9 @@ run_node() {
         --force-authoring \
         --rpc-cors=all \
         --validator \
-        --rpc-port $rpc_port \
+        --rpc-port "$rpc_port" \
         --base-path "${base_path}/node-${rpc_port}/" \
-        --port $p2p_port \
+        --port "$p2p_port" \
         --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp &
 
     network_pids+=($!)
@@ -105,11 +105,9 @@ check_availability() {
     local retry_interval=10
 
     while [ $retry_count -lt $max_retries ]; do
-        # Use curl to test the connection without making an actual request
-        curl --connect-timeout 10 "$rpc_api_endpoint"
-        
-        # Check the exit status of curl
-        if [ $? -eq 0 ]; then
+      
+        # Use curl to test the connection without making an actual request and Check the exit status of curl
+        if curl --connect-timeout 10 "$rpc_api_endpoint"; then
             echo "Connected to $rpc_api_endpoint"
             break
         else
@@ -120,7 +118,7 @@ check_availability() {
     done
     
     if [ $retry_count -eq $max_retries ]; then
-        printf "\033[31mError: Couldn't connect to $rpc_api_endpoint\033[0m\n"
+        printf "\033[31mError: Couldn't connect to %s\033[0m\n" "$rpc_api_endpoint"
         kill $$
     fi
 }
