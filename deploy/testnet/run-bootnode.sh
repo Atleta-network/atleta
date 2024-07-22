@@ -1,6 +1,8 @@
 #!/bin/bash
 # Runs a boot node.
 
+set -u
+
 container_name="very_honest_worker"
 chainspec="./chainspec.json"
 

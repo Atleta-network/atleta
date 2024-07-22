@@ -2,6 +2,8 @@
 # adds session keys to the node
 # it's supposed that the node is already built and running
 
+set -u
+
 num_of_args=$#
 envs="$1"
 prefix="$2"

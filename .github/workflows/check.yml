@@ -42,4 +42,4 @@ jobs:
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
     - name: Run shellcheck
-      run: fdfind --type executable | xargs -I {} shellcheck {}
+      run: fdfind --type executable --exec shellcheck {}

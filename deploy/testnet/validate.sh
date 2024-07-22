@@ -8,6 +8,8 @@
 # - config.env
 # - chainspec.json
 
+set -u
+
 source ./config.env
 
 container_name="honest_worker"

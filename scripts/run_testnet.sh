@@ -1,6 +1,8 @@
 #!/bin/bash
 # run testnet locally
 
+set -u
+
 num_of_args=$#
 base_path="$1"
 envs="$2"
