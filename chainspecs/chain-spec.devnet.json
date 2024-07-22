@@ -2,9 +2,7 @@
   "name": "Development",
   "id": "dev",
   "chainType": "Development",
-  "bootNodes": [
-    "/ip4/185.190.140.207/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp"
-  ],
+  "bootNodes": [ ],
   "telemetryEndpoints": null,
   "protocolId": null,
   "properties": {

@@ -1,0 +1,48 @@
+# checks if there are changes in the chainspec file and makes a new github
+# release of the chainspec if any
+
+name: Release Devnet Chainspec
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - devnet
+    paths:
+      - 'chainspecs/chain-spec.devnet.json'
+
+jobs:
+  maybe_release:
+    permissions:
+      contents: write
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Fetch all history for all branches and tags
+
+      - name: Check has changed
+        id: check_changed
+        run: |
+          git diff --quiet HEAD^ HEAD chainspecs/chain-spec.devnet.json || echo "changed=true" >> $GITHUB_OUTPUT
+
+      - name: Create timestamp (version)
+        if: steps.check_changed.outputs.changed == 'true'
+        id: timestamp
+        run: echo "timestamp=$(date +'%Y%m%d-%H%M')" >> $GITHUB_OUTPUT
+
+      - name: Create Release
+        if: steps.check_changed.outputs.changed == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: devnet-chainspec-v${{ steps.timestamp.outputs.timestamp }}
+          name: devnet-chainspec-${{ steps.timestamp.outputs.timestamp }}
+          body: |
+            Automated release of Devnet chainnspec.
+          draft: false
+          prerelease: false
+          files:
+            chainspecs/chain-spec.devnet.json
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

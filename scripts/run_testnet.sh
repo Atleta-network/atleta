@@ -6,13 +6,14 @@ set -u
 num_of_args=$#
 base_path="$1"
 envs="$2"
+chainspec_path="$3"
 
 # network_pid is the global array of pids for all the nodes
 network_pids=()
-node=./target/debug/atleta-node
+node=./target/release/atleta-node
 
 check_args() {
-    if [ $num_of_args -ne 2 ]; then
+    if [ $num_of_args -ne 3 ]; then
         printf "\033[31mError: wrong number of arguments\033[0m\n"
         usage
         exit 1
@@ -20,9 +21,10 @@ check_args() {
 }
 
 usage() {
-    echo "Usage: ./run_testnet.sh <base_path> <envs_file>"
-    printf "\t<base_path> is the nodes storage directory\n"
-    printf "\t<envs_file> contains the environment variables with session keys\n"
+    echo "Usage: ./run_testnet.sh <BASE_PATH> <ENVS_FILE> <CHAINSPEC_PATH>"
+    printf "\t<BASE_PATH>      is the nodes storage directory\n"
+    printf "\t<ENVS_FILE>      contains the environment variables with session keys\n"
+    printf "\t<CHAINSPEC_PATH> path to the chainspec file\n"
     printf "\n\033[31m"
     echo "The envs file should contain the variables:"
     printf "\t<DIEGO, PELE, FRANZ>_<BABE, GRAN, IMON>_<PRIVATE, PUBLIC>\n" 
@@ -34,13 +36,12 @@ load_envs() {
 }
 
 print_info() {
-    echo "About to run bootnode with RPC port 9944, and two additional nodes on" 
-    echo "ports 9955 and 9966."
+    echo "About to run nodes on ports 9944, 9955 and 9966" 
     sleep 3
 }
 
 start_network() {
-    run_bootnode 9944
+    run_node 9944 30333
     run_node 9955 30344
     run_node 9966 30355
 
@@ -54,24 +55,9 @@ stop_network() {
     done
 
     echo "Session keys added. Stopping network..."
-    check_lock_file "bootnode"
+    check_lock_file "node-9944"
     check_lock_file "node-9955"
     check_lock_file "node-9966"
-}
-
-run_bootnode() {
-    local rpc_port="$1"
-
-    "$node" \
-        --chain testnet \
-        --force-authoring \
-        --rpc-cors=all \
-        --validator \
-        --rpc-port "$1" \
-        --base-path "${base_path}/bootnode/" \
-        --node-key 0000000000000000000000000000000000000000000000000000000000000001 &
-
-    network_pids+=($!)
 }
 
 run_node() {
@@ -79,14 +65,16 @@ run_node() {
     local p2p_port="$2"
 
     "$node" \
-        --chain testnet \
+        --chain "$chainspec_path" \
         --force-authoring \
         --rpc-cors=all \
         --validator \
+        --state-pruning archive \
+        --allow-private-ipv4 \
         --rpc-port "$rpc_port" \
         --base-path "${base_path}/node-${rpc_port}/" \
-        --port "$p2p_port" \
-        --bootnodes /ip4/127.0.0.1/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp &
+        --unsafe-force-node-key-generation \
+        --listen-addr /ip4/127.0.0.1/tcp/"$p2p_port" &
 
     network_pids+=($!)
 }
@@ -107,7 +95,7 @@ check_availability() {
     local retry_interval=10
 
     while [ $retry_count -lt $max_retries ]; do
-      
+
         # Use curl to test the connection without making an actual request and Check the exit status of curl
         if curl --connect-timeout 10 "$rpc_api_endpoint"; then
             echo "Connected to $rpc_api_endpoint"
@@ -161,7 +149,7 @@ add_key() {
 check_args
 load_envs
 print_info
-cargo build
+cargo build --release
 
 start_network
 
