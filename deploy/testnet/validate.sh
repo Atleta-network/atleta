@@ -8,6 +8,8 @@
 # - config.env
 # - chainspec.json
 
+set -u
+
 source ./config.env
 
 container_name="honest_worker"
@@ -69,21 +71,19 @@ wait_availability() {
     local retry_interval=7
 
     while [ $retry_count -lt $max_retries ]; do
-        # Use curl to test the connection without making an actual request
-        curl --connect-timeout 5 "$rpc_api_endpoint" 2>/dev/null
-        
-        # Check the exit status of curl
-        if [ $? -eq 0 ]; then
+   
+        # Use curl to test the connection without making an actual request and Check the exit status of curl
+        if curl --connect-timeout 5 "$rpc_api_endpoint" 2>/dev/null; then
             echo "Connected to $rpc_api_endpoint"
             break
         else
             echo "$rpc_api_endpoint is not available. Retrying in $retry_interval seconds..." 
-            sleep $retry_interval
+            sleep "$retry_interval"
             ((retry_count++))
         fi
     done
     
-    if [ $retry_count -eq $max_retries ]; then
+    if [ "$retry_count" -eq "$max_retries" ]; then
         printf "\033[31mError: Couldn't connect to %s\033[0m\n" "$rpc_api_endpoint"
         kill $$
     fi

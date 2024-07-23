@@ -12,11 +12,12 @@
 # PRIVATE_KEY=<key in hex>
 # DOCKER_IMAGE=<image name>
 
+set -u
+
 source ./config.env
 
 container_name="honest_worker"
 chainspec="./chainspec.json"
-rpc_api_endpoint="http://127.0.0.1:9944"
 
 check_chainspec() {
     if [ ! -f "$chainspec" ]; then
@@ -28,12 +29,12 @@ check_chainspec() {
 maybe_cleanup() {
     if [ "$(docker ps -q -f name=$container_name)" ]; then
         echo "Stopping existing container..."
-        docker stop $container_name
+        docker stop "$container_name"
     fi
 
     if [ "$(docker ps -aq -f name=$container_name)" ]; then
         echo "Removing existing container..."
-        docker rm $container_name
+        docker rm "$container_name"
     fi
 }
 

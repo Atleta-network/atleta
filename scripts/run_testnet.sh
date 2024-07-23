@@ -1,6 +1,8 @@
 #!/bin/bash
 # run testnet locally
 
+set -u
+
 num_of_args=$#
 base_path="$1"
 envs="$2"
@@ -93,22 +95,20 @@ check_availability() {
     local retry_interval=10
 
     while [ $retry_count -lt $max_retries ]; do
-        # Use curl to test the connection without making an actual request
-        # curl --connect-timeout 10 "$rpc_api_endpoint"
-        
-        # Check the exit status of curl
+
+        # Use curl to test the connection without making an actual request and Check the exit status of curl
         if curl --connect-timeout 10 "$rpc_api_endpoint"; then
             echo "Connected to $rpc_api_endpoint"
             break
         else
             echo "$rpc_api_endpoint is not available. Retrying in $retry_interval seconds..."
-            sleep $retry_interval
+            sleep "$retry_interval"
             ((retry_count++))
         fi
     done
     
-    if [ $retry_count -eq $max_retries ]; then
-        printf "\033[31mError: Couldn't connect to %s \033[0m\n" "$rpc_api_endpoint"
+    if [ "$retry_count" -eq "$max_retries" ]; then
+        printf "\033[31mError: Couldn't connect to %s\033[0m\n" "$rpc_api_endpoint"
         kill $$
     fi
 }
