@@ -22,7 +22,7 @@ jobs:
         target: wasm32-unknown-unknown
         components: rustfmt clippy rust-src
     - name: Install system deps
-      run: sudo apt-get install protobuf-compiler jq ripgrep fd-find
+      run: sudo apt-get install protobuf-compiler jq ripgrep shellcheck fd-find
     - name: Build
       run: cargo build --locked
     - name: Run tests
