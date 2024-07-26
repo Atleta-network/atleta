@@ -6,6 +6,8 @@ env:
 on:
   workflow_dispatch:
   push:
+    tags:
+      - 'release-v*'
     branches:
       - testnet
       - devnet
@@ -14,8 +16,17 @@ permissions:
   contents: write
 
 jobs:
+  define_vars:
+    runs-on: ubuntu-latest
+    outputs:
+      release_name: ${{ steps.refs.outputs.ref_name }}
+    steps:
+      - id: refs
+        run: echo "ref_name=$(echo ${{ github.ref_name }} | sed 's/^release-v//')" >> "$GITHUB_OUTPUT"
+
   linux_release:
     runs-on: ubuntu-latest
+    needs: define_vars
 
     steps:
       - uses: actions/checkout@v4
@@ -29,8 +40,10 @@ jobs:
       - run: cargo build --locked --release
 
       - uses: softprops/action-gh-release@v2
+        env:
+          release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
-          name: ${{ github.ref_name }}-release-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
           make_latest: true
           files: |
             LICENSE
@@ -38,6 +51,7 @@ jobs:
 
   macos_release:
     runs-on: macos-latest
+    needs: define_vars
 
     steps:
       - uses: actions/checkout@v4
@@ -51,8 +65,10 @@ jobs:
       - run: cargo build --locked --release
 
       - uses: softprops/action-gh-release@v2
+        env:
+          release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
-          name: ${{ github.ref_name }}-release-${{ runner.os }}-${{ runner.arch }}-${{ github.sha }}
+          name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
           make_latest: true
           files: |
             LICENSE
