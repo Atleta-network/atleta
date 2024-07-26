@@ -692,7 +692,7 @@ parameter_types! {
     pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
 }
 
-type VoterBagsListInstance = pallet_bags_list::Instance1;
+pub type VoterBagsListInstance = pallet_bags_list::Instance1;
 
 impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type RuntimeEvent = RuntimeEvent;
