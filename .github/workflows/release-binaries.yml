@@ -19,10 +19,11 @@ jobs:
   define_vars:
     runs-on: ubuntu-latest
     outputs:
-      release_name: ${{ steps.refs.outputs.ref_name }}
+      release_name: ${{ steps.vars.outputs.release_name }}
+      make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
     steps:
-      - id: refs
-        run: echo "ref_name=$(echo ${{ github.ref_name }} | sed 's/^release-v//')" >> "$GITHUB_OUTPUT"
+      - id: vars
+        run: echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
   linux_release:
     runs-on: ubuntu-latest
@@ -43,8 +44,8 @@ jobs:
         env:
           release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
-          name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
+          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: ${{ needs.define_vars.outputs.make_latest }}
           files: |
             LICENSE
             ./target/release/atleta-node
@@ -68,8 +69,8 @@ jobs:
         env:
           release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
-          name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
+          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: ${{ needs.define_vars.outputs.make_latest }}
           files: |
             LICENSE
             ./target/release/atleta-node
