@@ -44,7 +44,7 @@ jobs:
           release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
           name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: true
+          make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
           files: |
             LICENSE
             ./target/release/atleta-node
@@ -69,7 +69,7 @@ jobs:
           release_name: ${{ needs.define_vars.outputs.release_name }}
         with:
           name: ${{ env.release_name }}-release-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: true
+          make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
           files: |
             LICENSE
             ./target/release/atleta-node
