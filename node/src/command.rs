@@ -233,6 +233,49 @@ pub fn run() -> sc_cli::Result<()> {
                 cmd.run(client, frontier_backend)
             })
         },
+        Some(Subcommand::RuntimeVersion) => {
+            let rv = atleta_runtime::native_version().runtime_version;
+
+            // Constructs determenistic hash for APIs: [(api_id, version)]
+            let apis_hash = {
+                use std::fmt::Write;
+                let mut apis = rv.apis.clone().into_owned();
+                apis.sort_by_key(|(api_id, _version)| *api_id);
+
+                let mut api_bytes = vec![];
+                for (api_id, version) in apis {
+                    api_bytes.extend(api_id);
+                    api_bytes.extend(version.to_be_bytes());
+                }
+
+                let apis_hash = sp_io::hashing::keccak_256(&api_bytes);
+                let mut hash_str = String::new();
+                for byte in apis_hash {
+                    write!(&mut hash_str, "{:02x}", byte)
+                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
+                        .map_err(sc_cli::Error::Io)?;
+                }
+                hash_str
+            };
+
+            let json = serde_json::json!({
+                "spec_name": rv.spec_name.to_string(),
+                "spec_version": rv.spec_version,
+                "impl_name": rv.impl_name.to_string(),
+                "impl_version": rv.impl_version,
+                "authoring_version": rv.authoring_version,
+                "transaction_version": rv.transaction_version,
+                "state_version": rv.state_version,
+                "apis_hash": apis_hash,
+            });
+
+            let json = serde_json::to_string_pretty(&json)
+                .map_err(std::io::Error::from)
+                .map_err(sc_cli::Error::Io)?;
+            println!("{}", json);
+
+            Ok(())
+        },
         None => {
             let runner = cli.create_runner(&cli.run)?;
             runner.run_node_until_exit(|config| async move {
