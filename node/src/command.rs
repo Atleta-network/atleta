@@ -239,7 +239,8 @@ pub fn run() -> sc_cli::Result<()> {
             // Constructs determenistic hash for APIs: [(api_id, version)]
             let apis_hash = {
                 use std::fmt::Write;
-                let mut apis = rv.apis.clone().into_owned();
+
+                let mut apis = rv.apis.into_owned();
                 apis.sort_by_key(|(api_id, _version)| *api_id);
 
                 let mut api_bytes = vec![];
@@ -251,9 +252,9 @@ pub fn run() -> sc_cli::Result<()> {
                 let apis_hash = sp_io::hashing::keccak_256(&api_bytes);
                 let mut hash_str = String::new();
                 for byte in apis_hash {
-                    write!(&mut hash_str, "{:02x}", byte)
-                        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e.to_string()))
-                        .map_err(sc_cli::Error::Io)?;
+                    write!(&mut hash_str, "{:02x}", byte).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
+                    })?;
                 }
                 hash_str
             };
@@ -269,9 +270,7 @@ pub fn run() -> sc_cli::Result<()> {
                 "apis_hash": apis_hash,
             });
 
-            let json = serde_json::to_string_pretty(&json)
-                .map_err(std::io::Error::from)
-                .map_err(sc_cli::Error::Io)?;
+            let json = serde_json::to_string_pretty(&json).map_err(std::io::Error::from)?;
             println!("{}", json);
 
             Ok(())
