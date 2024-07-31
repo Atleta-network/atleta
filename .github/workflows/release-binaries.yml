@@ -1,0 +1,77 @@
+name: Release Atleta Node bins
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'release-v*'
+    branches:
+      - testnet
+      - devnet
+
+permissions:
+  contents: write
+
+jobs:
+  define_vars:
+    runs-on: ubuntu-latest
+    outputs:
+      release_name: ${{ steps.vars.outputs.release_name }}
+      make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
+    steps:
+      - id: vars
+        run: echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
+
+  linux_release:
+    runs-on: ubuntu-latest
+    needs: define_vars
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - run: |
+          sudo apt-get update
+          sudo apt-get install protobuf-compiler
+
+      - run: cargo build --locked --release
+
+      - uses: softprops/action-gh-release@v2
+        env:
+          release_name: ${{ needs.define_vars.outputs.release_name }}
+        with:
+          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: ${{ needs.define_vars.outputs.make_latest }}
+          files: |
+            LICENSE
+            ./target/release/atleta-node
+
+  macos_release:
+    runs-on: macos-latest
+    needs: define_vars
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - run: |
+          brew update
+          brew install protobuf
+
+      - run: cargo build --locked --release
+
+      - uses: softprops/action-gh-release@v2
+        env:
+          release_name: ${{ needs.define_vars.outputs.release_name }}
+        with:
+          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: ${{ needs.define_vars.outputs.make_latest }}
+          files: |
+            LICENSE
+            ./target/release/atleta-node
+
