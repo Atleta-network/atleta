@@ -8,9 +8,6 @@ on:
   push:
     tags:
       - 'release-v*'
-    branches:
-      - testnet
-      - devnet
 
 permissions:
   contents: write
@@ -20,10 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       release_name: ${{ steps.vars.outputs.release_name }}
-      make_latest: ${{ github.ref == 'refs/heads/devnet' || github.ref == 'refs/heads/testnet' }}
+      commit_sha: ${{ steps.vars.outputs.commit_sha }}
     steps:
       - id: vars
-        run: echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
+        run: |
+          commit_sha=${{ github.sha }}
+          echo "commit_sha=${commit_sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
   linux_release:
     runs-on: ubuntu-latest
@@ -43,9 +43,10 @@ jobs:
       - uses: softprops/action-gh-release@v2
         env:
           release_name: ${{ needs.define_vars.outputs.release_name }}
+          commit_sha: ${{ needs.define_vars.outputs.commit_sha }}
         with:
-          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: ${{ needs.define_vars.outputs.make_latest }}
+          name: release-${{ env.release_name }}-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: true
           files: |
             LICENSE
             ./target/release/atleta-node
@@ -56,21 +57,23 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - run: |
+          brew update
+          brew upgrade rustup
+          brew install protobuf
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: wasm32-unknown-unknown
-      - run: |
-          brew update
-          brew install protobuf
 
       - run: cargo build --locked --release
 
       - uses: softprops/action-gh-release@v2
         env:
           release_name: ${{ needs.define_vars.outputs.release_name }}
+          commit_sha: ${{ needs.define_vars.outputs.commit_sha }}
         with:
-          name: release-${{ env.release_name }}-${{ github.sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: ${{ needs.define_vars.outputs.make_latest }}
+          name: release-${{ env.release_name }}-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}
+          make_latest: true
           files: |
             LICENSE
             ./target/release/atleta-node
