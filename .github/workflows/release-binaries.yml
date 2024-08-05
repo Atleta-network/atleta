@@ -6,6 +6,8 @@ env:
 on:
   workflow_dispatch:
   push:
+    branches:
+      - devnet
     tags:
       - 'release-v*'
 
@@ -25,56 +27,109 @@ jobs:
           echo "commit_sha=${commit_sha:0:7}" >> "$GITHUB_OUTPUT"
           echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
-  linux_release:
+  linux_build:
     runs-on: ubuntu-latest
     needs: define_vars
+    outputs:
+      artifact: ${{ steps.artifact.outputs.name }}
 
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions-rust-lang/setup-rust-toolchain@v1
-        with:
-          target: wasm32-unknown-unknown
       - run: |
           sudo apt-get update
           sudo apt-get install protobuf-compiler
 
-      - run: cargo build --locked --release
-
-      - uses: softprops/action-gh-release@v2
-        env:
-          release_name: ${{ needs.define_vars.outputs.release_name }}
-          commit_sha: ${{ needs.define_vars.outputs.commit_sha }}
-        with:
-          name: release-${{ env.release_name }}-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: true
-          files: |
-            LICENSE
-            ./target/release/atleta-node
-
-  macos_release:
-    runs-on: macos-latest
-    needs: define_vars
-
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          brew update
-          brew upgrade rustup
-          brew install protobuf
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
           target: wasm32-unknown-unknown
 
+      - uses: actions/checkout@v4
       - run: cargo build --locked --release
 
-      - uses: softprops/action-gh-release@v2
+      - id: artifact
         env:
-          release_name: ${{ needs.define_vars.outputs.release_name }}
           commit_sha: ${{ needs.define_vars.outputs.commit_sha }}
+        run: |
+          echo "name=build-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
         with:
-          name: release-${{ env.release_name }}-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}
-          make_latest: true
-          files: |
-            LICENSE
-            ./target/release/atleta-node
+          name: ${{ steps.artifact.outputs.name }}
+          path: ./target/release/atleta-node
+          if-no-files-found: error
+
+
+  macos_build:
+    runs-on: macos-latest
+    needs: define_vars
+    outputs:
+      artifact: ${{ steps.artifact.outputs.name }}
+
+    steps:
+      - run: |
+          brew update
+          brew upgrade rustup
+          brew install protobuf
+
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+
+      - uses: actions/checkout@v4
+      - run: cargo build --locked --release
+
+      - id: artifact
+        env:
+          commit_sha: ${{ needs.define_vars.outputs.commit_sha }}
+        run: |
+          echo "name=build-${{ env.commit_sha }}-${{ runner.os }}-${{ runner.arch }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: ./target/release/atleta-node
+          if-no-files-found: error
+
+  publish_release:
+    runs-on: ubuntu-latest
+    needs: [define_vars, linux_build, macos_build]
+
+    steps:
+      - uses: actions/download-artifact@v4
+        env:
+          artifact: ${{ needs.linux_build.outputs.artifact }}
+        with:
+          name: ${{ env.artifact }}
+          path: release/linux
+
+      - uses: actions/download-artifact@v4
+        env:
+          artifact: ${{ needs.macos_build.outputs.artifact }}
+        with:
+          name: ${{ env.artifact }}
+          path: release/macos
+
+      - id: bundle
+        env:
+          tarball: ${{ format('{0}-release.tar.gz', needs.define_vars.outputs.release_name) }}
+        run: |
+          tar czvf ${{ env.tarball }} --directory=release .
+          echo "archive=${{ env.tarball }}" > "$GITHUB_OUTPUT"
+      
+      # deleting tag w/ release is required (otherwise we have inconsistent release content)
+      - if: ${{ github.ref == 'refs/heads/devnet' }}
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh --repo ${{ github.repository }} release delete release-devnet --yes --cleanup-tag
+
+      - id: publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          release_name: ${{ needs.define_vars.outputs.release_name }}
+          release_tag: ${{ startsWith(github.ref, 'refs/tags') && github.ref_name || format('release-{0}', github.ref_name) }}
+          release_archive: ${{ steps.bundle.outputs.archive }}
+        run: |
+          gh --repo ${{ github.repository }} release create ${{ env.release_tag }} --latest --title ${{ env.release_name }} ${{ env.release_archive }}
+
 
