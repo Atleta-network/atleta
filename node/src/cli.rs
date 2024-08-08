@@ -1,4 +1,7 @@
 use crate::service::EthConfiguration;
+use self::validator::ValidateCmd;
+
+mod validator;
 
 /// Available Sealing methods.
 #[derive(Copy, Clone, Debug, Default, clap::ValueEnum)]
@@ -66,5 +69,9 @@ pub enum Subcommand {
     /// Db meta columns information.
     FrontierDb(fc_cli::FrontierDbCmd),
 
+    /// Return the runtime version.
     RuntimeVersion,
+
+    /// Validator related commands.
+    Validate(ValidateCmd),
 }
