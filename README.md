@@ -10,19 +10,11 @@ hacking :rocket:
 
 ## Build & Run
 
-#### Build with `fast-runtime` feature
-To build the _testnet_/_devnet_ network with the `fast-runtime` feature, execute the following command from the project root:
-```shell
-cargo build --release --features "fast-runtime" 
-```
-
-#### Build without `fast-runtime` feature
+#### Build _mainnet_ node
 To build the _mainnet_ network execute the following command from the project root:
-
 ```shell
 cargo build --release
 ```
-
 
 To execute the _devnet_ chain, run:
 
@@ -30,12 +22,22 @@ To execute the _devnet_ chain, run:
 ./target/release/atleta-node --dev
 ```
 
+#### Build features
+To build node with features execute the following:
+```shell
+cargo build --release --features <features_list>
+```
+where `<features_list>` is space or comma separated list of features listed below.
+
+##### `fast-runtime`
+This feature allows to shorten the time intervals for certain runtime periods, such as bonding, voting for example.
+Useful when running a testnet, as it allows some logic to run more frequently.
 
 
 
 ## Genesis Configuration
 
-In order to view an EVM account on _devnet_, use the [`Developer`](https://polkadot-explorer.atleta.network/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/settings/developer) tab of the Polkadot UI
+In order to view an EVM account, use the [`Developer`](https://polkadot.js.org/apps/#/settings/developer) tab of the Polkadot UI
 `Settings` app to define the EVM `Account` type as below:
 
 ```json
@@ -85,7 +87,7 @@ In order to view an EVM account on _devnet_, use the [`Developer`](https://polka
 }
 ```
 
-Use the [`Developer`](https://polkadot-explorer.atleta.network/?rpc=ws%3A%2F%2F127.0.0.1%3A9944#/rpc) app's `RPC calls` tab to query
+Use the [`Developer`](https://polkadot.js.org/apps/#/rpc) app's `RPC calls` tab to query
 `eth > getBalance(address, number)` with Alith's EVM account ID
 (`0xf24FF3a9CF04c71Dbc94D0b566f7A27B94566cac`); the value that is returned
 should look something like:
