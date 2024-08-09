@@ -7,26 +7,20 @@ use sp_blockchain::HeaderBackend;
 use sp_keystore::{KeystoreExt, KeystorePtr};
 use sp_session::SessionKeys;
 
+use atleta_runtime::opaque;
+
 use crate::service::FullClient;
 
 /// Validator related commands.
 #[derive(Debug, clap::Parser)]
 pub struct ValidateCmd {
-    /// Generate session keys and insert them into the keystore.
+    #[allow(missing_docs)]
     #[command(subcommand)]
-    subcommand: Option<ValidateSubcommand>,
+    subcommand: Option<ValidateSubcommands>,
 
     #[allow(missing_docs)]
     #[clap(flatten)]
     pub shared_params: SharedParams,
-    // /// Decode session keys.
-    // DecodeSessionKeys(DecodeSessionKeysCmd),
-    //
-    //    /// Set session keys.
-    //    SetSessionKeys(SetSessionKeysCmd),
-
-    // /// Setup the validator: bond, validate and set session keys.
-    // Setup(SetupValidatorCmd),
 }
 
 impl ValidateCmd {
@@ -45,20 +39,34 @@ impl CliConfiguration for ValidateCmd {
 }
 
 #[derive(Debug, Subcommand)]
-pub enum ValidateSubcommand {
+pub enum ValidateSubcommands {
+    /// Generate session keys and insert them into the keystore.
     GenerateSessionKeys(GenerateSessionKeysCmd),
+
+    /// Decode session keys.
+    DecodeSessionKeys(DecodeSessionKeysCmd),
+
+    // /// Insert session keys into the keystore.
+    // InsertSessionKeys(InsertSessionKeysCmd),
+
+    //    /// Set session keys.
+    //    SetSessionKeys(SetSessionKeysCmd),
+
+    // /// Setup the validator: bond, validate and set session keys.
+    // Setup(SetupValidatorCmd),
 }
 
-impl ValidateSubcommand {
+impl ValidateSubcommands {
     /// Runs the command.
     pub fn run<Cli: SubstrateCli>(&self, cli: &Cli, client: &FullClient) -> Result<(), Error> {
         match self {
             Self::GenerateSessionKeys(cmd) => cmd.run(cli, client),
+            Self::DecodeSessionKeys(cmd) => cmd.run(),
         }
     }
 }
 
-/// `generate-keys` subcommand.
+/// `generate-session-keys` subcommand.
 #[derive(Debug, Clone, Parser)]
 pub struct GenerateSessionKeysCmd {
     #[allow(missing_docs)]
@@ -103,5 +111,91 @@ impl GenerateSessionKeysCmd {
 impl CliConfiguration for GenerateSessionKeysCmd {
     fn shared_params(&self) -> &SharedParams {
         &self.shared_params
+    }
+}
+
+/// `decode-session-keys` subcommand.
+#[derive(Debug, Clone, Parser)]
+pub struct DecodeSessionKeysCmd {
+    #[allow(missing_docs)]
+    #[clap(flatten)]
+    pub shared_params: SharedParams,
+
+    #[allow(missing_docs)]
+    #[clap(flatten)]
+    pub keystore_params: KeystoreParams,
+
+    /// Hex-encoded session keys.
+    #[arg(value_name = "SESSION KEYS")]
+    pub keys: String,
+}
+
+impl DecodeSessionKeysCmd {
+    /// Run the command
+    pub fn run(&self) -> Result<(), Error> {
+        match decode_readable(&self.keys)? {
+            Some(decoded) => {
+                for key_line in decoded {
+                    println!("{}: {}", key_line.0, key_line.1);
+                }
+            },
+            None => eprintln!("Error decoding session keys"),
+        }
+
+        Ok(())
+    }
+}
+
+fn decode_readable(keys: &str) -> Result<Option<Vec<(String, String)>>, Error> {
+    let bytes: Vec<u8> = sp_core::bytes::from_hex(keys)
+        .map_err(|convert_err| Error::Application(Box::new(convert_err).into()))?;
+
+    Ok(opaque::SessionKeys::decode_into_raw_public_keys(&bytes).map(|decoded| {
+        decoded
+            .into_iter()
+            .map(|(value, key_id)| {
+                (
+                    String::from_utf8(key_id.0.to_vec()).expect("KeyTypeId string is valid"),
+                    sp_core::bytes::to_hex(&value, true),
+                )
+            })
+            .collect()
+    }))
+}
+
+impl CliConfiguration for DecodeSessionKeysCmd {
+    fn shared_params(&self) -> &SharedParams {
+        &self.shared_params
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn decoding_session_keys_works() {
+        let keys = "0xeafcb752d8b82fc872f3b4dcb6c55104b80de3b49796a1e61b9ef310eb5da42dd58e4f129f85b11a2b65d2a8b6cfc3f95c1d43505a1ec25bdcae7ff28471c20140b743a501c25bb8fa033dde00de6c73ebf8c62421d4d1bd67780e8098e8aa23";
+
+        assert_eq!(
+            decode_readable(keys).unwrap(),
+            Some(vec![
+                (
+                    "babe".to_string(),
+                    "0xeafcb752d8b82fc872f3b4dcb6c55104b80de3b49796a1e61b9ef310eb5da42d"
+                        .to_string()
+                ),
+                (
+                    "gran".to_string(),
+                    "0xd58e4f129f85b11a2b65d2a8b6cfc3f95c1d43505a1ec25bdcae7ff28471c201"
+                        .to_string()
+                ),
+                (
+                    "imon".to_string(),
+                    "0x40b743a501c25bb8fa033dde00de6c73ebf8c62421d4d1bd67780e8098e8aa23"
+                        .to_string()
+                ),
+            ])
+        )
     }
 }
