@@ -1,38 +1,33 @@
 # Atleta Network
 
 The project is built on a [frontier template](https://github.com/polkadot-evm/frontier) —
-[FRAME](https://docs.substrate.io/reference/)-based
-[Substrate](https://substrate.io) node with the [Ethereum RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/#json-rpc-methods) support, ready for
-hacking :rocket:
+[FRAME](https://docs.substrate.io/reference/)-based [Substrate](https://substrate.io) node
+with the [Ethereum RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/#json-rpc-methods) support.
 
 
+## Build the node 
 
-
-## Build & Run
-
-#### Build _mainnet_ node
-To build the _mainnet_ network execute the following command from the project root:
+To build the network node execute the following command: 
 ```shell
 cargo build --release
 ```
 
-To execute the _devnet_ chain, run:
-
+To execute the _devnet_ validator, run:
 ```shell
 ./target/release/atleta-node --dev
 ```
 
-#### Build features
+### Build features
+
 To build node with features execute the following:
 ```shell
 cargo build --release --features <features_list>
 ```
 where `<features_list>` is space or comma separated list of features listed below.
 
-##### `fast-runtime`
-This feature allows to shorten the time intervals for certain runtime periods, such as bonding, voting for example.
-Useful when running a testnet, as it allows some logic to run more frequently.
-
+#### `fast-runtime`
+This feature allows to shorten time intervals for certain runtime periods, such as bonding, voting for example.
+Useful when running a _testnet_, as it allows some logic to run more frequently.
 
 
 ## Genesis Configuration
@@ -151,8 +146,6 @@ Also, the pre-funded default account for testing purposes is:
 ```
 
 
-
-
 ## Configuring Ethereum Wallet For Development
 
 The node should run locally in `--dev` mode.
@@ -164,6 +157,5 @@ Then you need to configure the network this way:
 - currency name is __Atleta Token__
 - currency symbol is __ATLA__
 - currency decimals is __18__
-- RPC URL is __http://localhost:9944/__ (or change appropriately to where you
-  deploy the node)
+- RPC URL is __http://localhost:9944/__ (or change appropriately to where you deploy the node)
 
