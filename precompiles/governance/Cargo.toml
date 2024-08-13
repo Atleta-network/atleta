@@ -1,0 +1,42 @@
+[package]
+name = "pallet-evm-precompile-governance"
+authors = { workspace = true }
+edition = "2021"
+version = "0.0.1"
+
+[dependencies]
+precompile-utils = { workspace = true }
+pallet-democracy = { workspace = true }
+
+evm = { workspace = true }
+fp-evm = { workspace = true }
+pallet-evm = { workspace = true }
+
+frame-support = { workspace = true }
+frame-system = { workspace = true }
+
+sp-std = { workspace = true }
+sp-core = { workspace = true }
+sp-io = { workspace = true }
+sp-runtime = { workspace = true }
+
+
+environmental = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "precompile-utils/std",
+    "pallet-democracy/std",
+
+    "evm/std",
+    "fp-evm/std",
+    "pallet-evm/std",
+
+    "frame-support/std",
+    "frame-system/std",
+
+    "sp-std/std",
+    "sp-core/std",
+    "sp-io/std",
+]

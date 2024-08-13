@@ -96,7 +96,9 @@ pallet-evm-precompile-staking = { workspace = true }
 pallet-evm-precompile-faucet = { workspace = true }
 pallet-evm-precompile-nomination-pools = { workspace = true }
 pallet-evm-precompile-babe = { workspace = true }
-
+pallet-evm-precompile-governance = { workspace = true }
+pallet-evm-precompile-treasury = { workspace = true }
+pallet-evm-precompile-preimage = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -186,6 +188,9 @@ std = [
     "pallet-evm-precompile-faucet/std",
     "pallet-evm-precompile-nomination-pools/std",
     "pallet-evm-precompile-babe/std",
+    "pallet-evm-precompile-governance/std",
+    "pallet-evm-precompile-treasury/std",
+    "pallet-evm-precompile-preimage/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
