@@ -88,7 +88,15 @@ pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-dispatch = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
 
+# Atleta Pallets
 pallet-faucet = { workspace = true }
+
+# Atleta Precompile Pallets
+pallet-evm-precompile-staking = { workspace = true }
+pallet-evm-precompile-faucet = { workspace = true }
+pallet-evm-precompile-nomination-pools = { workspace = true }
+pallet-evm-precompile-babe = { workspace = true }
+
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -170,8 +178,14 @@ std = [
     "pallet-evm-precompile-sha3fips/std",
     "pallet-evm-precompile-simple/std",
     "pallet-evm/std",
-    "pallet-faucet/std",
     "pallet-hotfix-sufficients/std",
+    # Atleta Pallets
+    "pallet-faucet/std",
+    # Atleta Precompile Pallets
+    "pallet-evm-precompile-staking/std",
+    "pallet-evm-precompile-faucet/std",
+    "pallet-evm-precompile-nomination-pools/std",
+    "pallet-evm-precompile-babe/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
