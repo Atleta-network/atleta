@@ -25,7 +25,11 @@ cargo build --release --features <features_list>
 ```
 where `<features_list>` is space or comma separated list of features listed below.
 
-#### `fast-runtime`
+#### `dev-runtime`
+This feature allows to shorten time intervals for certain runtime periods, such as bonding, voting for example.
+Useful when running a _devnet_, as it allows some logic to run more frequently.
+
+#### `test-runtime`
 This feature allows to shorten time intervals for certain runtime periods, such as bonding, voting for example.
 Useful when running a _testnet_, as it allows some logic to run more frequently.
 
