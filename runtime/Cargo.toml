@@ -104,9 +104,10 @@ pallet-evm-precompile-preimage = { workspace = true }
 substrate-wasm-builder = { workspace = true, optional = true }
 
 [features]
-default = ["std", "with-rocksdb-weights"]
+default = ["std", "with-rocksdb-weights", "mainnet-runtime"]
 with-rocksdb-weights = []
 with-paritydb-weights = []
+mainnet-runtime = []
 test-runtime = []
 dev-runtime = []
 std = [

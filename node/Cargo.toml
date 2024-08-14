@@ -117,9 +117,13 @@ runtime-benchmarks = [
     "sc-service/runtime-benchmarks",
     "atleta-runtime/runtime-benchmarks",
 ]
+mainnet-runtime = [
+    "atleta-runtime/mainnet-runtime",
+]
 test-runtime = [
     "atleta-runtime/test-runtime",
 ]
 dev-runtime = [
     "atleta-runtime/dev-runtime",
 ]
+

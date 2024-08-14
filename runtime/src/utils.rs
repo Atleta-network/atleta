@@ -14,7 +14,8 @@ macro_rules! conf {
         match () {
             _ if cfg!(feature = "test-runtime") => $test,
             _ if cfg!(feature = "dev-runtime") => $dev,
-            _ => $prod,
+            _ if cfg!(feature = "mainnet-runtime") => $prod,
+            _ => panic!("No valid runtime feature selected."),
         }
     };
 }
