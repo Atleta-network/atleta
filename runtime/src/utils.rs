@@ -10,11 +10,11 @@
 /// ```
 #[macro_export]
 macro_rules! conf {
-    (mainnet: $prod:expr, testnet: $test:expr) => {
-        if cfg!(feature = "fast-runtime") {
-            $test
-        } else {
-            $prod
+    (mainnet: $prod:expr, testnet: $test:expr, devnet: $dev:expr) => {
+        match () {
+            _ if cfg!(feature = "test-runtime") => $test,
+            _ if cfg!(feature = "dev-runtime") => $dev,
+            _ => $prod,
         }
     };
 }

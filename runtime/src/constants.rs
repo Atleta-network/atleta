@@ -29,7 +29,7 @@ pub mod time {
     // NOTE: Currently it is not possible to change the epoch duration after the chain has started.
     //       Attempting to do so will brick block production.
     pub const EPOCH_DURATION_IN_BLOCKS: BlockNumber =
-        conf!(mainnet: 60 * MINUTES, testnet: 10 * MINUTES);
+        conf!(mainnet: 60 * MINUTES, testnet: 10 * MINUTES, devnet: 10 * MINUTES);
     pub const EPOCH_DURATION_IN_SLOTS: u64 = {
         const SLOT_FILL_RATE: f64 = MILLISECS_PER_BLOCK as f64 / SLOT_DURATION as f64;
 

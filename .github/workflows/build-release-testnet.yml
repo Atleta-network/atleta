@@ -29,7 +29,7 @@ jobs:
 
     - name: Build and push docker image
       run: |
-          docker build --build-arg BUILD_FEATURES=fast-runtime -t docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} .
+          docker build --build-arg BUILD_FEATURES=test-runtime -t docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} .
           docker tag docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS} docker.io/atletanetwork/atleta-node:testnet-latest
           docker push docker.io/atletanetwork/atleta-node:testnet-${DATE}-${HMS}
           docker push docker.io/atletanetwork/atleta-node:testnet-latest
