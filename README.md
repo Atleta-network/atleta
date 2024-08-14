@@ -4,15 +4,16 @@ The project is built on a [frontier template](https://github.com/polkadot-evm/fr
 [FRAME](https://docs.substrate.io/reference/)-based [Substrate](https://substrate.io) node
 with the [Ethereum RPC](https://ethereum.org/en/developers/docs/apis/json-rpc/#json-rpc-methods) support.
 
+## Build the node
 
-## Build the node 
+To build the network node execute the following command:
 
-To build the network node execute the following command: 
 ```shell
 cargo build --release
 ```
 
 To execute the _devnet_ validator, run:
+
 ```shell
 ./target/release/atleta-node --dev
 ```
@@ -20,19 +21,17 @@ To execute the _devnet_ validator, run:
 ### Build features
 
 To build node with features execute the following:
+
 ```shell
 cargo build --release --features <features_list>
 ```
+
 where `<features_list>` is space or comma separated list of features listed below.
 
-#### `dev-runtime`
-This feature allows to shorten time intervals for certain runtime periods, such as bonding, voting for example.
-Useful when running a _devnet_, as it allows some logic to run more frequently.
+#### `dev-runtime` | `test-runtime`
 
-#### `test-runtime`
 This feature allows to shorten time intervals for certain runtime periods, such as bonding, voting for example.
-Useful when running a _testnet_, as it allows some logic to run more frequently.
-
+Useful when running a _devnet_ or _testnet_, as it allows some logic to run more frequently.
 
 ## Genesis Configuration
 
@@ -99,16 +98,13 @@ x: eth.getBalance
 > Further reading:
 > [EVM accounts](https://github.com/danforbes/danforbes/blob/master/writings/eth-dev.md#Accounts)
 
-
-
-
 ## Other Prefunded Accounts
 
 Running VPP in development mode will pre-fund several well-known addresses
 that (mostly) contain the letters "th" in their names to remind you that they
 are for ethereum-compatible usage. These addresses are derived from Substrate's
-canonical mnemonic: __bottom drive obey lake curtain smoke basket hold race
-lonely fit walk__ followed by the name of an account (i.e `bottom drive obey
+canonical mnemonic: **bottom drive obey lake curtain smoke basket hold race
+lonely fit walk** followed by the name of an account (i.e `bottom drive obey
 lake curtain smoke basket hold race lonely fit walk//Alith`)
 
 ```
@@ -149,17 +145,15 @@ Also, the pre-funded default account for testing purposes is:
 - PrivKey: 0x99b3c12287537e38c90a9219d4cb074a89a16e9cdb20bf85728ebd97c343e342
 ```
 
-
 ## Configuring Ethereum Wallet For Development
 
 The node should run locally in `--dev` mode.
 
 Then you need to configure the network this way:
 
-- chain ID is __2340__
-- chain name is __atleta__
-- currency name is __Atleta Token__
-- currency symbol is __ATLA__
-- currency decimals is __18__
-- RPC URL is __http://localhost:9944/__ (or change appropriately to where you deploy the node)
-
+- chain ID is **2340**
+- chain name is **atleta**
+- currency name is **Atleta Token**
+- currency symbol is **ATLA**
+- currency decimals is **18**
+- RPC URL is **http://localhost:9944/** (or change appropriately to where you deploy the node)
