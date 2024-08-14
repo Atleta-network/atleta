@@ -5,6 +5,7 @@
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
+#![allow(clippy::identity_op)]
 #![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
 
 // Make the WASM binary available.
@@ -394,7 +395,7 @@ parameter_types! {
     pub const TipFindersFee: Percent = Percent::from_percent(5);
     pub TipReportDepositBase: Balance = deposit(1, 0);
     pub BountyDepositBase: Balance = deposit(1, 0);
-    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS, devnet: DAYS);
+    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS, devnet: 1 * DAYS);
     pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 45 * DAYS, testnet: 35 * DAYS, devnet: 15 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
     pub CuratorDepositMin: Balance = DOLLARS;
@@ -786,8 +787,8 @@ parameter_types! {
     pub const VotingPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 8 * HOURS, devnet: 2 * HOURS);
     pub const FastTrackVotingPeriod: BlockNumber = conf!(mainnet: 3 * HOURS, testnet: 2 * HOURS, devnet: 30 * MINUTES);
     pub const MinimumDeposit: Balance = 100 * DOLLARS;
-    pub const EnactmentPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: HOURS, devnet: HOURS);
-    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: HOURS, devnet: HOURS);
+    pub const EnactmentPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 1 * HOURS, devnet: 1 * HOURS);
+    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 1 * HOURS, devnet: 1 * HOURS);
     pub const MaxProposals: u32 = 100;
 }
 
@@ -846,7 +847,7 @@ impl pallet_democracy::Config for Runtime {
 // Council
 parameter_types! {
     pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
-    pub const CouncilMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: DAYS);
+    pub const CouncilMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: 1 * DAYS);
     pub const CouncilMaxProposals: u32 = 100;
     pub const CouncilMaxMembers: u32 = 100;
 }
@@ -908,7 +909,7 @@ impl pallet_elections_phragmen::Config for Runtime {
 
 // Technical Committee
 parameter_types! {
-    pub const TechnicalMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: DAYS);
+    pub const TechnicalMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: 1 * DAYS);
     pub const TechnicalMaxProposals: u32 = 100;
     pub const TechnicalMaxMembers: u32 = 100;
 }
