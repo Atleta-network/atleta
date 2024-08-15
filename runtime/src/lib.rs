@@ -227,7 +227,7 @@ parameter_types! {
         })
         .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
         .build_or_panic();
-    pub const SS58Prefix: u16 = conf!(mainnet: 2340, testnet: 2340, devnet: 2300);
+    pub const SS58Prefix: u16 = conf!(mainnet: 2440, testnet: 2340, devnet: 2300);
 }
 
 // Configure FRAME pallets to include in runtime.
