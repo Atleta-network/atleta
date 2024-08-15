@@ -108,8 +108,8 @@ default = ["std", "with-rocksdb-weights", "mainnet-runtime"]
 with-rocksdb-weights = []
 with-paritydb-weights = []
 mainnet-runtime = []
-test-runtime = []
-dev-runtime = []
+testnet-runtime = []
+devnet-runtime = []
 std = [
     "log/std",
     "parity-scale-codec/std",
