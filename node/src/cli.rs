@@ -1,5 +1,5 @@
 use crate::service::EthConfiguration;
-use self::validator::ValidateCmd;
+use self::validator::ValidatorCmd;
 
 mod validator;
 
@@ -73,5 +73,5 @@ pub enum Subcommand {
     RuntimeVersion,
 
     /// Validator related commands.
-    Validate(ValidateCmd),
+    Validator(ValidatorCmd),
 }

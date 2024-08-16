@@ -4,6 +4,7 @@ use sc_keystore::LocalKeystore;
 use sc_service::config::{BasePath, KeystoreConfig};
 use sp_api::{ApiExt, ProvideRuntimeApi};
 use sp_blockchain::HeaderBackend;
+use sp_core::Bytes;
 use sp_keystore::{KeystoreExt, KeystorePtr};
 use sp_session::SessionKeys;
 
@@ -13,7 +14,7 @@ use crate::service::FullClient;
 
 /// Validator related commands.
 #[derive(Debug, clap::Parser)]
-pub struct ValidateCmd {
+pub struct ValidatorCmd {
     #[allow(missing_docs)]
     #[command(subcommand)]
     subcommand: Option<ValidateSubcommands>,
@@ -23,7 +24,7 @@ pub struct ValidateCmd {
     pub shared_params: SharedParams,
 }
 
-impl ValidateCmd {
+impl ValidatorCmd {
     pub fn run<Cli: SubstrateCli>(&self, cli: &Cli, client: &FullClient) -> Result<(), Error> {
         match &self.subcommand {
             Some(sc) => sc.run(cli, client),
@@ -32,7 +33,7 @@ impl ValidateCmd {
     }
 }
 
-impl CliConfiguration for ValidateCmd {
+impl CliConfiguration for ValidatorCmd {
     fn shared_params(&self) -> &SharedParams {
         &self.shared_params
     }
@@ -46,9 +47,8 @@ pub enum ValidateSubcommands {
     /// Decode session keys.
     DecodeSessionKeys(DecodeSessionKeysCmd),
 
-    // /// Insert session keys into the keystore.
-    // InsertSessionKeys(InsertSessionKeysCmd),
-
+    /// Insert session keys into the keystore.
+    InsertKey(InsertKeyCmd),
     //    /// Set session keys.
     //    SetSessionKeys(SetSessionKeysCmd),
 
@@ -62,6 +62,7 @@ impl ValidateSubcommands {
         match self {
             Self::GenerateSessionKeys(cmd) => cmd.run(cli, client),
             Self::DecodeSessionKeys(cmd) => cmd.run(),
+            Self::InsertKey(cmd) => cmd.run(cli),
         }
     }
 }
@@ -81,18 +82,7 @@ pub struct GenerateSessionKeysCmd {
 impl GenerateSessionKeysCmd {
     /// Run the command
     pub fn run<Cli: SubstrateCli>(&self, cli: &Cli, client: &FullClient) -> Result<(), Error> {
-        let base_path = self
-            .shared_params
-            .base_path()?
-            .unwrap_or_else(|| BasePath::from_project("", "", &Cli::executable_name()));
-        let chain_id = self.shared_params.chain_id(self.shared_params.is_dev());
-        let chain_spec = cli.load_spec(&chain_id)?;
-        let config_dir = base_path.config_dir(chain_spec.id());
-        let keystore: KeystorePtr = match self.keystore_params.keystore_config(&config_dir)? {
-            KeystoreConfig::Path { path, password } => LocalKeystore::open(path, password)?.into(),
-            _ => unreachable!("keystore_config always returns path and password; qed"),
-        };
-
+        let keystore = init_keystore(cli, &self.shared_params, &self.keystore_params)?;
         let best_block_hash = client.info().best_hash;
         let mut runtime_api = client.runtime_api();
 
@@ -111,6 +101,75 @@ impl GenerateSessionKeysCmd {
 impl CliConfiguration for GenerateSessionKeysCmd {
     fn shared_params(&self) -> &SharedParams {
         &self.shared_params
+    }
+
+    fn keystore_params(&self) -> Option<&KeystoreParams> {
+        Some(&self.keystore_params)
+    }
+}
+
+/// `insert-key` subcommand.
+#[derive(Debug, Clone, Parser)]
+pub struct InsertKeyCmd {
+    #[allow(missing_docs)]
+    #[clap(flatten)]
+    pub shared_params: SharedParams,
+
+    #[allow(missing_docs)]
+    #[clap(flatten)]
+    pub keystore_params: KeystoreParams,
+
+    /// Key type.
+    #[arg(long)]
+    pub key_type: String,
+
+    /// SURI.
+    #[arg(long, default_value_t)]
+    pub suri: String,
+
+    /// Public key.
+    #[arg(long)]
+    pub public: Bytes,
+}
+
+impl InsertKeyCmd {
+    /// Run the command
+    pub fn run<Cli: SubstrateCli>(&self, cli: &Cli) -> Result<(), Error> {
+        let keystore = init_keystore(cli, &self.shared_params, &self.keystore_params)?;
+        let key_type = self.key_type.as_str().try_into().map_err(|_| Error::KeyTypeInvalid)?;
+        keystore
+            .insert(key_type, &self.suri, &self.public[..])
+            .map_err(|_| Error::KeystoreOperation)?;
+
+        Ok(())
+    }
+}
+
+impl CliConfiguration for InsertKeyCmd {
+    fn shared_params(&self) -> &SharedParams {
+        &self.shared_params
+    }
+
+    fn keystore_params(&self) -> Option<&KeystoreParams> {
+        Some(&self.keystore_params)
+    }
+}
+
+fn init_keystore<Cli: SubstrateCli>(
+    cli: &Cli,
+    shared_params: &SharedParams,
+    keystore_params: &KeystoreParams,
+) -> Result<KeystorePtr, Error> {
+    let base_path = shared_params
+        .base_path()?
+        .unwrap_or_else(|| BasePath::from_project("", "", &Cli::executable_name()));
+    let chain_id = shared_params.chain_id(shared_params.is_dev());
+    let chain_spec = cli.load_spec(&chain_id)?;
+    let config_dir = base_path.config_dir(chain_spec.id());
+
+    match keystore_params.keystore_config(&config_dir)? {
+        KeystoreConfig::Path { path, password } => Ok(LocalKeystore::open(path, password)?.into()),
+        _ => unreachable!("keystore_config always returns path and password; qed"),
     }
 }
 
