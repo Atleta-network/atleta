@@ -1,5 +1,5 @@
-use crate::service::EthConfiguration;
 use self::validator::ValidatorCmd;
+use crate::service::EthConfiguration;
 
 mod validator;
 

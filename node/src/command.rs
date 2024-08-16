@@ -262,8 +262,7 @@ pub fn run() -> sc_cli::Result<()> {
             let runner = cli.create_runner(cmd)?;
             log::set_max_level(log::LevelFilter::Off);
             runner.sync_run(|mut config| {
-                let (client, _, _, _, _) =
-                    service::new_chain_ops(&mut config, &cli.eth)?;
+                let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
                 cmd.run(&cli, &client)
             })
         },
