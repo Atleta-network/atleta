@@ -97,7 +97,7 @@ atleta-runtime = { workspace = true, features = ["std"] }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool"]
+default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool", "mainnet-runtime"]
 rocksdb = [
     "sc-cli/rocksdb",
     "sc-service/rocksdb",
