@@ -47,13 +47,8 @@ pub enum ValidateSubcommands {
     /// Decode session keys.
     DecodeSessionKeys(DecodeSessionKeysCmd),
 
-    /// Insert session keys into the keystore.
+    /// Insert a session key into the keystore.
     InsertKey(InsertKeyCmd),
-    //    /// Set session keys.
-    //    SetSessionKeys(SetSessionKeysCmd),
-
-    // /// Setup the validator: bond, validate and set session keys.
-    // Setup(SetupValidatorCmd),
 }
 
 impl ValidateSubcommands {
@@ -119,15 +114,15 @@ pub struct InsertKeyCmd {
     #[clap(flatten)]
     pub keystore_params: KeystoreParams,
 
-    /// Key type.
+    /// Key type
     #[arg(long)]
     pub key_type: String,
 
-    /// SURI.
+    /// SURI
     #[arg(long, default_value_t)]
     pub suri: String,
 
-    /// Public key.
+    /// Public key
     #[arg(long)]
     pub public: Bytes,
 }
