@@ -20,7 +20,7 @@ use atleta_runtime::{opaque::Block, RuntimeApi, TransactionConverter};
 
 pub use crate::eth::{db_config_dir, EthConfiguration};
 use crate::{
-    cli::Sealing,
+    cli::{IsCollator, Sealing},
     eth::{
         new_frontier_partial, spawn_frontier_tasks, BackendType, FrontierBackend,
         FrontierPartialComponents, StorageOverride, StorageOverrideHandler,
@@ -250,6 +250,7 @@ pub fn build_babe_grandpa_import_queue(
 pub async fn new_full<NB>(
     mut config: Configuration,
     eth_config: EthConfiguration,
+    is_collator: IsCollator,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError>
 where
@@ -709,9 +710,10 @@ fn run_manual_seal_authorship(
 pub async fn build_full(
     config: Configuration,
     eth_config: EthConfiguration,
+    is_collator: IsCollator,
     sealing: Option<Sealing>,
 ) -> Result<TaskManager, ServiceError> {
-    new_full::<sc_network::NetworkWorker<_, _>>(config, eth_config, sealing).await
+    new_full::<sc_network::NetworkWorker<_, _>>(config, eth_config, is_collator, sealing).await
 }
 
 pub fn new_chain_ops(

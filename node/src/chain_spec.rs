@@ -24,6 +24,9 @@ use atleta_runtime::{
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
+// Parachain
+use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
+
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -132,7 +135,16 @@ pub fn testnet_config() -> ChainSpec {
 fn testnet_genesis(
     sudo_key: AccountId,
     mut endowed_accounts: Vec<AccountId>,
-    initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId)>,
+    initial_authorities: Vec<(
+        AccountId,
+        AccountId,
+        BabeId,
+        GrandpaId,
+        ImOnlineId,
+        ValidatorId,
+        AssignmentId,
+        AuthorityDiscoveryId,
+    )>,
     initial_nominators: Vec<AccountId>,
     chain_id: u64,
 ) -> serde_json::Value {
@@ -225,7 +237,7 @@ fn testnet_genesis(
         "session": {
             "keys": initial_authorities
                 .iter()
-                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone())))
+                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone(), x.7.clone())))
                 .collect::<Vec<_>>(),
         },
         "staking": {
@@ -259,7 +271,7 @@ fn testnet_genesis(
         "nominationPools": {
             "minCreateBond": 10 * DOLLARS,
             "minJoinBond": DOLLARS,
-        },
+        }
     })
 }
 
@@ -338,7 +350,16 @@ mod testnet_keys {
         AccountId::from(hex!("8ec8036d2746f635A32164f9e6C8c3f654d8Ab42"))
     }
 
-    pub(super) fn diego_session_keys() -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
+    pub(super) fn diego_session_keys() -> (
+        AccountId,
+        AccountId,
+        BabeId,
+        GrandpaId,
+        ImOnlineId,
+        ValidatorId,
+        AssignmentId,
+        AuthorityDiscoveryId,
+    ) {
         (
             AccountId::from(hex!("FFa4645462F429E8FB9a6534E22f9f4f75094aB4")), // stash
             diego(),
@@ -354,10 +375,31 @@ mod testnet_keys {
                 "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
             ))
             .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+            ))
+            .into(),
         )
     }
 
-    pub(super) fn pele_session_keys() -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
+    pub(super) fn pele_session_keys() -> (
+        AccountId,
+        AccountId,
+        BabeId,
+        GrandpaId,
+        ImOnlineId,
+        ValidatorId,
+        AssignmentId,
+        AuthorityDiscoveryId,
+    ) {
         (
             AccountId::from(hex!("55DE108cb01Acf946A0ddE3C40D5EdE3AE9201C1")), // stash
             pele(),
@@ -373,10 +415,31 @@ mod testnet_keys {
                 "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
             ))
             .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+            ))
+            .into(),
         )
     }
 
-    pub(super) fn franz_session_keys() -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
+    pub(super) fn franz_session_keys() -> (
+        AccountId,
+        AccountId,
+        BabeId,
+        GrandpaId,
+        ImOnlineId,
+        ValidatorId,
+        AssignmentId,
+        AuthorityDiscoveryId,
+    ) {
         (
             AccountId::from(hex!("F87EfACD0e08cF7F6667B2a8BEc9fC3a2DB1572F")), // stash
             franz(),
@@ -392,12 +455,31 @@ mod testnet_keys {
                 "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
             ))
             .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+            ))
+            .into(),
+            sp_core::sr25519::Public::from_raw(hex!(
+                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+            ))
+            .into(),
         )
     }
 }
 
-fn session_keys(babe: BabeId, grandpa: GrandpaId, im_online: ImOnlineId) -> SessionKeys {
-    SessionKeys { babe, grandpa, im_online }
+fn session_keys(
+    babe: BabeId,
+    grandpa: GrandpaId,
+    im_online: ImOnlineId,
+    para_validator: ValidatorId,
+    para_assignment: AssignmentId,
+    authority_discovery: AuthorityDiscoveryId,
+) -> SessionKeys {
+    SessionKeys { babe, grandpa, im_online, para_validator, para_assignment, authority_discovery }
 }
 
 /// Generate a crypto pair from seed.
@@ -418,13 +500,27 @@ where
 }
 
 /// Generate authority keys
-pub fn authority_keys_from_seed(s: &str) -> (AccountId, AccountId, BabeId, GrandpaId, ImOnlineId) {
+pub fn authority_keys_from_seed(
+    s: &str,
+) -> (
+    AccountId,
+    AccountId,
+    BabeId,
+    GrandpaId,
+    ImOnlineId,
+    ValidatorId,
+    AssignmentId,
+    AuthorityDiscoveryId,
+) {
     (
         get_account_id_from_seed::<ecdsa::Public>(&format!("{}//stash", s)),
         get_account_id_from_seed::<ecdsa::Public>(s),
         get_from_seed::<BabeId>(s),
         get_from_seed::<GrandpaId>(s),
         get_from_seed::<ImOnlineId>(s),
+        get_from_seed::<ValidatorId>(s),
+        get_from_seed::<AssignmentId>(s),
+        get_from_seed::<AuthorityDiscoveryId>(s),
     )
 }
 

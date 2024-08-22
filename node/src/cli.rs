@@ -1,4 +1,6 @@
 use crate::service::EthConfiguration;
+use clap::Parser;
+use polkadot_primitives::CollatorPair;
 
 /// Available Sealing methods.
 #[derive(Copy, Clone, Debug, Default, clap::ValueEnum)]
@@ -17,7 +19,7 @@ pub struct Cli {
 
     #[allow(missing_docs)]
     #[command(flatten)]
-    pub run: sc_cli::RunCmd,
+    pub run: RunCmd,
 
     /// Choose sealing method.
     #[arg(long, value_enum, ignore_case = true)]
@@ -67,4 +69,28 @@ pub enum Subcommand {
     FrontierDb(fc_cli::FrontierDbCmd),
 
     RuntimeVersion,
+}
+
+#[derive(Debug, Parser)]
+pub struct RunCmd {
+    #[clap(flatten)]
+    pub base: sc_cli::RunCmd,
+
+    /// Setup a GRANDPA scheduled voting pause.
+    ///
+    /// This parameter takes two values, namely a block number and a delay (in
+    /// blocks). After the given block number is finalized the GRANDPA voter
+    /// will temporarily stop voting for new blocks until the given delay has
+    /// elapsed (i.e. until a block at height `pause_block + delay` is imported).
+    #[arg(long = "grandpa-pause", num_args = 2)]
+    pub grandpa_pause: Vec<u32>,
+}
+
+/// Is this node a collator?
+#[derive(Clone)]
+pub enum IsCollator {
+    /// This node is a collator.
+    Yes(CollatorPair),
+    /// This node is not a collator.
+    No,
 }

@@ -2,8 +2,8 @@
 
 // Module level attributes
 #![cfg_attr(not(feature = "std"), no_std)]
-// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
-#![recursion_limit = "256"]
+// `construct_runtime!` does a lot of recursion and requires us to increase the limit to 512.
+#![recursion_limit = "512"]
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
 #![allow(clippy::identity_op)]
 #![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
@@ -56,11 +56,12 @@ use frame_support::{
         fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU32, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
-        KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize,
+        KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize, ProcessMessage,
+        ProcessMessageError,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
-        IdentityFee, Weight,
+        IdentityFee, Weight, WeightMeter, WeightToFee as _,
     },
     PalletId,
 };
@@ -79,6 +80,22 @@ use pallet_ethereum::{
 use pallet_evm::{
     Account as EVMAccount, EnsureAccountId20, FeeCalculator, IdentityAddressMapping, Runner,
 };
+// Parachains
+use runtime_parachains::configuration;
+use runtime_parachains::{
+    assigner_coretime as parachains_assigner_coretime,
+    assigner_on_demand as parachains_assigner_on_demand, configuration as parachains_configuration,
+    coretime, disputes as parachains_disputes,
+    disputes::slashing as parachains_slashing,
+    dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
+    inclusion::{AggregateMessageOrigin, UmpQueueId},
+    initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
+    paras_inherent as parachains_paras_inherent, scheduler as parachains_scheduler,
+    session_info as parachains_session_info, shared as parachains_shared,
+};
+// Polkadot
+use polkadot_primitives::{Id as ParaId, ValidatorId, ValidatorIndex};
+use runtime_common::{paras_registrar, paras_sudo_wrapper, slots};
 // other
 use static_assertions::const_assert;
 
@@ -100,6 +117,11 @@ pub mod constants;
 mod precompiles;
 mod utils;
 mod voter_bags;
+mod weights;
+
+// XCM configurations.
+pub mod xcm_config;
+
 // Type aliases
 
 /// Type of block number.
@@ -155,6 +177,9 @@ pub mod opaque {
             pub babe: Babe,
             pub grandpa: Grandpa,
             pub im_online: ImOnline,
+            pub para_validator: Initializer,
+            pub para_assignment: ParaSessionInfo,
+            pub authority_discovery: AuthorityDiscovery,
         }
     }
 }
@@ -370,6 +395,8 @@ impl pallet_balances::Config for Runtime {
 
 // transaction payment
 parameter_types! {
+    pub const TransactionByteFee: Balance = 1;
+    pub const TransactionPicosecondFee: Balance = 8;
     pub FeeMultiplier: Multiplier = Multiplier::one();
 }
 
@@ -1099,6 +1126,10 @@ impl pallet_offences::Config for Runtime {
     type OnOffenceHandler = Staking;
 }
 
+impl pallet_authority_discovery::Config for Runtime {
+    type MaxAuthorities = MaxAuthorities;
+}
+
 // i'm online
 parameter_types! {
     pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
@@ -1271,6 +1302,198 @@ impl pallet_hotfix_sufficients::Config for Runtime {
     type WeightInfo = pallet_hotfix_sufficients::weights::SubstrateWeight<Self>;
 }
 
+impl parachains_origin::Config for Runtime {}
+
+impl parachains_configuration::Config for Runtime {
+    type WeightInfo = weights::runtime_parachains_configuration::WeightInfo<Runtime>;
+}
+
+impl parachains_shared::Config for Runtime {
+    type DisabledValidators = Session;
+}
+
+impl parachains_session_info::Config for Runtime {
+    type ValidatorSet = Historical;
+}
+
+/// Special `RewardValidators` that does nothing ;)
+pub struct RewardValidators;
+impl runtime_parachains::inclusion::RewardValidators for RewardValidators {
+    fn reward_backing(_: impl IntoIterator<Item = ValidatorIndex>) {}
+    fn reward_bitfields(_: impl IntoIterator<Item = ValidatorIndex>) {}
+}
+
+impl parachains_inclusion::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type DisputesHandler = ParasDisputes;
+    type RewardValidators = RewardValidators;
+    type MessageQueue = ();
+    type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+    pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
+
+impl parachains_paras::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type WeightInfo = weights::runtime_parachains_paras::WeightInfo<Runtime>;
+    type UnsignedPriority = ParasUnsignedPriority;
+    type QueueFootprinter = ParaInclusion;
+    type NextSessionRotation = Babe;
+    type OnNewHead = Registrar;
+    type AssignCoretime = CoretimeAssignmentProvider;
+}
+
+parameter_types! {
+    /// Amount of weight that can be spent per block to service messages.
+    ///
+    /// # WARNING
+    ///
+    /// This is not a good value for para-chains since the `Scheduler` already uses up to 80% block weight.
+    pub MessageQueueServiceWeight: Weight = Perbill::from_percent(20) * RuntimeBlockWeights::get().max_block;
+    pub const MessageQueueHeapSize: u32 = 65_536;
+    pub const MessageQueueMaxStale: u32 = 8;
+}
+
+/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
+// pub struct MessageProcessor;
+// impl ProcessMessage for MessageProcessor {
+//     type Origin = AggregateMessageOrigin;
+
+//     fn process_message(
+//         message: &[u8],
+//         origin: Self::Origin,
+//         meter: &mut WeightMeter,
+//         id: &mut [u8; 32],
+//     ) -> Result<bool, ProcessMessageError> {
+//         use xcm::latest::Junction;
+
+//         let para = match origin {
+//             AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
+//         };
+//         xcm_builder::ProcessXcmMessage::<
+//             Junction,
+//             xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
+//             RuntimeCall,
+//         >::process_message(message, Junction::Parachain(para.into()), meter, id)
+//     }
+// }
+
+// impl pallet_message_queue::Config for Runtime {
+//     type RuntimeEvent = RuntimeEvent;
+//     type Size = u32;
+//     type HeapSize = MessageQueueHeapSize;
+//     type MaxStale = MessageQueueMaxStale;
+//     type ServiceWeight = MessageQueueServiceWeight;
+//     #[cfg(not(feature = "runtime-benchmarks"))]
+//     type MessageProcessor = MessageProcessor;
+//     #[cfg(feature = "runtime-benchmarks")]
+//     type MessageProcessor =
+//         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
+//     type QueueChangeHandler = ParaInclusion;
+//     type QueuePausedQuery = ();
+//     type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
+// }
+
+impl parachains_dmp::Config for Runtime {}
+
+parameter_types! {
+    pub const DefaultChannelSizeAndCapacityWithSystem: (u32, u32) = (51200, 500);
+}
+
+impl parachains_hrmp::Config for Runtime {
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type ChannelManager = EnsureRoot<AccountId>;
+    type DefaultChannelSizeAndCapacityWithSystem = DefaultChannelSizeAndCapacityWithSystem;
+    type WeightInfo = weights::runtime_parachains_hrmp::WeightInfo<Self>;
+}
+
+impl parachains_paras_inherent::Config for Runtime {
+    type WeightInfo = weights::runtime_parachains_paras_inherent::WeightInfo<Runtime>;
+}
+
+impl parachains_scheduler::Config for Runtime {
+    type AssignmentProvider = CoretimeAssignmentProvider;
+}
+
+parameter_types! {
+    pub const OnDemandTrafficDefaultValue: FixedU128 = FixedU128::from_u32(1);
+}
+
+impl parachains_assigner_on_demand::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type TrafficDefaultValue = OnDemandTrafficDefaultValue;
+    type WeightInfo = weights::runtime_parachains_assigner_on_demand::WeightInfo<Runtime>;
+}
+
+impl parachains_assigner_coretime::Config for Runtime {}
+
+impl parachains_initializer::Config for Runtime {
+    type Randomness = pallet_babe::RandomnessFromOneEpochAgo<Runtime>;
+    type ForceOrigin = EnsureRoot<AccountId>;
+    type CoretimeOnNewSession = ();
+    type WeightInfo = weights::runtime_parachains_initializer::WeightInfo<Runtime>;
+}
+
+impl parachains_disputes::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type RewardValidators = ();
+    type SlashingHandler = parachains_slashing::SlashValidatorsForDisputes<ParasSlashing>;
+    type WeightInfo = weights::runtime_parachains_disputes::WeightInfo<Runtime>;
+}
+
+impl parachains_slashing::Config for Runtime {
+    type KeyOwnerProofSystem = Historical;
+    type KeyOwnerProof =
+        <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(KeyTypeId, ValidatorId)>>::Proof;
+    type KeyOwnerIdentification = <Self::KeyOwnerProofSystem as KeyOwnerProofSystem<(
+        KeyTypeId,
+        ValidatorId,
+    )>>::IdentificationTuple;
+    type HandleReports = parachains_slashing::SlashingReportHandler<
+        Self::KeyOwnerIdentification,
+        Offences,
+        ReportLongevity,
+    >;
+    type WeightInfo = parachains_slashing::TestWeightInfo;
+    type BenchmarkingConfig = parachains_slashing::BenchConfig<1000>;
+}
+
+parameter_types! {
+    pub const ParaDeposit: Balance = 20000 * DOLLARS;
+    pub const ParaDataByteDeposit: Balance = 2;
+}
+
+impl paras_registrar::Config for Runtime {
+    type RuntimeOrigin = RuntimeOrigin;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type OnSwap = Slots;
+    type ParaDeposit = ParaDeposit;
+    type DataDepositPerByte = ParaDataByteDeposit;
+    type WeightInfo = weights::runtime_common_paras_registrar::WeightInfo<Runtime>;
+}
+
+parameter_types! {
+    pub LeasePeriod: BlockNumber = conf!(mainnet: 24 * DAYS, testnet: 1 * DAYS, devnet: 2 * HOURS);
+}
+
+impl slots::Config for Runtime {
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type Registrar = Registrar;
+    type LeasePeriod = LeasePeriod;
+    type LeaseOffset = ();
+    type ForceOrigin = EnsureRoot<Self::AccountId>;
+    type WeightInfo = weights::runtime_common_slots::WeightInfo<Runtime>;
+}
+
+impl paras_sudo_wrapper::Config for Runtime {}
+
 // Construct runtime
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -1303,6 +1526,7 @@ construct_runtime!(
         TechnicalMembership: pallet_membership::<Instance1>,
         VoterList: pallet_bags_list::<Instance1>,
         Historical: pallet_session::historical::{Pallet},
+        AuthorityDiscovery: pallet_authority_discovery,
         Scheduler: pallet_scheduler,
         Preimage: pallet_preimage,
         NominationPools: pallet_nomination_pools,
@@ -1315,6 +1539,30 @@ construct_runtime!(
         // Smart contracts
         RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
         Contracts: pallet_contracts,
+        // Parachains pallets
+        ParachainsOrigin: parachains_origin,
+        Configuration: parachains_configuration,
+        ParasShared: parachains_shared,
+        ParaInclusion: parachains_inclusion,
+        ParaInherent: parachains_paras_inherent,
+        ParaScheduler: parachains_scheduler,
+        Paras: parachains_paras,
+        Initializer: parachains_initializer,
+        Dmp: parachains_dmp,
+        Hrmp: parachains_hrmp,
+        ParaSessionInfo: parachains_session_info,
+        ParasDisputes: parachains_disputes,
+        ParasSlashing: parachains_slashing,
+        OnDemandAssignmentProvider: parachains_assigner_on_demand,
+        CoretimeAssignmentProvider: parachains_assigner_coretime,
+        // // Parachain Onboarding Pallets. Start indices at 80 to leave room.
+        Registrar: paras_registrar,
+        Slots: slots,
+        ParasSudoWrapper: paras_sudo_wrapper,
+        // // Pallet for sending XCM.
+        XcmPallet: pallet_xcm,
+        // // Generalized message queue
+        // MessageQueue: pallet_message_queue,
     }
 );
 

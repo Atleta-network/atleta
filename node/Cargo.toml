@@ -46,6 +46,7 @@ sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
+sc-storage-monitor = { workspace = true }
 sc-telemetry = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
@@ -92,6 +93,11 @@ fp-evm = { workspace = true, features = ["default"] }
 fp-rpc = { workspace = true, features = ["default"] }
 
 atleta-runtime = { workspace = true, features = ["std"] }
+
+polkadot-cli = { workspace = true }
+polkadot-primitives = { workspace = true }
+polkadot-node-metrics = { workspace = true }
+polkadot-service = { workspace = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }

@@ -13,6 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
+hex-literal = { workspace = true }
 static_assertions = "1.1"
 
 # Substrate
@@ -40,6 +41,7 @@ frame-support = { workspace = true }
 frame-system = { workspace = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
+pallet-authority-discovery = { workspace = true }
 pallet-authorship = { workspace = true }
 pallet-babe = { workspace = true }
 pallet-bags-list = { workspace = true }
@@ -53,6 +55,7 @@ pallet-grandpa = { workspace = true }
 pallet-im-online = { workspace = true }
 pallet-insecure-randomness-collective-flip = { workspace = true }
 pallet-membership = { workspace = true }
+pallet-message-queue = { workspace = true }
 pallet-nomination-pools = { workspace = true }
 pallet-nomination-pools-runtime-api = { workspace = true }
 pallet-offences = { workspace = true }
@@ -70,6 +73,10 @@ pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-fast-unstake = { workspace = true }
+pallet-xcm = { workspace = true }
+xcm = { workspace = true }
+xcm-builder = { workspace = true }
+xcm-executor = { workspace = true }
 
 # Frontier
 fp-account = { workspace = true, features = ["serde"] }
@@ -99,6 +106,13 @@ pallet-evm-precompile-babe = { workspace = true }
 pallet-evm-precompile-governance = { workspace = true }
 pallet-evm-precompile-treasury = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
+
+# Parachains
+runtime-parachains = { workspace = true }
+
+# Polkadot
+polkadot-primitives = { workspace = true }
+runtime-common = { workspace = true }
 
 [build-dependencies]
 substrate-wasm-builder = { workspace = true, optional = true }
@@ -152,6 +166,7 @@ std = [
     "pallet-im-online/std",
     "pallet-insecure-randomness-collective-flip/std",
     "pallet-membership/std",
+    "pallet-message-queue/std",
     "pallet-nomination-pools/std",
     "pallet-nomination-pools-runtime-api/std",
     "pallet-offences/std",
@@ -183,6 +198,15 @@ std = [
     "pallet-evm-precompile-simple/std",
     "pallet-evm/std",
     "pallet-hotfix-sufficients/std",
+    # Parachains
+    "runtime-parachains/std",
+    # Polkadot
+    "runtime-common/std",
+    # XCM
+    "xcm/std",
+    "xcm-executor/std",
+    "xcm-builder/std",
+    "pallet-xcm/std",
     # Atleta Pallets
     "pallet-faucet/std",
     # Atleta Precompile Pallets
@@ -202,6 +226,7 @@ runtime-benchmarks = [
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
     "pallet-grandpa/runtime-benchmarks",
+    "pallet-message-queue/runtime-benchmarks",
     "pallet-hotfix-sufficients/runtime-benchmarks",
     "pallet-offences-benchmarking",
     "pallet-contracts/runtime-benchmarks",

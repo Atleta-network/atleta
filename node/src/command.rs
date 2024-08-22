@@ -15,16 +15,20 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use futures::TryFutureExt;
+use futures::{FutureExt, TryFutureExt};
 // Substrate
 use sc_cli::{ChainSpec, SubstrateCli};
+use sc_network::config;
 use sc_service::DatabaseSource;
 // Frontier
 use fc_db::kv::frontier_database_dir;
+use polkadot_cli::Error;
+use polkadot_service::{OverseerGen, ValidatorOverseerGen};
+use std::result::Result;
 
 use crate::{
     chain_spec,
-    cli::{Cli, Subcommand},
+    cli::{Cli, IsCollator, Subcommand},
     service::{self, db_config_dir},
 };
 
@@ -66,6 +70,34 @@ impl SubstrateCli for Cli {
             },
         })
     }
+}
+
+fn run_node_inner<F>(
+    cli: Cli,
+    overseer_gen: impl OverseerGen,
+    maybe_malus_finality_delay: Option<u32>,
+    logger_hook: F,
+) -> std::result::Result<(), Error>
+where
+    F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
+{
+    let runner =
+        cli.create_runner_with_logger_hook::<sc_cli::RunCmd, F>(&cli.run.base, logger_hook)?;
+
+    let grandpa_pause = if cli.run.grandpa_pause.is_empty() {
+        None
+    } else {
+        Some((cli.run.grandpa_pause[0], cli.run.grandpa_pause[1]))
+    };
+
+    runner.run_node_until_exit(move |config| async move {
+        let database_source = config.database.clone();
+        let task_manager = service::build_full(config, cli.eth, IsCollator::No, cli.sealing)
+            .await
+            .map(|full| full)?;
+
+        Ok(task_manager)
+    })
 }
 
 /// Parse and run command line arguments
@@ -276,10 +308,7 @@ pub fn run() -> sc_cli::Result<()> {
             Ok(())
         },
         None => {
-            let runner = cli.create_runner(&cli.run)?;
-            runner.run_node_until_exit(|config| async move {
-                service::build_full(config, cli.eth, cli.sealing).map_err(Into::into).await
-            })
+            run_node_inner(cli, ValidatorOverseerGen, None, polkadot_node_metrics::logger_hook())
         },
     }
 }
