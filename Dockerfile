@@ -1,8 +1,8 @@
 # Stage 1: Build the application
 
-FROM rust:latest as builder
+FROM rust:latest AS builder
 
-WORKDIR /app
+ARG BUILD_FEATURES
 
 # Update system packages and install build dependencies
 RUN apt update -y && \
@@ -23,14 +23,20 @@ RUN apt update -y && \
 RUN rustup target add wasm32-unknown-unknown
 RUN rustup component add rustfmt clippy rust-src
 
+WORKDIR /app
+
 # Copy the project files
 COPY . .
 
 # Build the application
-RUN cargo build --locked --release
+RUN cargo build --features "$BUILD_FEATURES" --locked --release
 
-#Stage 2: Create the final image
+
+# Stage 2: Create the final image
+
 FROM ubuntu:latest
+
+EXPOSE 9944
 
 RUN apt update -y && apt install -y curl
 

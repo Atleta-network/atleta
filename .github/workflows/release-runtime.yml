@@ -1,0 +1,46 @@
+name: Release Atleta Runtime WASM
+
+env:
+  CARGO_TERM_COLOR: always
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'release-runtime-*'
+
+permissions:
+  contents: write
+
+jobs:
+  runtime_release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - run: |
+          sudo apt-get update
+          sudo apt-get install protobuf-compiler jq
+
+      - run: cargo build --all --locked --release
+
+      - id: vars
+        run: |
+          commit_sha=${{ github.sha }}
+          echo "commit_sha=${commit_sha:0:7}" >> "$GITHUB_OUTPUT"
+          echo "release_name=$(./target/release/atleta-node runtime-version | jq '[.spec_name, .spec_version, .authoring_version, .state_version, .transaction_version, .apis_hash[:16]] | join("-")')" >> "$GITHUB_OUTPUT"
+
+      - uses: softprops/action-gh-release@v2
+        env:
+          release_name: ${{ steps.vars.outputs.release_name }}
+          commit_sha: ${{ steps.vars.outputs.commit_sha }}
+        with:
+          name: runtime-release-${{ env.release_name }}-${{ env.commit_sha }}
+          files: |
+            LICENSE
+            ./target/release/wbuild/atleta-runtime/atleta_runtime.wasm
+            ./target/release/wbuild/atleta-runtime/atleta_runtime.compact.wasm
+            ./target/release/wbuild/atleta-runtime/atleta_runtime.compact.compressed.wasm

@@ -30,6 +30,7 @@ sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
 sc-client-api = { workspace = true }
+sc-client-db = { workspace = true }
 sc-consensus = { workspace = true }
 sc-consensus-babe = { workspace = true }
 sc-consensus-babe-rpc = { workspace = true }
@@ -38,6 +39,7 @@ sc-consensus-grandpa-rpc = { workspace = true }
 sc-consensus-slots = { workspace = true }
 sc-consensus-manual-seal = { workspace = true }
 sc-executor = { workspace = true }
+sc-executor-wasmtime = { workspace = true }
 sc-network = { workspace = true }
 sc-network-sync = { workspace = true }
 sc-offchain = { workspace = true }
@@ -55,6 +57,7 @@ sp-consensus-babe = { workspace = true, features = ["default"] }
 sp-consensus-grandpa = { workspace = true, features = ["default"] }
 sp-core = { workspace = true, features = ["default"] }
 sp-inherents = { workspace = true, features = ["default"] }
+sp-io = { workspace = true, features = ["default"] }
 sp-keystore = { workspace = true, features = ["default"] }
 sp-offchain = { workspace = true, features = ["default"] }
 sp-runtime = { workspace = true, features = ["default"] }
@@ -80,7 +83,7 @@ fc-cli = { workspace = true }
 fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true }
-fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"]}
+fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"] }
 fc-rpc-core = { workspace = true }
 fc-storage = { workspace = true }
 fp-account = { workspace = true }
@@ -94,7 +97,7 @@ atleta-runtime = { workspace = true, features = ["std"] }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool"]
+default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool", "mainnet-runtime"]
 rocksdb = [
     "sc-cli/rocksdb",
     "sc-service/rocksdb",
@@ -114,3 +117,13 @@ runtime-benchmarks = [
     "sc-service/runtime-benchmarks",
     "atleta-runtime/runtime-benchmarks",
 ]
+mainnet-runtime = [
+    "atleta-runtime/mainnet-runtime",
+]
+testnet-runtime = [
+    "atleta-runtime/testnet-runtime",
+]
+devnet-runtime = [
+    "atleta-runtime/devnet-runtime",
+]
+

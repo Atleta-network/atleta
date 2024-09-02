@@ -5,6 +5,7 @@
 **/*.rs.bk
 
 .nvim/
+.vscode/
 
 .DS_Store
 
@@ -19,8 +20,4 @@ chain-data
 deploy/testnet/config.env
 deploy/testnet/chainspec.json
 testenv
-
-blockscout/services/blockscout-db-data 
-blockscout/services/logs 
-blockscout/services/redis-data 
-blockscout/services/stats-db-data
+exported.blocks

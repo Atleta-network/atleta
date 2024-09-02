@@ -181,7 +181,8 @@ pub fn run() -> sc_cli::Result<()> {
 
             let runner = cli.create_runner(cmd)?;
             match cmd {
-                BenchmarkCmd::Pallet(cmd) => runner.sync_run(|config| cmd.run::<Block, ()>(config)),
+                BenchmarkCmd::Pallet(cmd) => runner
+                    .sync_run(|config| cmd.run_with_spec::<Block, ()>(Some(config.chain_spec))),
                 BenchmarkCmd::Block(cmd) => runner.sync_run(|mut config| {
                     let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
                     cmd.run(client)
@@ -226,11 +227,53 @@ pub fn run() -> sc_cli::Result<()> {
                 let (client, _, _, _, frontier_backend) =
                     service::new_chain_ops(&mut config, &cli.eth)?;
                 let frontier_backend = match frontier_backend {
-                    fc_db::Backend::KeyValue(kv) => std::sync::Arc::new(kv),
+                    fc_db::Backend::KeyValue(kv) => kv,
                     _ => panic!("Only fc_db::Backend::KeyValue supported"),
                 };
                 cmd.run(client, frontier_backend)
             })
+        },
+        Some(Subcommand::RuntimeVersion) => {
+            let rv = atleta_runtime::native_version().runtime_version;
+
+            // Constructs determenistic hash for APIs: [(api_id, version)]
+            let apis_hash = {
+                use std::fmt::Write;
+
+                let mut apis = rv.apis.into_owned();
+                apis.sort_by_key(|(api_id, _version)| *api_id);
+
+                let mut api_bytes = vec![];
+                for (api_id, version) in apis {
+                    api_bytes.extend(api_id);
+                    api_bytes.extend(version.to_be_bytes());
+                }
+
+                let apis_hash = sp_io::hashing::keccak_256(&api_bytes);
+                let mut hash_str = String::new();
+                for byte in apis_hash {
+                    write!(&mut hash_str, "{:02x}", byte).map_err(|e| {
+                        std::io::Error::new(std::io::ErrorKind::Other, e.to_string())
+                    })?;
+                }
+                hash_str
+            };
+
+            let json = serde_json::json!({
+                "spec_name": rv.spec_name.to_string(),
+                "spec_version": rv.spec_version,
+                "impl_name": rv.impl_name.to_string(),
+                "impl_version": rv.impl_version,
+                "authoring_version": rv.authoring_version,
+                "transaction_version": rv.transaction_version,
+                "state_version": rv.state_version,
+                "apis_hash": apis_hash,
+            });
+
+            let json = serde_json::to_string_pretty(&json).map_err(std::io::Error::from)?;
+            println!("{}", json);
+
+            Ok(())
         },
         None => {
             let runner = cli.create_runner(&cli.run)?;

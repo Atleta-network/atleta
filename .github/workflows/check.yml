@@ -16,19 +16,22 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         target: wasm32-unknown-unknown
         components: rustfmt clippy rust-src
     - name: Install system deps
-      run: sudo apt-get install protobuf-compiler jq ripgrep
+      run: sudo apt-get install protobuf-compiler jq ripgrep shellcheck fd-find
     - name: Build
       run: cargo build --locked
     - name: Run tests
       run: cargo test --locked
     - name: Check format
-      run: cargo fmt -- --check
+      run: |
+        rustup toolchain add nightly-x86_64-unknown-linux-gnu
+        rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rustfmt
+        cargo +nightly fmt -- --check
     - name: Clippy checks
       run: cargo clippy --all-targets -- --deny warnings
     - name: Clippy checks all features (exclude node and runtime)
@@ -38,3 +41,5 @@ jobs:
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
+    - name: Run shellcheck
+      run: fdfind --type executable --exec bash -c 'echo {}; shellcheck {}'

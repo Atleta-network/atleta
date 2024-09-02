@@ -11,6 +11,14 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
+use pallet_evm_precompile_babe::BabePrecompile;
+use pallet_evm_precompile_faucet::FaucetPrecompile;
+use pallet_evm_precompile_governance::GovernancePrecompile;
+use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
+use pallet_evm_precompile_preimage::PreimagePrecompile;
+use pallet_evm_precompile_staking::StakingPrecompile;
+use pallet_evm_precompile_treasury::TreasuryPrecompile;
+
 use crate::*;
 
 pub struct FrontierPrecompiles<R>(PhantomData<R>);
@@ -42,6 +50,14 @@ where
             a if a == hash(1024) => Some(Sha3FIPS256::execute(handle)),
             a if a == hash(1025) => Some(ECRecoverPublicKey::execute(handle)),
             a if a == hash(1026) => Some(Dispatch::<Runtime, DispatchCallFilter>::execute(handle)),
+            // Atleta Precompiles
+            a if a == hash(2001) => Some(GovernancePrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2002) => Some(TreasuryPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2003) => Some(PreimagePrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2004) => Some(StakingPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2005) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2006) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
+            a if a == hash(2007) => Some(BabePrecompile::<Runtime>::execute(handle)),
             _ => None,
         }
     }

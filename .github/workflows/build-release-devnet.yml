@@ -1,0 +1,30 @@
+name: Build and Release Devnet
+
+on:
+  push:
+    branches: [ "devnet" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      run: docker login -u atletanetwork -p ${{ secrets.REGISTRYPASS }} docker.io
+
+
+    - name: Build and Push Docker Image
+      run: |
+          DATE=$(date +%d%m%y)
+          HMS=$(date +%H%M%S)
+          echo "DATE: $DATE, HMS: $HMS"
+          docker build --build-arg BUILD_FEATURES=devnet-runtime -t docker.io/atletanetwork/atleta-node:devnet-${DATE}-${HMS} . 
+          docker tag docker.io/atletanetwork/atleta-node:devnet-${DATE}-${HMS} docker.io/atletanetwork/atleta-node:devnet-latest
+          docker push docker.io/atletanetwork/atleta-node:devnet-${DATE}-${HMS}
+          docker push docker.io/atletanetwork/atleta-node:devnet-latest

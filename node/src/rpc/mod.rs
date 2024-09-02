@@ -29,7 +29,7 @@ use atleta_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce
 
 mod consensus_data_provider;
 mod eth;
-pub use self::eth::{create_eth, overrides_handle, EthDeps};
+pub use self::eth::{create_eth, EthDeps};
 
 /// Extra dependencies for BABE.
 pub struct BabeDeps {

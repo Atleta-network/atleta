@@ -5,6 +5,7 @@
 // `construct_runtime!` does a lot of recursion and requires us to increase the limit to 256.
 #![recursion_limit = "256"]
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
+#![allow(clippy::identity_op)]
 #![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
 
 // Make the WASM binary available.
@@ -31,7 +32,8 @@ use sp_runtime::{
     transaction_validity::{
         TransactionPriority, TransactionSource, TransactionValidity, TransactionValidityError,
     },
-    ApplyExtrinsicResult, ConsensusEngineId, FixedU128, Perbill, Percent, Permill,
+    ApplyExtrinsicResult, ConsensusEngineId, ExtrinsicInclusionMode, FixedU128, Perbill, Percent,
+    Permill,
 };
 use sp_staking::currency_to_vote::U128CurrencyToVote;
 use sp_std::{marker::PhantomData, prelude::*};
@@ -48,7 +50,7 @@ use frame_support::weights::constants::RocksDbWeight as RuntimeDbWeight;
 use frame_support::{
     construct_runtime,
     dispatch::DispatchClass,
-    genesis_builder_helper::{build_config, create_default_config},
+    genesis_builder_helper::{build_state, get_preset},
     parameter_types,
     traits::{
         fungible::HoldConsideration,
@@ -65,7 +67,7 @@ use frame_support::{
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-use pallet_transaction_payment::{ConstFeeMultiplier, CurrencyAdapter};
+use pallet_transaction_payment::{ConstFeeMultiplier, FungibleAdapter};
 // Frontier
 use fp_account::EthereumSignature;
 use fp_evm::weight_per_gas;
@@ -96,8 +98,8 @@ pub use pallet_staking::StakerStatus;
 // Module definitions
 pub mod constants;
 mod precompiles;
+mod utils;
 mod voter_bags;
-
 // Type aliases
 
 /// Type of block number.
@@ -225,7 +227,7 @@ parameter_types! {
         })
         .avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
         .build_or_panic();
-    pub const SS58Prefix: u16 = 2340;
+    pub const SS58Prefix: u16 = conf!(mainnet: 2440, testnet: 2340, devnet: 2300);
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -279,6 +281,19 @@ impl frame_system::Config for Runtime {
     /// The set code logic, just the default since we're not a parachain.
     type OnSetCode = ();
     type MaxConsumers = ConstU32<16>;
+
+    /// All migrations that should run in the next runtime upgrade.
+    type SingleBlockMigrations = ();
+    /// The migrator that is used to run Multi-Block-Migrations.
+    type MultiBlockMigrator = ();
+
+    /// A callback that executes in _every block_ directly before all inherents were applied.
+    type PreInherents = ();
+    /// A callback that executes in _every block_ directly after all inherents were applied.
+    type PostInherents = ();
+
+    /// A callback that executes in _every block_ directly after all transactions were applied.
+    type PostTransactions = ();
 }
 
 parameter_types! {
@@ -360,7 +375,7 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type OnChargeTransaction = CurrencyAdapter<Balances, ()>;
+    type OnChargeTransaction = FungibleAdapter<Balances, ()>;
     type WeightToFee = IdentityFee<Balance>;
     type LengthToFee = IdentityFee<Balance>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
@@ -380,8 +395,8 @@ parameter_types! {
     pub const TipFindersFee: Percent = Percent::from_percent(5);
     pub TipReportDepositBase: Balance = deposit(1, 0);
     pub BountyDepositBase: Balance = deposit(1, 0);
-    pub const BountyDepositPayoutDelay: BlockNumber = 6 * DAYS;
-    pub const BountyUpdatePeriod: BlockNumber = 35 * DAYS;
+    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS, devnet: 1 * DAYS);
+    pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 45 * DAYS, testnet: 35 * DAYS, devnet: 15 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
     pub CuratorDepositMin: Balance = DOLLARS;
     pub CuratorDepositMax: Balance = 100 * DOLLARS;
@@ -498,6 +513,8 @@ impl pallet_contracts::Config for Runtime {
     type Migrations = ();
     type Xcm = ();
     type ApiVersion = ();
+    type UploadOrigin = EnsureSigned<AccountId>;
+    type InstantiateOrigin = EnsureSigned<AccountId>;
 }
 
 // election provider
@@ -676,7 +693,7 @@ parameter_types! {
     pub const BagThresholds: &'static [u64] = &voter_bags::THRESHOLDS;
 }
 
-type VoterBagsListInstance = pallet_bags_list::Instance1;
+pub type VoterBagsListInstance = pallet_bags_list::Instance1;
 
 impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
     type RuntimeEvent = RuntimeEvent;
@@ -740,6 +757,10 @@ impl pallet_nomination_pools::Config for Runtime {
     type MaxUnbonding = ConstU32<8>;
     type PalletId = NominationPoolsPalletId;
     type MaxPointsToBalance = MaxPointsToBalance;
+    type AdminOrigin = EitherOfDiverse<
+        EnsureRoot<AccountId>,
+        pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 4>,
+    >;
 }
 
 // session
@@ -762,12 +783,12 @@ impl pallet_session::historical::Config for Runtime {
 
 // Democracy
 parameter_types! {
-    pub const LaunchPeriod: BlockNumber = 8 * HOURS;
-    pub const VotingPeriod: BlockNumber = 8 * HOURS;
-    pub const FastTrackVotingPeriod: BlockNumber = 2 * HOURS;
+    pub const LaunchPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 8 * HOURS, devnet: 2 * HOURS);
+    pub const VotingPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 8 * HOURS, devnet: 2 * HOURS);
+    pub const FastTrackVotingPeriod: BlockNumber = conf!(mainnet: 3 * HOURS, testnet: 2 * HOURS, devnet: 30 * MINUTES);
     pub const MinimumDeposit: Balance = 100 * DOLLARS;
-    pub const EnactmentPeriod: BlockNumber = HOURS;
-    pub const CooloffPeriod: BlockNumber = HOURS;
+    pub const EnactmentPeriod: BlockNumber = conf!(mainnet: 28 * DAYS, testnet: 1 * HOURS, devnet: 1 * HOURS);
+    pub const CooloffPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 1 * HOURS, devnet: 1 * HOURS);
     pub const MaxProposals: u32 = 100;
 }
 
@@ -826,7 +847,7 @@ impl pallet_democracy::Config for Runtime {
 // Council
 parameter_types! {
     pub MaxCollectivesProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
-    pub const CouncilMotionDuration: BlockNumber = 5 * DAYS;
+    pub const CouncilMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: 1 * DAYS);
     pub const CouncilMaxProposals: u32 = 100;
     pub const CouncilMaxMembers: u32 = 100;
 }
@@ -888,7 +909,7 @@ impl pallet_elections_phragmen::Config for Runtime {
 
 // Technical Committee
 parameter_types! {
-    pub const TechnicalMotionDuration: BlockNumber = 5 * DAYS;
+    pub const TechnicalMotionDuration: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * DAYS, devnet: 1 * DAYS);
     pub const TechnicalMaxProposals: u32 = 100;
     pub const TechnicalMaxMembers: u32 = 100;
 }
@@ -971,8 +992,8 @@ impl pallet_scheduler::Config for Runtime {
 // staking
 parameter_types! {
     pub const SessionsPerEra: sp_staking::SessionIndex = 6;
-    pub const BondingDuration: sp_staking::EraIndex = 2; // 2 eras
-    pub const SlashDeferDuration: sp_staking::EraIndex = 1;
+    pub const BondingDuration: sp_staking::EraIndex = conf!(mainnet:6, testnet: 2, devnet: 2);
+    pub const SlashDeferDuration: sp_staking::EraIndex = conf!(mainnet:5, testnet: 1, devnet: 1);
     pub const RewardCurve: &'static PiecewiseLinear<'static> = &REWARD_CURVE;
     pub const MaxExposurePageSize: u32 = 256;
     pub const MaxControllersInDeprecationBatch: u32 = 5900;
@@ -1451,7 +1472,7 @@ impl_runtime_apis! {
             Executive::execute_block(block)
         }
 
-        fn initialize_block(header: &<Block as BlockT>::Header) {
+        fn initialize_block(header: &<Block as BlockT>::Header) -> ExtrinsicInclusionMode {
             Executive::initialize_block(header)
         }
     }
@@ -1607,12 +1628,16 @@ impl_runtime_apis! {
     }
 
     impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-        fn create_default_config() -> Vec<u8> {
-            create_default_config::<RuntimeGenesisConfig>()
+        fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+            build_state::<RuntimeGenesisConfig>(config)
         }
 
-        fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-            build_config::<RuntimeGenesisConfig>(config)
+        fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+            get_preset::<RuntimeGenesisConfig>(id, |_| None)
+        }
+
+        fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+            vec![]
         }
     }
 

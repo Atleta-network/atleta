@@ -8,21 +8,18 @@ use std::{
 use futures::{future, prelude::*};
 // Substrate
 use sc_client_api::BlockchainEvents;
-use sc_executor::NativeExecutionDispatch;
 use sc_network_sync::SyncingService;
 use sc_service::{error::Error as ServiceError, Configuration, TaskManager};
-use sp_api::ConstructRuntimeApi;
 // Frontier
-pub use fc_consensus::FrontierBlockImport;
-use fc_rpc::{EthTask, OverrideHandle};
-pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
-// Local
 use atleta_runtime::opaque::Block;
-
-use crate::client::{FullBackend, FullClient};
+use fc_rpc::EthTask;
+pub use fc_rpc_core::types::{FeeHistoryCache, FeeHistoryCacheLimit, FilterPool};
+pub use fc_storage::{StorageOverride, StorageOverrideHandler};
+// Local
+use crate::service::{FullBackend, FullClient};
 
 /// Frontier DB backend type.
-pub type FrontierBackend = fc_db::Backend<Block>;
+pub type FrontierBackend<C> = fc_db::Backend<Block, C>;
 
 pub fn db_config_dir(config: &Configuration) -> PathBuf {
     config.base_path.config_dir(config.chain_spec.id())
@@ -107,28 +104,13 @@ pub fn new_frontier_partial(
     })
 }
 
-/// A set of APIs that ethereum-compatible runtimes must implement.
-pub trait EthCompatRuntimeApiCollection:
-    sp_api::ApiExt<Block>
-    + fp_rpc::ConvertTransactionRuntimeApi<Block>
-    + fp_rpc::EthereumRuntimeRPCApi<Block>
-{
-}
-
-impl<Api> EthCompatRuntimeApiCollection for Api where
-    Api: sp_api::ApiExt<Block>
-        + fp_rpc::ConvertTransactionRuntimeApi<Block>
-        + fp_rpc::EthereumRuntimeRPCApi<Block>
-{
-}
-
-pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
+pub async fn spawn_frontier_tasks(
     task_manager: &TaskManager,
-    client: Arc<FullClient<RuntimeApi, Executor>>,
+    client: Arc<FullClient>,
     backend: Arc<FullBackend>,
-    frontier_backend: FrontierBackend,
+    frontier_backend: Arc<FrontierBackend<FullClient>>,
     filter_pool: Option<FilterPool>,
-    overrides: Arc<OverrideHandle<Block>>,
+    storage_override: Arc<dyn StorageOverride<Block>>,
     fee_history_cache: FeeHistoryCache,
     fee_history_cache_limit: FeeHistoryCacheLimit,
     sync: Arc<SyncingService<Block>>,
@@ -137,14 +119,9 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
             fc_mapping_sync::EthereumBlockNotification<Block>,
         >,
     >,
-) where
-    RuntimeApi: ConstructRuntimeApi<Block, FullClient<RuntimeApi, Executor>>,
-    RuntimeApi: Send + Sync + 'static,
-    RuntimeApi::RuntimeApi: EthCompatRuntimeApiCollection,
-    Executor: NativeExecutionDispatch + 'static,
-{
+) {
     // Spawn main mapping sync worker background task.
-    match frontier_backend {
+    match &*frontier_backend {
         fc_db::Backend::KeyValue(b) => {
             task_manager.spawn_essential_handle().spawn(
                 "frontier-mapping-sync-worker",
@@ -154,8 +131,8 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
                     Duration::new(6, 0),
                     client.clone(),
                     backend,
-                    overrides.clone(),
-                    Arc::new(b),
+                    storage_override.clone(),
+                    b.clone(),
                     3,
                     0,
                     fc_mapping_sync::SyncStrategy::Normal,
@@ -172,7 +149,7 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
                 fc_mapping_sync::sql::SyncWorker::run(
                     client.clone(),
                     backend,
-                    Arc::new(b),
+                    b.clone(),
                     client.import_notification_stream(),
                     fc_mapping_sync::sql::SyncWorkerConfig {
                         read_notification_timeout: Duration::from_secs(10),
@@ -201,6 +178,11 @@ pub async fn spawn_frontier_tasks<RuntimeApi, Executor>(
     task_manager.spawn_essential_handle().spawn(
         "frontier-fee-history",
         Some("frontier"),
-        EthTask::fee_history_task(client, overrides, fee_history_cache, fee_history_cache_limit),
+        EthTask::fee_history_task(
+            client,
+            storage_override,
+            fee_history_cache,
+            fee_history_cache_limit,
+        ),
     );
 }
