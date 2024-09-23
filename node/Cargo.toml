@@ -160,7 +160,7 @@ polkadot-node-core-approval-voting = { workspace = true, optional = true }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["full-node", "with-rocksdb-weights", "rocksdb", "sql", "txpool"]
+default = ["full-node", "with-rocksdb-weights", "rocksdb", "sql", "txpool", "mainnet-runtime"]
 rocksdb = [
     "sc-cli/rocksdb",
     "sc-service/rocksdb",
