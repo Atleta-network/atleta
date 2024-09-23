@@ -1436,46 +1436,6 @@ parameter_types! {
     pub const MessageQueueMaxStale: u32 = 8;
 }
 
-/// Message processor to handle any messages that were enqueued into the `MessageQueue` pallet.
-// pub struct MessageProcessor;
-// impl ProcessMessage for MessageProcessor {
-//     type Origin = AggregateMessageOrigin;
-
-//     fn process_message(
-//         message: &[u8],
-//         origin: Self::Origin,
-//         meter: &mut WeightMeter,
-//         id: &mut [u8; 32],
-//     ) -> Result<bool, ProcessMessageError> {
-//         use xcm::latest::Junction;
-
-//         let para = match origin {
-//             AggregateMessageOrigin::Ump(UmpQueueId::Para(para)) => para,
-//         };
-//         xcm_builder::ProcessXcmMessage::<
-//             Junction,
-//             xcm_executor::XcmExecutor<xcm_config::XcmConfig>,
-//             RuntimeCall,
-//         >::process_message(message, Junction::Parachain(para.into()), meter, id)
-//     }
-// }
-
-// impl pallet_message_queue::Config for Runtime {
-//     type RuntimeEvent = RuntimeEvent;
-//     type Size = u32;
-//     type HeapSize = MessageQueueHeapSize;
-//     type MaxStale = MessageQueueMaxStale;
-//     type ServiceWeight = MessageQueueServiceWeight;
-//     #[cfg(not(feature = "runtime-benchmarks"))]
-//     type MessageProcessor = MessageProcessor;
-//     #[cfg(feature = "runtime-benchmarks")]
-//     type MessageProcessor =
-//         pallet_message_queue::mock_helpers::NoopMessageProcessor<AggregateMessageOrigin>;
-//     type QueueChangeHandler = ParaInclusion;
-//     type QueuePausedQuery = ();
-//     type WeightInfo = pallet_message_queue::weights::SubstrateWeight<Runtime>;
-// }
-
 impl parachains_dmp::Config for Runtime {}
 
 parameter_types! {

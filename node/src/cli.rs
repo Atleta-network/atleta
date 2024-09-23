@@ -93,7 +93,7 @@ pub enum Subcommand {
     /// Remove the whole chain.
     PurgeChain(sc_cli::PurgeChainCmd),
 
-    // Revert the chain to a previous state.
+    /// Revert the chain to a previous state.
     Revert(sc_cli::RevertCmd),
 
     /// Sub-commands concerned with benchmarking.
@@ -105,7 +105,7 @@ pub enum Subcommand {
     #[cfg(not(feature = "runtime-benchmarks"))]
     Benchmark,
 
-    // Db meta columns information.
+    /// Db meta columns information.
     FrontierDb(fc_cli::FrontierDbCmd),
     RuntimeVersion,
 }

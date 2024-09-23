@@ -1,20 +1,4 @@
-// Copyright (C) Parity Technologies (UK) Ltd.
-// This file is part of Polkadot.
-
-// Polkadot is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-
-// Polkadot is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-
-// You should have received a copy of the GNU General Public License
-// along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
-
-//! Polkadot service. Specialized wrapper over substrate service.
+//! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
 
 #![deny(unused_results)]
 
@@ -502,14 +486,12 @@ pub async fn new_full<
     } else {
         let parachains_db = open_database(&config.database)?;
         let candidate_validation_config = if !role.is_authority() {
-            log::error!("Hello before determination workers path");
-
             let (prep_worker_path, exec_worker_path) = crate::workers::determine_workers_paths(
                 workers_path,
                 workers_names,
                 node_version.clone(),
             )?;
-            log::error!("Hello after determination workers path");
+
             log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
             log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
 
@@ -602,8 +584,6 @@ pub async fn new_full<
         );
     }
 
-    // let frontier_backend: Arc<fc_db::Backend<_, _>> = Arc::new(frontier_backend);
-
     let role = config.role.clone();
     let force_authoring = config.force_authoring;
     let backoff_authoring_blocks =
@@ -612,9 +592,6 @@ pub async fn new_full<
     let frontier_backend = Arc::new(frontier_backend);
     let enable_grandpa = !config.disable_grandpa;
     let prometheus_registry = config.prometheus_registry().cloned();
-
-    // Channel for the rpc handler to communicate with the authorship task.
-    // let (command_sink, commands_stream) = mpsc::channel(1000);
 
     // Sinks for pubsub notifications.
     // Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
@@ -705,8 +682,6 @@ pub async fn new_full<
 			use futures::StreamExt;
 			use sc_network::{Event, NetworkEventStream};
 
-            log::error!("Hello from authority_discovery_role");
-
 			let authority_discovery_role = if role.is_authority() {
 				sc_authority_discovery::Role::PublishAndDiscover(keystore_container.keystore())
 			} else {
@@ -720,7 +695,6 @@ pub async fn new_full<
 						_ => None,
 					}
 				});
-                log::error!("Hello from new_worker_and_service_with_config");
 
 			let (worker, service) = sc_authority_discovery::new_worker_and_service_with_config(
 				sc_authority_discovery::WorkerConfig {
@@ -736,8 +710,6 @@ pub async fn new_full<
 				authority_discovery_role,
 				prometheus_registry.clone(),
 			);
-
-            log::error!("Hello from task_manager.spawn_handle");
 
 			task_manager.spawn_handle().spawn(
 				"authority-discovery-worker",
@@ -784,7 +756,6 @@ pub async fn new_full<
 
         {
             let handle = handle.clone();
-            log::error!("Hello from task_manager.spawn_essential_handle");
 
             task_manager.spawn_essential_handle().spawn_blocking(
                 "overseer",
@@ -814,7 +785,6 @@ pub async fn new_full<
             !auth_or_collator,
             "Precondition congruence (false) is guaranteed by manual checking. qed"
         );
-        log::error!("Precondition congruence");
 
         None
     };
