@@ -187,6 +187,7 @@ pub mod opaque {
             pub para_validator: Initializer,
             pub para_assignment: ParaSessionInfo,
             pub authority_discovery: AuthorityDiscovery,
+            pub beefy: Beefy,
         }
     }
 }

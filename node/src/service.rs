@@ -2,6 +2,9 @@
 
 #![deny(unused_results)]
 
+use futures::prelude::*;
+use mmr_gadget::MmrGadget;
+use polkadot_node_subsystem_util::database::Database;
 #[cfg(feature = "full-node")]
 use {
     polkadot_node_core_approval_voting::Config as ApprovalVotingConfig,
@@ -15,23 +18,20 @@ use {
         peer_set::{PeerSet, PeerSetProtocolNames},
         request_response::ReqProtocolNames,
     },
+    polkadot_node_subsystem::jaeger,
     sc_client_api::BlockBackend,
     sc_transaction_pool_api::OffchainTransactionPoolFactory,
-};
-
-use futures::prelude::*;
-use polkadot_node_subsystem_util::database::Database;
-
-#[cfg(feature = "full-node")]
-pub use {
-    crate::relay_chain_selection::SelectRelayChain,
-    polkadot_overseer::{Handle, OverseerConnector},
 };
 
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use polkadot_node_subsystem_types::DefaultSubsystemClient;
 pub use sc_service::{config::DatabaseSource, ChainSpec, Configuration, TaskManager};
 use std::{collections::HashMap, path::Path, sync::Arc, time::Duration};
+#[cfg(feature = "full-node")]
+pub use {
+    crate::relay_chain_selection::SelectRelayChain,
+    polkadot_overseer::{Handle, OverseerConnector},
+};
 
 #[cfg(feature = "full-node")]
 pub use polkadot_service::{Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs};
@@ -44,7 +44,7 @@ use sc_executor::WasmExecutor;
 use sc_network_sync::strategy::warp::WarpSyncProvider;
 use sc_service::{error::Error as ServiceError, PartialComponents};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
-use sp_core::U256;
+use sp_core::{traits::SpawnNamed, U256};
 use sp_runtime::traits::Block as BlockT;
 // Runtime
 use atleta_runtime::{opaque::Block, Hash, RuntimeApi, TransactionConverter};
@@ -86,6 +86,25 @@ pub fn open_database(db_source: &DatabaseSource) -> Result<Arc<dyn Database>, Er
     Ok(parachains_db)
 }
 
+/// Initialize the `Jeager` collector. The destination must listen
+/// on the given address and port for `UDP` packets.
+#[cfg(any(test, feature = "full-node"))]
+fn jaeger_launch_collector_with_agent(
+    spawner: impl SpawnNamed,
+    config: &Configuration,
+    agent: Option<std::net::SocketAddr>,
+) -> Result<(), Error> {
+    if let Some(agent) = agent {
+        let cfg = jaeger::JaegerConfig::builder()
+            .agent(agent)
+            .named(&config.network.node_name)
+            .build();
+
+        jaeger::Jaeger::new(cfg).launch(spawner)?;
+    }
+    Ok(())
+}
+
 pub const AVAILABILITY_CONFIG: AvailabilityConfig = AvailabilityConfig {
     col_data: crate::parachains_db::REAL_COLUMNS.col_availability_data,
     col_meta: crate::parachains_db::REAL_COLUMNS.col_availability_meta,
@@ -108,6 +127,9 @@ type FullSelectChain = sc_consensus::LongestChain<FullBackend, Block>;
 type GrandpaBlockImport<C> =
     sc_consensus_grandpa::GrandpaBlockImport<FullBackend, Block, C, FullSelectChain>;
 type GrandpaLinkHalf<C> = sc_consensus_grandpa::LinkHalf<Block, C, FullSelectChain>;
+#[cfg(feature = "full-node")]
+type FullBeefyBlockImport<InnerBlockImport> =
+    sc_consensus_beefy::import::BeefyBlockImport<Block, FullBackend, FullClient, InnerBlockImport>;
 
 /// The minimum period of blocks on which justifications will be
 /// imported and generated.
@@ -131,6 +153,7 @@ pub fn new_partial<BIQ>(
             BabeWorkerHandle<Block>,
             GrandpaLinkHalf<FullClient>,
             sc_consensus_beefy::BeefyVoterLinks<Block>,
+            sc_consensus_beefy::BeefyRPCLinks<Block>,
             FrontierBackend<FullClient>,
             Arc<dyn StorageOverride<Block>>,
         ),
@@ -144,6 +167,7 @@ where
         &EthConfiguration,
         &TaskManager,
         Option<TelemetryHandle>,
+        FullBeefyBlockImport<GrandpaBlockImport<FullClient>>,
         GrandpaBlockImport<FullClient>,
         FullSelectChain,
         OffchainTransactionPoolFactory<Block>,
@@ -174,7 +198,7 @@ where
     let client = Arc::new(client);
 
     let telemetry = telemetry.map(|(worker, telemetry)| {
-        task_manager.spawn_handle().spawn("telemetry", None, worker.run());
+        task_manager.spawn_handle().spawn("telemetry", Some("telemetry"), worker.run());
         telemetry
     });
 
@@ -226,12 +250,13 @@ where
         },
     };
 
-    let (_, beefy_voter_links, _) = sc_consensus_beefy::beefy_block_import_and_links(
-        grandpa_block_import.clone(),
-        backend.clone(),
-        client.clone(),
-        config.prometheus_registry().cloned(),
-    );
+    let (beefy_block_import, beefy_voter_links, beefy_rpc_links) =
+        sc_consensus_beefy::beefy_block_import_and_links(
+            grandpa_block_import.clone(),
+            backend.clone(),
+            client.clone(),
+            config.prometheus_registry().cloned(),
+        );
 
     let ((import_queue, worker_handle), block_import, babe_link) = build_import_queue(
         client.clone(),
@@ -239,6 +264,7 @@ where
         eth_config,
         &task_manager,
         telemetry.as_ref().map(|x| x.handle()),
+        beefy_block_import,
         grandpa_block_import,
         select_chain.clone(),
         OffchainTransactionPoolFactory::new(transaction_pool.clone()),
@@ -259,6 +285,7 @@ where
             worker_handle,
             grandpa_link,
             beefy_voter_links,
+            beefy_rpc_links,
             frontier_backend,
             storage_override,
         ),
@@ -272,6 +299,7 @@ pub fn build_babe_grandpa_import_queue(
     eth_config: &EthConfiguration,
     task_manager: &TaskManager,
     telemetry: Option<TelemetryHandle>,
+    beefy_block_import: FullBeefyBlockImport<GrandpaBlockImport<FullClient>>,
     grandpa_block_import: GrandpaBlockImport<FullClient>,
     select_chain: FullSelectChain,
     offchain_tx_pool_factory: OffchainTransactionPoolFactory<Block>,
@@ -285,7 +313,7 @@ pub fn build_babe_grandpa_import_queue(
 
     let (block_import, babe_link) = sc_consensus_babe::block_import(
         sc_consensus_babe::configuration(&*client)?,
-        grandpa_block_import.clone(),
+        beefy_block_import,
         client.clone(),
     )?;
 
@@ -328,9 +356,9 @@ pub async fn new_full<
     eth_config: EthConfiguration,
     polkadot_service::NewFullParams {
         is_parachain_node,
-        enable_beefy: _,
+        enable_beefy,
         force_authoring_backoff: _,
-        jaeger_agent: _,
+        jaeger_agent,
         telemetry_worker_handle: _,
         node_version,
         secure_validator_mode,
@@ -348,14 +376,21 @@ pub async fn new_full<
     use polkadot_node_network_protocol::request_response::IncomingRequest;
     use sc_network_sync::WarpSyncParams;
 
-    let role = config.role.clone();
-    let prometheus_registry = config.prometheus_registry().cloned();
+    let is_offchain_indexing_enabled = config.offchain_worker.indexing_enabled;
 
-    let overseer_connector = OverseerConnector::default();
-    let overseer_handle = Handle::new(overseer_connector.handle());
+    let role = config.role.clone();
+    let force_authoring = config.force_authoring;
+    let backoff_authoring_blocks =
+        Some(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default());
+    let name = config.network.node_name.clone();
+
+    let prometheus_registry = config.prometheus_registry().cloned();
 
     let auth_or_collator = role.is_authority() || is_parachain_node.is_collator();
     let build_import_queue = build_babe_grandpa_import_queue;
+
+    let overseer_connector = OverseerConnector::default();
+    let overseer_handle = Handle::new(overseer_connector.handle());
 
     let PartialComponents {
         client,
@@ -372,11 +407,14 @@ pub async fn new_full<
                 babe_link,
                 worker_handle,
                 grandpa_link,
-                _beefy_links,
+                beefy_links,
+                beefy_rpc_links,
                 frontier_backend,
                 storage_override,
             ),
     } = new_partial(&config, &eth_config, build_import_queue)?;
+
+    jaeger_launch_collector_with_agent(task_manager.spawn_handle(), &config, jaeger_agent)?;
 
     let select_chain = if auth_or_collator {
         let metrics =
@@ -479,6 +517,33 @@ pub async fn new_full<
                 grandpa_hard_forks,
             ));
         Some(WarpSyncParams::WithProvider(warp_sync))
+    };
+
+    let beefy_gossip_proto_name =
+        sc_consensus_beefy::gossip_protocol_name(genesis_hash, config.chain_spec.fork_id());
+    // `beefy_on_demand_justifications_handler` is given to `beefy-gadget` task to be run,
+    // while `beefy_req_resp_cfg` is added to `config.network.request_response_protocols`.
+    let (beefy_on_demand_justifications_handler, beefy_req_resp_cfg) =
+        sc_consensus_beefy::communication::request_response::BeefyJustifsRequestHandler::new::<
+            _,
+            Network,
+        >(
+            &genesis_hash, config.chain_spec.fork_id(), client.clone(), prometheus_registry.clone()
+        );
+    let beefy_notification_service = match enable_beefy {
+        false => None,
+        true => {
+            let (beefy_notification_config, beefy_notification_service) =
+                sc_consensus_beefy::communication::beefy_peers_set_config::<_, Network>(
+                    beefy_gossip_proto_name.clone(),
+                    metrics.clone(),
+                    Arc::clone(&peer_store_handle),
+                );
+
+            net_config.add_notification_protocol(beefy_notification_config);
+            net_config.add_request_response_protocol(beefy_req_resp_cfg);
+            Some(beefy_notification_service)
+        },
     };
 
     let ext_overseer_args = if is_parachain_node.is_running_alongside_parachain_node() {
@@ -584,14 +649,8 @@ pub async fn new_full<
         );
     }
 
-    let role = config.role.clone();
-    let force_authoring = config.force_authoring;
-    let backoff_authoring_blocks =
-        Some(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default());
-    let name = config.network.node_name.clone();
     let frontier_backend = Arc::new(frontier_backend);
     let enable_grandpa = !config.disable_grandpa;
-    let prometheus_registry = config.prometheus_registry().cloned();
 
     // Sinks for pubsub notifications.
     // Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
@@ -604,6 +663,9 @@ pub async fn new_full<
 
     // for ethereum-compatibility rpc.
     config.rpc_id_provider = Some(Box::new(fc_rpc::EthereumSubIdProvider));
+
+    // Channel for the rpc handler to communicate with the authorship task.
+    // let (command_sink, commands_stream) = mpsc::channel(1000);
 
     let pending_create_inherent_data_providers = move |_, ()| async move {
         let current = sp_timestamp::InherentDataProvider::from_system_time();
@@ -802,8 +864,9 @@ pub async fn new_full<
             backend.clone(),
             Some(shared_authority_set.clone()),
         );
+        let backend = backend.clone();
 
-        Box::new(move |deny_unsafe, subscription_executor: sc_rpc::SubscriptionTaskExecutor| {
+        move |deny_unsafe, subscription_executor: sc_rpc::SubscriptionTaskExecutor| {
             let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
             let deps = crate::rpc::FullDeps {
                 client: client.clone(),
@@ -823,12 +886,67 @@ pub async fn new_full<
                     subscription_executor: subscription_executor.clone(),
                     finality_provider: finality_provider.clone(),
                 },
+                beefy: crate::rpc::BeefyDeps {
+                    beefy_finality_proof_stream: beefy_rpc_links.from_voter_justif_stream.clone(),
+                    beefy_best_block_stream: beefy_rpc_links.from_voter_best_beefy_stream.clone(),
+                    subscription_executor: subscription_executor.clone(),
+                },
+                backend: backend.clone(),
             };
 
             crate::rpc::create_full(deps, subscription_executor, pubsub_notification_sinks.clone())
                 .map_err(Into::into)
-        })
+        }
     };
+
+    let keystore_opt = if role.is_authority() { Some(keystore_container.keystore()) } else { None };
+
+    // beefy is enabled if its notification service exists
+    if let Some(notification_service) = beefy_notification_service {
+        let justifications_protocol_name = beefy_on_demand_justifications_handler.protocol_name();
+        let network_params = sc_consensus_beefy::BeefyNetworkParams {
+            network: Arc::new(network.clone()),
+            sync: sync_service.clone(),
+            gossip_protocol_name: beefy_gossip_proto_name,
+            justifications_protocol_name,
+            notification_service,
+            _phantom: core::marker::PhantomData::<Block>,
+        };
+        let payload_provider = sp_consensus_beefy::mmr::MmrRootProvider::new(client.clone());
+        let beefy_params = sc_consensus_beefy::BeefyParams {
+            client: client.clone(),
+            backend: backend.clone(),
+            payload_provider,
+            runtime: client.clone(),
+            key_store: keystore_opt.clone(),
+            network_params,
+            min_block_delta: 8,
+            prometheus_registry: prometheus_registry.clone(),
+            links: beefy_links,
+            on_demand_justifications_handler: beefy_on_demand_justifications_handler,
+            is_authority: role.is_authority(),
+        };
+
+        let gadget = sc_consensus_beefy::start_beefy_gadget::<_, _, _, _, _, _, _>(beefy_params);
+
+        // BEEFY is part of consensus, if it fails we'll bring the node down with it to make sure it
+        // is noticed.
+        task_manager
+            .spawn_essential_handle()
+            .spawn_blocking("beefy-gadget", None, gadget);
+    }
+    // When offchain indexing is enabled, MMR gadget should also run.
+    if is_offchain_indexing_enabled {
+        task_manager.spawn_essential_handle().spawn_blocking(
+            "mmr-gadget",
+            None,
+            MmrGadget::start(
+                client.clone(),
+                backend.clone(),
+                sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
+            ),
+        );
+    }
 
     let _rpc_handlers = sc_service::spawn_tasks(sc_service::SpawnTasksParams {
         config,
@@ -837,7 +955,7 @@ pub async fn new_full<
         task_manager: &mut task_manager,
         keystore: keystore_container.keystore(),
         transaction_pool: transaction_pool.clone(),
-        rpc_builder,
+        rpc_builder: Box::new(rpc_builder),
         network: network.clone(),
         system_rpc_tx,
         tx_handler_controller,
@@ -1010,5 +1128,5 @@ pub fn new_chain_ops(
     config.keystore = sc_service::config::KeystoreConfig::InMemory;
     let PartialComponents { client, backend, import_queue, task_manager, other, .. } =
         new_partial::<_>(config, eth_config, build_babe_grandpa_import_queue)?;
-    Ok((client, backend, import_queue, task_manager, other.6))
+    Ok((client, backend, import_queue, task_manager, other.7))
 }

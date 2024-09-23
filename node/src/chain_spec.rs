@@ -7,6 +7,7 @@ use hex_literal::hex;
 use sc_chain_spec::{ChainSpecExtension, ChainType, Properties};
 use serde::{Deserialize, Serialize};
 use sp_consensus_babe::AuthorityId as BabeId;
+use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 #[allow(unused_imports)]
 use sp_core::ecdsa;
@@ -144,6 +145,7 @@ fn testnet_genesis(
         ValidatorId,
         AssignmentId,
         AuthorityDiscoveryId,
+        BeefyId,
     )>,
     initial_nominators: Vec<AccountId>,
     chain_id: u64,
@@ -237,7 +239,7 @@ fn testnet_genesis(
         "session": {
             "keys": initial_authorities
                 .iter()
-                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone(), x.7.clone())))
+                .map(|x| (x.1, x.0, session_keys(x.2.clone(), x.3.clone(), x.4.clone(), x.5.clone(), x.6.clone(), x.7.clone(), x.8.clone())))
                 .collect::<Vec<_>>(),
         },
         "staking": {
@@ -359,6 +361,7 @@ mod testnet_keys {
         ValidatorId,
         AssignmentId,
         AuthorityDiscoveryId,
+        BeefyId,
     ) {
         (
             AccountId::from(hex!("FFa4645462F429E8FB9a6534E22f9f4f75094aB4")), // stash
@@ -387,6 +390,10 @@ mod testnet_keys {
                 "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
             ))
             .into(),
+            sp_core::ecdsa::Public::from_raw(hex!(
+                "03117d68a11002855b405c67d164e41a7244bb5fb5eced2d081f8a04458e1ee11d"
+            ))
+            .into(),
         )
     }
 
@@ -399,6 +406,7 @@ mod testnet_keys {
         ValidatorId,
         AssignmentId,
         AuthorityDiscoveryId,
+        BeefyId,
     ) {
         (
             AccountId::from(hex!("55DE108cb01Acf946A0ddE3C40D5EdE3AE9201C1")), // stash
@@ -427,6 +435,10 @@ mod testnet_keys {
                 "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
             ))
             .into(),
+            sp_core::ecdsa::Public::from_raw(hex!(
+                "023a9999783ffc163ade9e2ac21a33c546b5bc7a4622641860f0f869a97f1e78d0"
+            ))
+            .into(),
         )
     }
 
@@ -439,6 +451,7 @@ mod testnet_keys {
         ValidatorId,
         AssignmentId,
         AuthorityDiscoveryId,
+        BeefyId,
     ) {
         (
             AccountId::from(hex!("F87EfACD0e08cF7F6667B2a8BEc9fC3a2DB1572F")), // stash
@@ -467,6 +480,10 @@ mod testnet_keys {
                 "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
             ))
             .into(),
+            sp_core::ecdsa::Public::from_raw(hex!(
+                "0247fc249f19a0a751d379c56e5f92be6f16942312f0b9fa8ecd09636e68c5d5e7"
+            ))
+            .into(),
         )
     }
 }
@@ -478,8 +495,17 @@ fn session_keys(
     para_validator: ValidatorId,
     para_assignment: AssignmentId,
     authority_discovery: AuthorityDiscoveryId,
+    beefy: BeefyId,
 ) -> SessionKeys {
-    SessionKeys { babe, grandpa, im_online, para_validator, para_assignment, authority_discovery }
+    SessionKeys {
+        babe,
+        grandpa,
+        im_online,
+        para_validator,
+        para_assignment,
+        authority_discovery,
+        beefy,
+    }
 }
 
 /// Generate a crypto pair from seed.
@@ -511,6 +537,7 @@ pub fn authority_keys_from_seed(
     ValidatorId,
     AssignmentId,
     AuthorityDiscoveryId,
+    BeefyId,
 ) {
     (
         get_account_id_from_seed::<ecdsa::Public>(&format!("{}//stash", s)),
@@ -521,6 +548,7 @@ pub fn authority_keys_from_seed(
         get_from_seed::<ValidatorId>(s),
         get_from_seed::<AssignmentId>(s),
         get_from_seed::<AuthorityDiscoveryId>(s),
+        get_from_seed::<BeefyId>(s),
     )
 }
 

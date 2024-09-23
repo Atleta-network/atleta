@@ -11,6 +11,9 @@ use sc_client_api::{
     AuxStore, UsageProvider,
 };
 use sc_consensus_babe::BabeWorkerHandle;
+use sc_consensus_beefy::communication::notification::{
+    BeefyBestBlockStream, BeefyVersionedFinalityProofStream,
+};
 use sc_consensus_grandpa::{
     FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
 };
@@ -53,6 +56,16 @@ pub struct GrandpaDeps<B> {
     pub finality_provider: Arc<FinalityProofProvider<B, Block>>,
 }
 
+/// Dependencies for BEEFY
+pub struct BeefyDeps {
+    /// Receives notifications about finality proof events from BEEFY.
+    pub beefy_finality_proof_stream: BeefyVersionedFinalityProofStream<Block>,
+    /// Receives notifications about best block events from BEEFY.
+    pub beefy_best_block_stream: BeefyBestBlockStream<Block>,
+    /// Executor to drive the subscription manager in the BEEFY RPC handler.
+    pub subscription_executor: sc_rpc::SubscriptionTaskExecutor,
+}
+
 /// Full client dependencies.
 pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
     /// The client instance to use.
@@ -71,6 +84,10 @@ pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
     pub babe: BabeDeps,
     /// GRANDPA specific dependencies.
     pub grandpa: GrandpaDeps<BE>,
+    /// BEEFY specific dependencies.
+    pub beefy: BeefyDeps,
+    /// Backend used by the node.
+    pub backend: Arc<BE>,
 }
 
 pub struct DefaultEthConfig<C, BE>(std::marker::PhantomData<(C, BE)>);
@@ -101,6 +118,7 @@ where
     C::Api: sc_consensus_babe::BabeApi<Block>,
     C::Api: substrate_frame_rpc_system::AccountNonceApi<Block, AccountId, Nonce>,
     C::Api: pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi<Block, Balance>,
+    C::Api: mmr_rpc::MmrRuntimeApi<Block, <Block as sp_runtime::traits::Block>::Hash, BlockNumber>,
     C::Api: fp_rpc::ConvertTransactionRuntimeApi<Block>,
     C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
     C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
@@ -112,15 +130,28 @@ where
     CT: fp_rpc::ConvertTransaction<<Block as BlockT>::Extrinsic> + Send + Sync + 'static,
     SC: sp_consensus::SelectChain<Block> + 'static,
 {
+    use mmr_rpc::{Mmr, MmrApiServer};
     use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
     use sc_consensus_babe_rpc::{Babe, BabeApiServer};
+    use sc_consensus_beefy_rpc::{Beefy, BeefyApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
+    use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
     let mut io = RpcModule::new(());
-    let FullDeps { client, pool, select_chain, deny_unsafe, command_sink, eth, babe, grandpa } =
-        deps;
+    let FullDeps {
+        client,
+        pool,
+        select_chain,
+        deny_unsafe,
+        command_sink,
+        eth,
+        babe,
+        grandpa,
+        beefy,
+        backend,
+    } = deps;
     let BabeDeps { keystore, worker_handle } = babe;
     let GrandpaDeps {
         shared_voter_state,
@@ -130,9 +161,21 @@ where
         finality_provider,
     } = grandpa;
 
+    io.merge(StateMigration::new(client.clone(), backend.clone(), deny_unsafe).into_rpc())?;
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
-    io.merge(Babe::new(client, worker_handle, keystore, select_chain, deny_unsafe).into_rpc())?;
+    io.merge(
+        Babe::new(client.clone(), worker_handle, keystore, select_chain, deny_unsafe).into_rpc(),
+    )?;
+    io.merge(
+        Mmr::new(
+            client,
+            backend
+                .offchain_storage()
+                .ok_or("Backend doesn't provide the required offchain storage")?,
+        )
+        .into_rpc(),
+    )?;
     io.merge(
         Grandpa::new(
             subscription_executor,
@@ -141,6 +184,14 @@ where
             justification_stream,
             finality_provider,
         )
+        .into_rpc(),
+    )?;
+    io.merge(
+        Beefy::<Block>::new(
+            beefy.beefy_finality_proof_stream,
+            beefy.beefy_best_block_stream,
+            beefy.subscription_executor,
+        )?
         .into_rpc(),
     )?;
 
