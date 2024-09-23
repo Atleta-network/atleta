@@ -32,7 +32,6 @@ use {
         request_response::ReqProtocolNames,
     },
     sc_client_api::BlockBackend,
-    sc_consensus_grandpa,
     sc_transaction_pool_api::OffchainTransactionPoolFactory,
 };
 
@@ -467,7 +466,7 @@ pub async fn new_full<
             std::collections::HashMap::new()
         };
 
-    let req_protocol_names = ReqProtocolNames::new(&genesis_hash, config.chain_spec.fork_id());
+    let req_protocol_names = ReqProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
 
     let (collation_req_v1_receiver, cfg) =
         IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
@@ -542,7 +541,7 @@ pub async fn new_full<
         net_config.add_request_response_protocol(cfg);
         let approval_voting_config = ApprovalVotingConfig {
             col_approval_data: crate::parachains_db::REAL_COLUMNS.col_approval_data,
-            slot_duration_millis: slot_duration.as_millis() as u64,
+            slot_duration_millis: slot_duration.as_millis(),
         };
         let dispute_coordinator_config = DisputeCoordinatorConfig {
             col_dispute_data: crate::parachains_db::REAL_COLUMNS.col_dispute_coordinator_data,

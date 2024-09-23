@@ -13,8 +13,6 @@
 
 //! Migration code for the parachain's DB.
 
-#![cfg(feature = "full-node")]
-
 use super::{columns, other_io_error, DatabaseKind, LOG_TARGET};
 use std::{
     fs, io,
@@ -34,7 +32,7 @@ use polkadot_node_subsystem_util::database::{
 type Version = u32;
 
 /// Version file name.
-const VERSION_FILE_NAME: &'static str = "parachain_db_version";
+const VERSION_FILE_NAME: &str = "parachain_db_version";
 
 /// Current db version.
 /// Version 4 changes approval db format for `OurAssignment`.
@@ -75,14 +73,14 @@ pub(crate) fn try_upgrade_db(
     const MAX_MIGRATIONS: u32 = 30;
 
     #[cfg(test)]
-    remove_file_lock(&db_path);
+    remove_file_lock(db_path);
 
     // Loop migrations until we reach the target version.
     for _ in 0..MAX_MIGRATIONS {
         let version = try_upgrade_db_to_next_version(db_path, db_kind)?;
 
         #[cfg(test)]
-        remove_file_lock(&db_path);
+        remove_file_lock(db_path);
 
         if version == target_version {
             return Ok(());
@@ -138,9 +136,7 @@ fn get_db_version(path: &Path) -> Result<Option<Version>, Error> {
     match fs::read_to_string(version_file_path(path)) {
         Err(ref err) if err.kind() == io::ErrorKind::NotFound => Ok(None),
         Err(err) => Err(err.into()),
-        Ok(content) => u32::from_str(&content)
-            .map(|v| Some(v))
-            .map_err(|_| Error::CorruptedVersionFile),
+        Ok(content) => u32::from_str(&content).map(Some).map_err(|_| Error::CorruptedVersionFile),
     }
 }
 
@@ -165,9 +161,9 @@ fn migrate_from_version_0_to_1(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_0_to_1(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_0_to_1(path),
     }
-    .and_then(|result| {
+    .map(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        Ok(result)
+        result
     })
 }
 
@@ -178,9 +174,9 @@ fn migrate_from_version_1_to_2(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_1_to_2(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_1_to_2(path),
     }
-    .and_then(|result| {
+    .map(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        Ok(result)
+        result
     })
 }
 
@@ -201,7 +197,7 @@ where
     let approval_db_config =
         ApprovalDbConfig { col_approval_data: super::REAL_COLUMNS.col_approval_data };
 
-    let _result = match db_kind {
+    match db_kind {
         DatabaseKind::ParityDB => {
             let db = ParityDbAdapter::new(
                 parity_db::Db::open(&paritydb_version_3_config(path))
@@ -220,7 +216,7 @@ where
                 kvdb_rocksdb::DatabaseConfig::with_columns(super::columns::v3::NUM_COLUMNS);
             let db = RocksDbAdapter::new(
                 kvdb_rocksdb::Database::open(&db_cfg, db_path)?,
-                &super::columns::v3::ORDERED_COL,
+                super::columns::v3::ORDERED_COL,
             );
 
             migration_function(Arc::new(db), approval_db_config)
@@ -238,9 +234,9 @@ fn migrate_from_version_2_to_3(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_2_to_3(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_2_to_3(path),
     }
-    .and_then(|result| {
+    .map(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        Ok(result)
+        result
     })
 }
 
@@ -300,7 +296,7 @@ fn paritydb_fix_columns(
 ) -> io::Result<()> {
     // Figure out which columns to delete. This will be determined by inspecting
     // the metadata file.
-    if let Some(metadata) = parity_db::Options::load_metadata(&path)
+    if let Some(metadata) = parity_db::Options::load_metadata(path)
         .map_err(|e| other_io_error(format!("Error reading metadata {:?}", e)))?
     {
         let columns_to_clear = metadata
@@ -325,7 +321,7 @@ fn paritydb_fix_columns(
             })
             .collect::<Vec<_>>();
 
-        if columns_to_clear.len() > 0 {
+        if !columns_to_clear.is_empty() {
             gum::debug!(
                 target: LOG_TARGET,
                 "Database column changes detected, need to cleanup {} columns.",
@@ -350,8 +346,7 @@ fn paritydb_fix_columns(
 
 /// Database configuration for version 1.
 pub(crate) fn paritydb_version_1_config(path: &Path) -> parity_db::Options {
-    let mut options =
-        parity_db::Options::with_columns(&path, super::columns::v1::NUM_COLUMNS as u8);
+    let mut options = parity_db::Options::with_columns(path, super::columns::v1::NUM_COLUMNS as u8);
     for i in columns::v4::ORDERED_COL {
         options.columns[*i as usize].btree_index = true;
     }
@@ -361,8 +356,7 @@ pub(crate) fn paritydb_version_1_config(path: &Path) -> parity_db::Options {
 
 /// Database configuration for version 2.
 pub(crate) fn paritydb_version_2_config(path: &Path) -> parity_db::Options {
-    let mut options =
-        parity_db::Options::with_columns(&path, super::columns::v2::NUM_COLUMNS as u8);
+    let mut options = parity_db::Options::with_columns(path, super::columns::v2::NUM_COLUMNS as u8);
     for i in columns::v4::ORDERED_COL {
         options.columns[*i as usize].btree_index = true;
     }
@@ -372,21 +366,10 @@ pub(crate) fn paritydb_version_2_config(path: &Path) -> parity_db::Options {
 
 /// Database configuration for version 3.
 pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
-    let mut options =
-        parity_db::Options::with_columns(&path, super::columns::v3::NUM_COLUMNS as u8);
+    let mut options = parity_db::Options::with_columns(path, super::columns::v3::NUM_COLUMNS as u8);
     for i in columns::v3::ORDERED_COL {
         options.columns[*i as usize].btree_index = true;
     }
-
-    options
-}
-
-/// Database configuration for version 0. This is useful just for testing.
-#[cfg(test)]
-pub(crate) fn paritydb_version_0_config(path: &Path) -> parity_db::Options {
-    let mut options =
-        parity_db::Options::with_columns(&path, super::columns::v0::NUM_COLUMNS as u8);
-    options.columns[super::columns::v4::COL_AVAILABILITY_META as usize].btree_index = true;
 
     options
 }
@@ -437,15 +420,14 @@ pub fn remove_file_lock(path: &std::path::Path) {
 
     for _ in 0..10 {
         let result = std::fs::remove_file(lock_path.as_path());
-        match result {
-            Err(error) => match error.kind() {
+        if let Err(error) = result {
+            match error.kind() {
                 ErrorKind::WouldBlock => {
                     sleep(Duration::from_millis(100));
                     continue;
                 },
                 _ => return,
-            },
-            Ok(_) => {},
+            }
         }
     }
 

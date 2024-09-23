@@ -36,9 +36,6 @@ pub(crate) mod columns {
 
     pub mod v2 {
         pub const NUM_COLUMNS: u32 = 6;
-
-        #[cfg(test)]
-        pub const COL_SESSION_WINDOW_DATA: u32 = 5;
     }
 
     // Version 4 only changed structures in approval voting, so we can re-export the v4 definitions.
@@ -139,9 +136,9 @@ pub fn open_creating_rocksdb(
         .to_str()
         .ok_or_else(|| other_io_error(format!("Bad database path: {:?}", path)))?;
 
-    std::fs::create_dir_all(&path_str)?;
+    std::fs::create_dir_all(path_str)?;
     upgrade::try_upgrade_db(&path, DatabaseKind::RocksDB, upgrade::CURRENT_VERSION)?;
-    let db = Database::open(&db_config, &path_str)?;
+    let db = Database::open(&db_config, path_str)?;
     let db = polkadot_node_subsystem_util::database::kvdb_impl::DbAdapter::new(
         db,
         columns::v4::ORDERED_COL,
@@ -161,7 +158,7 @@ pub fn open_creating_paritydb(
         .to_str()
         .ok_or_else(|| other_io_error(format!("Bad database path: {:?}", path)))?;
 
-    std::fs::create_dir_all(&path_str)?;
+    std::fs::create_dir_all(path_str)?;
     upgrade::try_upgrade_db(&path, DatabaseKind::ParityDB, upgrade::CURRENT_VERSION)?;
 
     let db = parity_db::Db::open_or_create(&upgrade::paritydb_version_3_config(&path))

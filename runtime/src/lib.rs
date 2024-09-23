@@ -1242,14 +1242,13 @@ impl BeefyDataProvider<H256> for ParaHeadsRootProvider {
         let mut para_heads: Vec<(u32, Vec<u8>)> = parachains_paras::Parachains::<Runtime>::get()
             .into_iter()
             .filter_map(|id| {
-                parachains_paras::Heads::<Runtime>::get(&id).map(|head| (id.into(), head.0))
+                parachains_paras::Heads::<Runtime>::get(id).map(|head| (id.into(), head.0))
             })
             .collect();
         para_heads.sort();
         binary_merkle_tree::merkle_root::<mmr::Hashing, _>(
             para_heads.into_iter().map(|pair| pair.encode()),
         )
-        .into()
     }
 }
 
@@ -1413,7 +1412,7 @@ impl parachains_inclusion::Config for Runtime {
 }
 
 parameter_types! {
-    pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+    pub const ParasUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
 }
 
 impl parachains_paras::Config for Runtime {

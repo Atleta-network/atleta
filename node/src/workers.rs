@@ -151,7 +151,7 @@ fn list_workers_paths(
         let mut lib_path = PathBuf::from("/usr/lib/polkadot");
         #[cfg(test)]
         if let Some(ref path_override) = *workers_lib_path_override().lock().unwrap() {
-            lib_path = path_override.clone();
+            lib_path.clone_from(path_override);
         }
 
         let (prep_worker, exec_worker) = build_worker_paths(lib_path, workers_names);
@@ -176,7 +176,7 @@ fn get_exe_path() -> Result<PathBuf, Error> {
     let _ = exe_path.pop(); // executable file will always have a parent directory.
     #[cfg(test)]
     if let Some(ref path_override) = *workers_exe_path_override().lock().unwrap() {
-        exe_path = path_override.clone();
+        exe_path.clone_from(path_override);
     }
     Ok(exe_path)
 }
