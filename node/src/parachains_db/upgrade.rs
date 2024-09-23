@@ -161,9 +161,8 @@ fn migrate_from_version_0_to_1(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_0_to_1(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_0_to_1(path),
     }
-    .inspect(|result| {
+    .inspect(|_result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        result
     })
 }
 
@@ -174,9 +173,8 @@ fn migrate_from_version_1_to_2(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_1_to_2(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_1_to_2(path),
     }
-    .inspect(|result| {
+    .inspect(|_result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        result
     })
 }
 
@@ -234,9 +232,8 @@ fn migrate_from_version_2_to_3(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_2_to_3(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_2_to_3(path),
     }
-    .inspect(|result| {
+    .inspect(|_result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
-        result
     })
 }
 
