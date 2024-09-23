@@ -28,10 +28,6 @@ pub enum Error {
     #[error(transparent)]
     SubstrateTracing(#[from] sc_tracing::logging::Error),
 
-    #[cfg(feature = "pyroscope")]
-    #[error("Failed to connect to pyroscope agent")]
-    PyroscopeError(#[from] pyro::error::PyroscopeError),
-
     #[error("Failed to resolve provided URL")]
     AddressResolutionFailure(#[from] std::io::Error),
 
