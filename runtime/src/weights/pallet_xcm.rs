@@ -23,7 +23,7 @@
 //! WASM-EXECUTION: `Compiled`, CHAIN: `Some("rococo-dev")`, DB CACHE: 1024
 
 // Executed Command:
-// target/production/polkadot
+// target/release/atleta-node
 // benchmark
 // pallet
 // --steps=50
@@ -34,8 +34,8 @@
 // --json-file=/builds/parity/mirrors/polkadot-sdk/.git/.artifacts/bench.json
 // --pallet=pallet_xcm
 // --chain=rococo-dev
-// --header=./polkadot/file_header.txt
-// --output=./polkadot/runtime/rococo/src/weights/
+// --header=./atleta-node/file_header.txt
+// --output=./atleta-node/runtime/atleta/src/weights/
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]

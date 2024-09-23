@@ -20,13 +20,13 @@
 //! DATE: 2023-05-26, STEPS: `50`, REPEAT: `20`, LOW RANGE: `[]`, HIGH RANGE: `[]`
 //! WORST CASE MAP SIZE: `1000000`
 //! HOSTNAME: `bm5`, CPU: `Intel(R) Core(TM) i7-7700K CPU @ 4.20GHz`
-//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some("rococo-dev"), DB CACHE: 1024
+//! EXECUTION: Some(Wasm), WASM-EXECUTION: Compiled, CHAIN: Some("dev"), DB CACHE: 1024
 
 // Executed Command:
-// ./target/production/polkadot
+// ./target/release/atleta-node
 // benchmark
 // pallet
-// --chain=rococo-dev
+// --chain=dev
 // --steps=50
 // --repeat=20
 // --pallet=runtime_parachains::initializer
@@ -34,7 +34,7 @@
 // --execution=wasm
 // --wasm-execution=compiled
 // --header=./file_header.txt
-// --output=./runtime/rococo/src/weights/runtime_parachains_initializer.rs
+// --output=./runtime/atleta/src/weights/runtime_parachains_initializer.rs
 
 #![cfg_attr(rustfmt, rustfmt_skip)]
 #![allow(unused_parens)]

@@ -1595,13 +1595,13 @@ construct_runtime!(
         ParasSlashing: parachains_slashing,
         OnDemandAssignmentProvider: parachains_assigner_on_demand,
         CoretimeAssignmentProvider: parachains_assigner_coretime,
-        // // Parachain Onboarding Pallets. Start indices at 80 to leave room.
+        // Parachain Onboarding Pallets. Start indices at 80 to leave room.
         Registrar: paras_registrar,
         Slots: slots,
         ParasSudoWrapper: paras_sudo_wrapper,
-        // // Pallet for sending XCM.
+        // Pallet for sending XCM.
         XcmPallet: pallet_xcm,
-        // // Generalized message queue
+        // Generalized message queue
         // MessageQueue: pallet_message_queue,
         Beefy: pallet_beefy,
         // MMR leaf construction must be after session in order to have a leaf's next_auth_set

@@ -65,7 +65,6 @@ impl SubstrateCli for Cli {
     }
 
     fn load_spec(&self, id: &str) -> std::result::Result<Box<dyn sc_service::ChainSpec>, String> {
-        log::error!("Hello from load spec");
         Ok(match id {
             "dev" => Box::new(chain_spec::development_config()),
             "" | "local" => Box::new(chain_spec::local_testnet_config()),
