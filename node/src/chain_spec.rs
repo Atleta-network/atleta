@@ -379,19 +379,19 @@ mod testnet_keys {
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+                "928b6cc65c0af10060c041ab2cf2a7acd5ee5cfe983d33df47b4569513601119"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+                "54f81f0289afd8d99f9ec60efeb6541bbc953d60d1743f0e41d0ec5f4e1c8b54"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+                "4c6feb3c3f7c547a4630e181853d885498c55d72df686d7ab8e5d9854fbdeb7e"
             ))
             .into(),
             sp_core::ecdsa::Public::from_raw(hex!(
-                "03117d68a11002855b405c67d164e41a7244bb5fb5eced2d081f8a04458e1ee11d"
+                "02e5967d94fbffa084b5c818adf500e0ef85d1aaf125e8bf90d3ca3d85b4ccd9f9"
             ))
             .into(),
         )
@@ -424,19 +424,19 @@ mod testnet_keys {
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+                "801c1833f11bacf7e886ba0f638ea5f94a55f4d0e25ed7e055a6b05392982173"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+                "b2e8ded1345c31db85751ba36053f6e0ae03a53474118ed2ffc771c702e2b536"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+                "387681fa78ded7783f7bf0cd05d249b9b624125392c2ec0766602dde1f02e454"
             ))
             .into(),
             sp_core::ecdsa::Public::from_raw(hex!(
-                "023a9999783ffc163ade9e2ac21a33c546b5bc7a4622641860f0f869a97f1e78d0"
+                "03f077b84a3d6fc7032a797cc8f068e43c0358c0181234cc7309159e57056a11e3"
             ))
             .into(),
         )
@@ -469,19 +469,19 @@ mod testnet_keys {
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+                "b8dd60e50c7ca1b47feb4faa58f1f2741fff68c527c297fc70ba72b91436cd71"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+                "98fbdacb195db4f1a31238687e0e2e2c3311a3c6f00fef708a645630ce97f716"
             ))
             .into(),
             sp_core::sr25519::Public::from_raw(hex!(
-                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+                "60a678a7410322ad55e77064d595ed81e1c4a024fd81adbc3d56e4e4f841781c"
             ))
             .into(),
             sp_core::ecdsa::Public::from_raw(hex!(
-                "0247fc249f19a0a751d379c56e5f92be6f16942312f0b9fa8ecd09636e68c5d5e7"
+                "0200e692bbc231d1521133b3aa20f09b2dfbeca8682fd2ad23fa437fe51e49daab"
             ))
             .into(),
         )
