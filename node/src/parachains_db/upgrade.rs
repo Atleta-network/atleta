@@ -161,7 +161,7 @@ fn migrate_from_version_0_to_1(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_0_to_1(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_0_to_1(path),
     }
-    .map(|result| {
+    .inspect(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
         result
     })
@@ -174,7 +174,7 @@ fn migrate_from_version_1_to_2(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_1_to_2(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_1_to_2(path),
     }
-    .map(|result| {
+    .inspect(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
         result
     })
@@ -234,7 +234,7 @@ fn migrate_from_version_2_to_3(path: &Path, db_kind: DatabaseKind) -> Result<Ver
         DatabaseKind::ParityDB => paritydb_migrate_from_version_2_to_3(path),
         DatabaseKind::RocksDB => rocksdb_migrate_from_version_2_to_3(path),
     }
-    .map(|result| {
+    .inspect(|result| {
         gum::info!(target: LOG_TARGET, "Migration complete! ");
         result
     })
@@ -378,7 +378,7 @@ pub(crate) fn paritydb_version_3_config(path: &Path) -> parity_db::Options {
 /// Cases covered:
 /// - upgrading from v0.9.23 or earlier -> the `dispute coordinator column` was changed
 /// - upgrading from v0.9.24+ -> this is a no op assuming the DB has been manually fixed as per
-/// release notes
+///   release notes
 fn paritydb_migrate_from_version_0_to_1(path: &Path) -> Result<Version, Error> {
     // Delete the `dispute coordinator` column if needed (if column configuration is changed).
     paritydb_fix_columns(
