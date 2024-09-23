@@ -57,7 +57,7 @@ pub fn development_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
         .with_name("Development")
         .with_id("dev")
-        .with_chain_type(ChainType::Development)
+        .with_chain_type(ChainType::Local)
         .with_properties(properties())
         .with_genesis_config_patch(testnet_genesis(
             // Sudo account (Alith)
@@ -271,7 +271,7 @@ fn testnet_genesis(
         "nominationPools": {
             "minCreateBond": 10 * DOLLARS,
             "minJoinBond": DOLLARS,
-        }
+        },
     })
 }
 

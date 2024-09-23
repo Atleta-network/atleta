@@ -1,30 +1,111 @@
-//! Service and ServiceFactory implementation. Specialized wrapper over substrate service.
+// Copyright (C) Parity Technologies (UK) Ltd.
+// This file is part of Polkadot.
 
-use std::{cell::RefCell, path::Path, sync::Arc, time::Duration};
+// Polkadot is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 
-use futures::{channel::mpsc, prelude::*};
+// Polkadot is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+
+// You should have received a copy of the GNU General Public License
+// along with Polkadot.  If not, see <http://www.gnu.org/licenses/>.
+
+//! Polkadot service. Specialized wrapper over substrate service.
+
+#![deny(unused_results)]
+
+#[cfg(feature = "full-node")]
+use {
+    polkadot_node_core_approval_voting::Config as ApprovalVotingConfig,
+    polkadot_node_core_av_store::Config as AvailabilityConfig,
+    polkadot_node_core_candidate_validation::Config as CandidateValidationConfig,
+    polkadot_node_core_chain_selection::{
+        self as chain_selection_subsystem, Config as ChainSelectionConfig,
+    },
+    polkadot_node_core_dispute_coordinator::Config as DisputeCoordinatorConfig,
+    polkadot_node_network_protocol::{
+        peer_set::{PeerSet, PeerSetProtocolNames},
+        request_response::ReqProtocolNames,
+    },
+    sc_client_api::BlockBackend,
+    sc_consensus_grandpa,
+    sc_transaction_pool_api::OffchainTransactionPoolFactory,
+};
+
+use futures::prelude::*;
+use polkadot_node_subsystem_util::database::Database;
+
+#[cfg(feature = "full-node")]
+pub use {
+    crate::relay_chain_selection::SelectRelayChain,
+    polkadot_overseer::{Handle, OverseerConnector},
+};
+
+use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
+use polkadot_node_subsystem_types::DefaultSubsystemClient;
+pub use sc_service::{config::DatabaseSource, ChainSpec, Configuration, TaskManager};
+use std::{collections::HashMap, path::Path, sync::Arc, time::Duration};
+
+#[cfg(feature = "full-node")]
+pub use polkadot_service::{Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs};
+
 // Substrate
-use sc_client_api::{Backend as BackendT, BlockBackend};
+use sc_client_api::Backend as BackendT;
 use sc_consensus::{BasicQueue, BoxBlockImport};
-use sc_consensus_babe::{BabeLink, BabeWorkerHandle, SlotProportion};
+use sc_consensus_babe::{BabeLink, BabeWorkerHandle};
 use sc_executor::WasmExecutor;
-use sc_network_sync::strategy::warp::{WarpSyncParams, WarpSyncProvider};
-use sc_service::{error::Error as ServiceError, Configuration, PartialComponents, TaskManager};
+use sc_network_sync::strategy::warp::WarpSyncProvider;
+use sc_service::{error::Error as ServiceError, PartialComponents};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker};
-use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_core::U256;
 use sp_runtime::traits::Block as BlockT;
-use substrate_prometheus_endpoint::Registry;
 // Runtime
-use atleta_runtime::{opaque::Block, RuntimeApi, TransactionConverter};
+use atleta_runtime::{opaque::Block, Hash, RuntimeApi, TransactionConverter};
 
 pub use crate::eth::{db_config_dir, EthConfiguration};
-use crate::{
-    cli::{IsCollator, Sealing},
-    eth::{
-        new_frontier_partial, spawn_frontier_tasks, BackendType, FrontierBackend,
-        FrontierPartialComponents, StorageOverride, StorageOverrideHandler,
-    },
+use crate::eth::{
+    new_frontier_partial, spawn_frontier_tasks, BackendType, FrontierBackend,
+    FrontierPartialComponents, StorageOverride, StorageOverrideHandler,
+};
+
+#[cfg(feature = "full-node")]
+pub fn open_database(db_source: &DatabaseSource) -> Result<Arc<dyn Database>, Error> {
+    let parachains_db = match db_source {
+        DatabaseSource::RocksDb { path, .. } => crate::parachains_db::open_creating_rocksdb(
+            path.clone(),
+            crate::parachains_db::CacheSizes::default(),
+        )?,
+        DatabaseSource::ParityDb { path, .. } => crate::parachains_db::open_creating_paritydb(
+            path.parent().ok_or(Error::DatabasePathRequired)?.into(),
+            crate::parachains_db::CacheSizes::default(),
+        )?,
+        DatabaseSource::Auto { paritydb_path, rocksdb_path, .. } => {
+            if paritydb_path.is_dir() && paritydb_path.exists() {
+                crate::parachains_db::open_creating_paritydb(
+                    paritydb_path.parent().ok_or(Error::DatabasePathRequired)?.into(),
+                    crate::parachains_db::CacheSizes::default(),
+                )?
+            } else {
+                crate::parachains_db::open_creating_rocksdb(
+                    rocksdb_path.clone(),
+                    crate::parachains_db::CacheSizes::default(),
+                )?
+            }
+        },
+        DatabaseSource::Custom { .. } => {
+            unimplemented!("No polkadot subsystem db for custom source.");
+        },
+    };
+    Ok(parachains_db)
+}
+
+pub const AVAILABILITY_CONFIG: AvailabilityConfig = AvailabilityConfig {
+    col_data: crate::parachains_db::REAL_COLUMNS.col_availability_data,
+    col_meta: crate::parachains_db::REAL_COLUMNS.col_availability_meta,
 };
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
@@ -66,6 +147,7 @@ pub fn new_partial<BIQ>(
             BabeLink<Block>,
             BabeWorkerHandle<Block>,
             GrandpaLinkHalf<FullClient>,
+            sc_consensus_beefy::BeefyVoterLinks<Block>,
             FrontierBackend<FullClient>,
             Arc<dyn StorageOverride<Block>>,
         ),
@@ -161,6 +243,13 @@ where
         },
     };
 
+    let (_, beefy_voter_links, _) = sc_consensus_beefy::beefy_block_import_and_links(
+        grandpa_block_import.clone(),
+        backend.clone(),
+        client.clone(),
+        config.prometheus_registry().cloned(),
+    );
+
     let ((import_queue, worker_handle), block_import, babe_link) = build_import_queue(
         client.clone(),
         config,
@@ -186,6 +275,7 @@ where
             babe_link,
             worker_handle,
             grandpa_link,
+            beefy_voter_links,
             frontier_backend,
             storage_override,
         ),
@@ -247,21 +337,41 @@ pub fn build_babe_grandpa_import_queue(
 }
 
 /// Builds a new service for a full client.
-pub async fn new_full<NB>(
+pub async fn new_full<
+    OverseerGenerator: OverseerGen,
+    Network: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
+>(
     mut config: Configuration,
     eth_config: EthConfiguration,
-    is_collator: IsCollator,
-    sealing: Option<Sealing>,
-) -> Result<TaskManager, ServiceError>
-where
-    NB: sc_network::NetworkBackend<Block, <Block as BlockT>::Hash>,
-{
-    // TODO we don't have manual sealing
-    // let build_import_queue = if sealing.is_some() {
-    //     build_manual_seal_import_queue::<RuntimeApi, Executor>
-    // } else {
-    //     build_babe_grandpa_import_queue::<RuntimeApi, Executor>
-    // };
+    polkadot_service::NewFullParams {
+        is_parachain_node,
+        enable_beefy: _,
+        force_authoring_backoff: _,
+        jaeger_agent: _,
+        telemetry_worker_handle: _,
+        node_version,
+        secure_validator_mode,
+        workers_path,
+        workers_names,
+        overseer_gen,
+        overseer_message_channel_capacity_override,
+        malus_finality_delay: _malus_finality_delay,
+        hwbench,
+        execute_workers_max_num: _,
+        prepare_workers_soft_max_num,
+        prepare_workers_hard_max_num,
+    }: polkadot_service::NewFullParams<OverseerGenerator>,
+) -> Result<TaskManager, Error> {
+    use polkadot_node_network_protocol::request_response::IncomingRequest;
+    use sc_network_sync::WarpSyncParams;
+
+    let role = config.role.clone();
+    let prometheus_registry = config.prometheus_registry().cloned();
+
+    let overseer_connector = OverseerConnector::default();
+    let overseer_handle = Handle::new(overseer_connector.handle());
+
+    let auth_or_collator = role.is_authority() || is_parachain_node.is_collator();
     let build_import_queue = build_babe_grandpa_import_queue;
 
     let PartialComponents {
@@ -270,7 +380,7 @@ where
         mut task_manager,
         import_queue,
         keystore_container,
-        select_chain,
+        select_chain: _,
         transaction_pool,
         other:
             (
@@ -279,10 +389,26 @@ where
                 babe_link,
                 worker_handle,
                 grandpa_link,
+                _beefy_links,
                 frontier_backend,
                 storage_override,
             ),
     } = new_partial(&config, &eth_config, build_import_queue)?;
+
+    let select_chain = if auth_or_collator {
+        let metrics =
+            polkadot_node_subsystem_util::metrics::Metrics::register(prometheus_registry.as_ref())?;
+
+        SelectRelayChain::new_with_overseer(
+            backend.clone(),
+            overseer_handle.clone(),
+            metrics,
+            Some(task_manager.spawn_handle()),
+        )
+    } else {
+        SelectRelayChain::new_longest_chain(backend.clone())
+    };
+
     let target_gas_price = eth_config.target_gas_price;
     let slot_duration = babe_link.config().slot_duration();
 
@@ -290,35 +416,156 @@ where
         new_frontier_partial(&eth_config)?;
 
     let mut net_config =
-        sc_network::config::FullNetworkConfiguration::<_, _, NB>::new(&config.network);
-    let peer_store_handle = net_config.peer_store_handle();
-    let metrics = NB::register_notification_metrics(
+        sc_network::config::FullNetworkConfiguration::<_, _, Network>::new(&config.network);
+    let metrics = Network::register_notification_metrics(
         config.prometheus_config.as_ref().map(|cfg| &cfg.registry),
     );
 
-    let grandpa_protocol_name = sc_consensus_grandpa::protocol_standard_name(
-        &client.block_hash(0)?.expect("Genesis block exists; qed"),
-        &config.chain_spec,
-    );
+    let auth_disc_publish_non_global_ips = config.network.allow_non_globals_in_dht;
+    let auth_disc_public_addresses = config.network.public_addresses.clone();
+
+    let genesis_hash = client.block_hash(0).ok().flatten().expect("Genesis block exists; qed");
+    let peer_store_handle = net_config.peer_store_handle();
+
+    let grandpa_protocol_name =
+        sc_consensus_grandpa::protocol_standard_name(&genesis_hash, &config.chain_spec);
 
     let (grandpa_protocol_config, grandpa_notification_service) =
-        sc_consensus_grandpa::grandpa_peers_set_config::<_, NB>(
+        sc_consensus_grandpa::grandpa_peers_set_config::<_, Network>(
             grandpa_protocol_name.clone(),
             metrics.clone(),
-            peer_store_handle,
+            Arc::clone(&peer_store_handle),
         );
 
-    let warp_sync_params = if sealing.is_some() {
-        None
-    } else {
+    // validation/collation protocols are enabled only if `Overseer` is enabled
+    let peerset_protocol_names =
+        PeerSetProtocolNames::new(genesis_hash, config.chain_spec.fork_id());
+
+    // If this is a validator or running alongside a parachain node, we need to enable the
+    // networking protocols.
+    //
+    // Collators and parachain full nodes require the collator and validator networking to send
+    // collations and to be able to recover PoVs.
+    let notification_services =
+        if role.is_authority() || is_parachain_node.is_running_alongside_parachain_node() {
+            use polkadot_network_bridge::{peer_sets_info, IsAuthority};
+            let is_authority = if role.is_authority() { IsAuthority::Yes } else { IsAuthority::No };
+
+            peer_sets_info::<_, Network>(
+                is_authority,
+                &peerset_protocol_names,
+                metrics.clone(),
+                Arc::clone(&peer_store_handle),
+            )
+            .into_iter()
+            .map(|(config, (peerset, service))| {
+                net_config.add_notification_protocol(config);
+                (peerset, service)
+            })
+            .collect::<HashMap<PeerSet, Box<dyn sc_network::NotificationService>>>()
+        } else {
+            std::collections::HashMap::new()
+        };
+
+    let req_protocol_names = ReqProtocolNames::new(&genesis_hash, config.chain_spec.fork_id());
+
+    let (collation_req_v1_receiver, cfg) =
+        IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+    net_config.add_request_response_protocol(cfg);
+    let (collation_req_v2_receiver, cfg) =
+        IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+    net_config.add_request_response_protocol(cfg);
+    let (available_data_req_receiver, cfg) =
+        IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+    net_config.add_request_response_protocol(cfg);
+    let (pov_req_receiver, cfg) =
+        IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+    net_config.add_request_response_protocol(cfg);
+    let (chunk_req_receiver, cfg) =
+        IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+    net_config.add_request_response_protocol(cfg);
+
+    let grandpa_hard_forks = Vec::new();
+
+    let warp_sync_params = {
         net_config.add_notification_protocol(grandpa_protocol_config);
         let warp_sync: Arc<dyn WarpSyncProvider<Block>> =
             Arc::new(sc_consensus_grandpa::warp_proof::NetworkProvider::new(
                 backend.clone(),
                 grandpa_link.shared_authority_set().clone(),
-                Vec::default(),
+                grandpa_hard_forks,
             ));
         Some(WarpSyncParams::WithProvider(warp_sync))
+    };
+
+    let ext_overseer_args = if is_parachain_node.is_running_alongside_parachain_node() {
+        None
+    } else {
+        let parachains_db = open_database(&config.database)?;
+        let candidate_validation_config = if !role.is_authority() {
+            log::error!("Hello before determination workers path");
+
+            let (prep_worker_path, exec_worker_path) = crate::workers::determine_workers_paths(
+                workers_path,
+                workers_names,
+                node_version.clone(),
+            )?;
+            log::error!("Hello after determination workers path");
+            log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
+            log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
+
+            Some(CandidateValidationConfig {
+                artifacts_cache_path: config
+                    .database
+                    .path()
+                    .ok_or(Error::DatabasePathRequired)?
+                    .join("pvf-artifacts"),
+                node_version,
+                secure_validator_mode,
+                prep_worker_path,
+                exec_worker_path,
+                pvf_execute_workers_max_num: 4,
+                pvf_prepare_workers_soft_max_num: prepare_workers_soft_max_num.unwrap_or(1),
+                pvf_prepare_workers_hard_max_num: prepare_workers_hard_max_num.unwrap_or(2),
+            })
+        } else {
+            None
+        };
+        let (statement_req_receiver, cfg) =
+            IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let (candidate_req_v2_receiver, cfg) =
+            IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let (dispute_req_receiver, cfg) =
+            IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
+        net_config.add_request_response_protocol(cfg);
+        let approval_voting_config = ApprovalVotingConfig {
+            col_approval_data: crate::parachains_db::REAL_COLUMNS.col_approval_data,
+            slot_duration_millis: slot_duration.as_millis() as u64,
+        };
+        let dispute_coordinator_config = DisputeCoordinatorConfig {
+            col_dispute_data: crate::parachains_db::REAL_COLUMNS.col_dispute_coordinator_data,
+        };
+        let chain_selection_config = ChainSelectionConfig {
+            col_data: crate::parachains_db::REAL_COLUMNS.col_chain_selection_data,
+            stagnant_check_interval: Default::default(),
+            stagnant_check_mode: chain_selection_subsystem::StagnantCheckMode::PruneOnly,
+        };
+        Some(ExtendedOverseerGenArgs {
+            keystore: keystore_container.local_keystore(),
+            parachains_db,
+            candidate_validation_config,
+            availability_config: AVAILABILITY_CONFIG,
+            pov_req_receiver,
+            chunk_req_receiver,
+            statement_req_receiver,
+            candidate_req_v2_receiver,
+            approval_voting_config,
+            dispute_req_receiver,
+            dispute_coordinator_config,
+            chain_selection_config,
+        })
     };
 
     let (network, system_rpc_tx, tx_handler_controller, network_starter, sync_service) =
@@ -356,17 +603,19 @@ where
         );
     }
 
+    // let frontier_backend: Arc<fc_db::Backend<_, _>> = Arc::new(frontier_backend);
+
     let role = config.role.clone();
     let force_authoring = config.force_authoring;
     let backoff_authoring_blocks =
         Some(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default());
     let name = config.network.node_name.clone();
     let frontier_backend = Arc::new(frontier_backend);
-    let enable_grandpa = !config.disable_grandpa && sealing.is_none();
+    let enable_grandpa = !config.disable_grandpa;
     let prometheus_registry = config.prometheus_registry().cloned();
 
     // Channel for the rpc handler to communicate with the authorship task.
-    let (command_sink, commands_stream) = mpsc::channel(1000);
+    // let (command_sink, commands_stream) = mpsc::channel(1000);
 
     // Sinks for pubsub notifications.
     // Everytime a new subscription is created, a new mpsc channel is added to the sink pool.
@@ -423,6 +672,154 @@ where
         pending_create_inherent_data_providers,
     };
 
+    if let Some(hwbench) = hwbench {
+        sc_sysinfo::print_hwbench(&hwbench);
+        match SUBSTRATE_REFERENCE_HARDWARE.check_hardware(&hwbench) {
+            Err(err) if role.is_authority() => {
+                log::warn!(
+				"⚠️  The hardware does not meet the minimal requirements {} for role 'Authority' find out more at:\n\
+				https://wiki.polkadot.network/docs/maintain-guides-how-to-validate-polkadot#reference-hardware",
+				err
+			);
+            },
+            _ => {},
+        }
+
+        if let Some(ref mut telemetry) = telemetry {
+            let telemetry_handle = telemetry.handle();
+            task_manager.spawn_handle().spawn(
+                "telemetry_hwbench",
+                None,
+                sc_sysinfo::initialize_hwbench_telemetry(telemetry_handle, hwbench),
+            );
+        }
+    }
+
+    let overseer_client = client.clone();
+    let spawner = task_manager.spawn_handle();
+
+    let authority_discovery_service =
+		// We need the authority discovery if this node is either a validator or running alongside a parachain node.
+		// Parachains node require the authority discovery for finding relay chain validators for sending
+		// their PoVs or recovering PoVs.
+		if role.is_authority() || is_parachain_node.is_running_alongside_parachain_node() {
+			use futures::StreamExt;
+			use sc_network::{Event, NetworkEventStream};
+
+            log::error!("Hello from authority_discovery_role");
+
+			let authority_discovery_role = if role.is_authority() {
+				sc_authority_discovery::Role::PublishAndDiscover(keystore_container.keystore())
+			} else {
+				// don't publish our addresses when we're not an authority (collator, cumulus, ..)
+				sc_authority_discovery::Role::Discover
+			};
+			let dht_event_stream =
+				network.event_stream("authority-discovery").filter_map(|e| async move {
+					match e {
+						Event::Dht(e) => Some(e),
+						_ => None,
+					}
+				});
+                log::error!("Hello from new_worker_and_service_with_config");
+
+			let (worker, service) = sc_authority_discovery::new_worker_and_service_with_config(
+				sc_authority_discovery::WorkerConfig {
+					publish_non_global_ips: auth_disc_publish_non_global_ips,
+					public_addresses: auth_disc_public_addresses,
+					// Require that authority discovery records are signed.
+					strict_record_validation: true,
+					..Default::default()
+				},
+				client.clone(),
+				Arc::new(network.clone()),
+				Box::pin(dht_event_stream),
+				authority_discovery_role,
+				prometheus_registry.clone(),
+			);
+
+            log::error!("Hello from task_manager.spawn_handle");
+
+			task_manager.spawn_handle().spawn(
+				"authority-discovery-worker",
+				Some("authority-discovery"),
+				Box::pin(worker.run()),
+			);
+			Some(service)
+		} else {
+			None
+		};
+
+    let runtime_client = Arc::new(DefaultSubsystemClient::new(
+        overseer_client.clone(),
+        OffchainTransactionPoolFactory::new(transaction_pool.clone()),
+    ));
+
+    let overseer_handle = if let Some(authority_discovery_service) = authority_discovery_service {
+        let (overseer, overseer_handle) = overseer_gen
+            .generate::<sc_service::SpawnTaskHandle, DefaultSubsystemClient<FullClient>>(
+                overseer_connector,
+                OverseerGenArgs {
+                    runtime_client,
+                    network_service: network.clone(),
+                    sync_service: sync_service.clone(),
+                    authority_discovery_service,
+                    collation_req_v1_receiver,
+                    collation_req_v2_receiver,
+                    available_data_req_receiver,
+                    registry: prometheus_registry.as_ref(),
+                    spawner,
+                    is_parachain_node,
+                    overseer_message_channel_capacity_override,
+                    req_protocol_names,
+                    peerset_protocol_names,
+                    notification_services,
+                },
+                ext_overseer_args,
+            )
+            .map_err(|e| {
+                gum::error!("Failed to init overseer: {}", e);
+                e
+            })?;
+        let handle = Handle::new(overseer_handle.clone());
+
+        {
+            let handle = handle.clone();
+            log::error!("Hello from task_manager.spawn_essential_handle");
+
+            task_manager.spawn_essential_handle().spawn_blocking(
+                "overseer",
+                None,
+                Box::pin(async move {
+                    use futures::{pin_mut, select, FutureExt};
+
+                    let forward = polkadot_overseer::forward_events(overseer_client, handle);
+
+                    let forward = forward.fuse();
+                    let overseer_fut = overseer.run().fuse();
+
+                    pin_mut!(overseer_fut);
+                    pin_mut!(forward);
+
+                    select! {
+                        () = forward => (),
+                        () = overseer_fut => (),
+                        complete => (),
+                    }
+                }),
+            );
+        }
+        Some(handle)
+    } else {
+        assert!(
+            !auth_or_collator,
+            "Precondition congruence (false) is guaranteed by manual checking. qed"
+        );
+        log::error!("Precondition congruence");
+
+        None
+    };
+
     let rpc_builder = {
         // all these double clones are actually needed here, because we need Fn, but not FnOnce
         let client = client.clone();
@@ -444,7 +841,7 @@ where
                 pool: pool.clone(),
                 select_chain: select_chain.clone(),
                 deny_unsafe,
-                command_sink: if sealing.is_some() { Some(command_sink.clone()) } else { None },
+                command_sink: None,
                 eth: eth_rpc_params.clone(),
                 babe: crate::rpc::BabeDeps {
                     keystore: keystore.clone(),
@@ -482,7 +879,7 @@ where
     spawn_frontier_tasks(
         &task_manager,
         client.clone(),
-        backend,
+        backend.clone(),
         frontier_backend,
         filter_pool,
         storage_override,
@@ -494,25 +891,6 @@ where
     .await;
 
     if role.is_authority() {
-        // manual-seal authorship
-        if let Some(sealing) = sealing {
-            run_manual_seal_authorship(
-                &eth_config,
-                sealing,
-                client,
-                transaction_pool,
-                select_chain,
-                Box::new(block_import),
-                &task_manager,
-                prometheus_registry.as_ref(),
-                telemetry.as_ref(),
-                commands_stream,
-            )?;
-
-            network_starter.start_network();
-            log::info!("Manual Seal Ready");
-            return Ok(task_manager);
-        }
         let proposer_factory = sc_basic_authorship::ProposerFactory::new(
             task_manager.spawn_handle(),
             client.clone(),
@@ -521,6 +899,8 @@ where
             telemetry.as_ref().map(|x| x.handle()),
         );
 
+        let overseer_handle =
+            overseer_handle.as_ref().ok_or(Error::AuthoritiesRequireRealOverseer)?.clone();
         let slot_duration = babe_link.config().slot_duration();
         let babe_config = sc_consensus_babe::BabeParams {
             keystore: keystore_container.keystore(),
@@ -532,7 +912,15 @@ where
             justification_sync_link: sync_service.clone(),
             create_inherent_data_providers: move |parent, ()| {
                 let client_clone = client.clone();
+                let overseer_handle = overseer_handle.clone();
                 async move {
+                    let parachain =
+                        polkadot_node_core_parachains_inherent::ParachainsInherentDataProvider::new(
+                            client_clone.clone(),
+                            overseer_handle,
+                            parent,
+                        );
+
                     let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
 
                     let slot =
@@ -541,22 +929,16 @@ where
                             slot_duration,
                         );
 
-                    let storage_proof =
-                        sp_transaction_storage_proof::registration::new_data_provider(
-                            &*client_clone,
-                            &parent,
-                        )?;
-
                     // TODO huh?
                     // let dynamic_fee = fp_dynamic_fee::InherentDataProvider(U256::from(target_gas_price));
                     // Ok((slot, timestamp, dynamic_fee))
-                    Ok((slot, timestamp, storage_proof))
+                    Ok((slot, timestamp, parachain))
                 }
             },
             force_authoring,
             backoff_authoring_blocks,
             babe_link,
-            block_proposal_slot_portion: SlotProportion::new(0.5),
+            block_proposal_slot_portion: sc_consensus_babe::SlotProportion::new(2f32 / 3f32),
             max_block_proposal_slot_portion: None,
             telemetry: telemetry.as_ref().map(|x| x.handle()),
         };
@@ -576,7 +958,7 @@ where
 
         let grandpa_config = sc_consensus_grandpa::Config {
             // FIXME #1578 make this available through chainspec
-            gossip_duration: Duration::from_millis(333),
+            gossip_duration: Duration::from_millis(1000),
             justification_generation_period: GRANDPA_JUSTIFICATION_PERIOD,
             name: Some(name),
             observer_enabled: false,
@@ -617,103 +999,30 @@ where
     Ok(task_manager)
 }
 
-fn run_manual_seal_authorship(
-    eth_config: &EthConfiguration,
-    sealing: Sealing,
-    client: Arc<FullClient>,
-    transaction_pool: Arc<FullPool>,
-    select_chain: FullSelectChain,
-    block_import: BoxBlockImport<Block>,
-    task_manager: &TaskManager,
-    prometheus_registry: Option<&Registry>,
-    telemetry: Option<&Telemetry>,
-    commands_stream: mpsc::Receiver<
-        sc_consensus_manual_seal::rpc::EngineCommand<<Block as BlockT>::Hash>,
-    >,
-) -> Result<(), ServiceError> {
-    let proposer_factory = sc_basic_authorship::ProposerFactory::new(
-        task_manager.spawn_handle(),
-        client.clone(),
-        transaction_pool.clone(),
-        prometheus_registry,
-        telemetry.as_ref().map(|x| x.handle()),
-    );
-
-    thread_local!(static TIMESTAMP: RefCell<u64> = const { RefCell::new(0) });
-
-    /// Provide a mock duration starting at 0 in millisecond for timestamp inherent.
-    /// Each call will increment timestamp by slot_duration making Aura think time has passed.
-    struct MockTimestampInherentDataProvider;
-
-    #[async_trait::async_trait]
-    impl sp_inherents::InherentDataProvider for MockTimestampInherentDataProvider {
-        async fn provide_inherent_data(
-            &self,
-            inherent_data: &mut sp_inherents::InherentData,
-        ) -> Result<(), sp_inherents::Error> {
-            TIMESTAMP.with(|x| {
-                *x.borrow_mut() += atleta_runtime::constants::time::SLOT_DURATION;
-                inherent_data.put_data(sp_timestamp::INHERENT_IDENTIFIER, &*x.borrow())
-            })
-        }
-
-        async fn try_handle_error(
-            &self,
-            _identifier: &sp_inherents::InherentIdentifier,
-            _error: &[u8],
-        ) -> Option<Result<(), sp_inherents::Error>> {
-            // The pallet never reports error.
-            None
-        }
-    }
-
-    let target_gas_price = eth_config.target_gas_price;
-    let create_inherent_data_providers = move |_, ()| async move {
-        let timestamp = MockTimestampInherentDataProvider;
-        let dynamic_fee = fp_dynamic_fee::InherentDataProvider(U256::from(target_gas_price));
-        Ok((timestamp, dynamic_fee))
-    };
-
-    let manual_seal = match sealing {
-        Sealing::Manual => future::Either::Left(sc_consensus_manual_seal::run_manual_seal(
-            sc_consensus_manual_seal::ManualSealParams {
-                block_import,
-                env: proposer_factory,
-                client,
-                pool: transaction_pool,
-                commands_stream,
-                select_chain,
-                consensus_data_provider: None,
-                create_inherent_data_providers,
-            },
-        )),
-        Sealing::Instant => future::Either::Right(sc_consensus_manual_seal::run_instant_seal(
-            sc_consensus_manual_seal::InstantSealParams {
-                block_import,
-                env: proposer_factory,
-                client,
-                pool: transaction_pool,
-                select_chain,
-                consensus_data_provider: None,
-                create_inherent_data_providers,
-            },
-        )),
-    };
-
-    // we spawn the future on a background thread managed by service.
-    task_manager
-        .spawn_essential_handle()
-        .spawn_blocking("manual-seal", None, manual_seal);
-    Ok(())
-}
-
-pub async fn build_full(
+// /// Build a full node.
+// ///
+// /// The actual "flavor", aka if it will use `Polkadot`, `Rococo` or `Kusama` is determined based on
+// /// [`IdentifyVariant`] using the chain spec.
+// #[cfg(feature = "full-node")]
+pub async fn build_full<OverseerGenerator: OverseerGen>(
     config: Configuration,
     eth_config: EthConfiguration,
-    is_collator: IsCollator,
-    sealing: Option<Sealing>,
-) -> Result<TaskManager, ServiceError> {
-    new_full::<sc_network::NetworkWorker<_, _>>(config, eth_config, is_collator, sealing).await
+    params: polkadot_service::NewFullParams<OverseerGenerator>,
+) -> Result<TaskManager, Error> {
+    use crate::service;
+
+    match config.network.network_backend {
+        sc_network::config::NetworkBackendType::Libp2p => {
+            service::new_full::<_, sc_network::NetworkWorker<Block, Hash>>(
+                config, eth_config, params,
+            )
+            .await
+        },
+        sc_network::config::NetworkBackendType::Litep2p => {
+            service::new_full::<_, sc_network::Litep2pNetworkBackend>(config, eth_config, params)
+                .await
+        },
+    }
 }
 
 pub fn new_chain_ops(
@@ -732,5 +1041,5 @@ pub fn new_chain_ops(
     config.keystore = sc_service::config::KeystoreConfig::InMemory;
     let PartialComponents { client, backend, import_queue, task_manager, other, .. } =
         new_partial::<_>(config, eth_config, build_babe_grandpa_import_queue)?;
-    Ok((client, backend, import_queue, task_manager, other.5))
+    Ok((client, backend, import_queue, task_manager, other.6))
 }

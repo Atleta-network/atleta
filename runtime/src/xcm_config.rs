@@ -17,32 +17,21 @@
 //! XCM configurations for Westend.
 
 use super::{
-    parachains_origin, AccountId, AllPalletsWithSystem, Balances, Dmp, ParaId, Runtime,
-    RuntimeCall, RuntimeEvent, RuntimeOrigin, TransactionByteFee, Treasury, XcmPallet, CENTS,
+    AccountId, Balances, Dmp, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+    TransactionByteFee, Treasury, XcmPallet, CENTS,
 };
 use frame_support::{
     parameter_types,
-    traits::{Contains, Equals, Everything, Nothing},
+    traits::{Contains, Everything, Nothing},
 };
 use frame_system::EnsureRoot;
-use pallet_xcm::XcmPassthrough;
-use runtime_common::{
-    xcm_sender::{ChildParachainRouter, ExponentialPrice},
-    ToAuthor,
-};
+use runtime_common::xcm_sender::{ChildParachainRouter, ExponentialPrice};
 use sp_core::ConstU32;
 use xcm::latest::prelude::*;
-use xcm::opaque::v3::{MultiAsset, MultiAssets, MultiLocation};
 use xcm_builder::{
-    AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
-    AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom,
-    ChildParachainAsNative, ChildParachainConvertsVia, DescribeAllTerminal, DescribeFamily,
-    FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription,
-    IsChildSystemParachain, IsConcrete, MintLocation, OriginToPluralityVoice,
-    SignedAccountId32AsNative, SignedAccountKey20AsNative, SignedToAccountId32,
-    SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
-    WeightInfoBounds, WithComputedOrigin, WithUniqueTopic, XcmFeeManagerFromComponents,
-    XcmFeeToAccount,
+    AccountId32Aliases, AllowUnpaidExecutionFrom, ChildParachainConvertsVia, DescribeAllTerminal,
+    DescribeFamily, FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter,
+    HashedDescription, IsConcrete, MintLocation, SignedAccountKey20AsNative, WithUniqueTopic,
 };
 use xcm_executor::{
     traits::{TransactAsset, WeightTrader},
@@ -112,10 +101,7 @@ impl Contains<Location> for OnlyParachains {
 pub struct Fellows;
 impl Contains<Location> for Fellows {
     fn contains(location: &Location) -> bool {
-        matches!(
-            location.unpack(),
-            (0, [Parachain(COLLECTIVES_ID), Plurality { id: BodyId::Technical, .. }])
-        )
+        matches!(location.unpack(), (0, [Parachain(_), Plurality { id: BodyId::Technical, .. }]))
     }
 }
 

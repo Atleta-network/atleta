@@ -21,11 +21,14 @@ rand = { workspace = true }
 parity-scale-codec = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
+is_executable = "1.0.1"
 thiserror = { workspace = true }
 
 # Substrate
 pallet-im-online = { workspace = true, features = ["std"] }
+sp-authority-discovery = { workspace = true, default-features = true }
 substrate-prometheus-endpoint = { workspace = true }
+sc-authority-discovery = { workspace = true, default-features = true }
 sc-basic-authorship = { workspace = true }
 sc-chain-spec = { workspace = true }
 sc-cli = { workspace = true }
@@ -33,23 +36,31 @@ sc-client-api = { workspace = true }
 sc-client-db = { workspace = true }
 sc-consensus = { workspace = true }
 sc-consensus-babe = { workspace = true }
+sp-consensus-beefy = { workspace = true }
 sc-consensus-babe-rpc = { workspace = true }
+sc-consensus-beefy = { workspace = true }
+sc-consensus-beefy-rpc = { workspace = true, default-features = true }
 sc-consensus-grandpa = { workspace = true }
 sc-consensus-grandpa-rpc = { workspace = true }
 sc-consensus-slots = { workspace = true }
 sc-consensus-manual-seal = { workspace = true }
 sc-executor = { workspace = true }
 sc-executor-wasmtime = { workspace = true }
+sc-keystore = { workspace = true, default-features = true }
 sc-network = { workspace = true }
 sc-network-sync = { workspace = true }
 sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
 sc-service = { workspace = true }
+sc-sync-state-rpc = { workspace = true, default-features = true }
 sc-storage-monitor = { workspace = true }
+sc-sysinfo = { workspace = true, default-features = true }
 sc-telemetry = { workspace = true }
+sc-tracing = { workspace = true }
 sc-transaction-pool = { workspace = true }
 sc-transaction-pool-api = { workspace = true }
+sp-mmr-primitives = { workspace = true, default-features = true }
 sp-api = { workspace = true, features = ["default"] }
 sp-block-builder = { workspace = true }
 sp-blockchain = { workspace = true }
@@ -68,13 +79,14 @@ sp-timestamp = { workspace = true, features = ["default"] }
 sp-transaction-pool = { workspace = true, features = ["default"] }
 sp-transaction-storage-proof = { workspace = true, features = ["default"] }
 # These dependencies are used for RPC
-frame-system-rpc-runtime-api = { workspace = true }
+frame-system-rpc-runtime-api = { workspace = true, default-features = true }
 pallet-transaction-payment-rpc = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 substrate-frame-rpc-system = { workspace = true }
+substrate-state-trie-migration-rpc = { workspace = true, default-features = true }
 # These dependencies are used for runtime benchmarking
-frame-benchmarking = { workspace = true, optional = true }
-frame-benchmarking-cli = { workspace = true, optional = true }
+frame-benchmarking = { workspace = true }
+frame-benchmarking-cli = { workspace = true, default-features = true }
 frame-system = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 
@@ -94,16 +106,61 @@ fp-rpc = { workspace = true, features = ["default"] }
 
 atleta-runtime = { workspace = true, features = ["std"] }
 
+kvdb-rocksdb = { workspace = true, default-features = true, optional = true }
+parity-db = { workspace = true, default-features = true, optional = true }
+
 polkadot-cli = { workspace = true }
 polkadot-primitives = { workspace = true }
 polkadot-node-metrics = { workspace = true }
 polkadot-service = { workspace = true }
+polkadot-node-subsystem = { workspace = true, default-features = true }
+polkadot-node-core-av-store = { workspace = true, default-features = true, optional = true }
+polkadot-node-jaeger = { workspace = true, default-features = true }
+
+gum = { workspace = true }
+
+# Polkadot
+mmr-gadget = { workspace = true, default-features = true }
+mmr-rpc = { workspace = true, default-features = true }
+polkadot-core-primitives = { workspace = true, default-features = true }
+polkadot-node-core-parachains-inherent = { workspace = true, default-features = true }
+polkadot-overseer = { workspace = true, default-features = true }
+polkadot-node-primitives = { workspace = true, default-features = true }
+polkadot-node-subsystem-util = { workspace = true, default-features = true }
+polkadot-node-subsystem-types = { workspace = true, default-features = true }
+runtime-parachains = { workspace = true, default-features = true }
+polkadot-node-network-protocol = { workspace = true, default-features = true }
+polkadot-network-bridge = { workspace = true, default-features = true, optional = true }
+
+# Polkadot Subsystems
+polkadot-approval-distribution = { workspace = true, default-features = true, optional = true }
+polkadot-availability-bitfield-distribution = { workspace = true, default-features = true, optional = true }
+polkadot-availability-distribution = { workspace = true, default-features = true, optional = true }
+polkadot-availability-recovery = { workspace = true, default-features = true, optional = true }
+polkadot-collator-protocol = { workspace = true, default-features = true, optional = true }
+polkadot-dispute-distribution = { workspace = true, default-features = true, optional = true }
+polkadot-gossip-support = { workspace = true, default-features = true, optional = true }
+polkadot-node-collation-generation = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-backing = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-bitfield-signing = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-candidate-validation = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-chain-api = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-chain-selection = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-dispute-coordinator = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-provisioner = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-pvf = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-pvf-checker = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-runtime-api = { workspace = true, default-features = true, optional = true }
+polkadot-statement-distribution = { workspace = true, default-features = true, optional = true }
+prometheus-endpoint = { workspace = true }
+polkadot-rpc = { workspace = true, default-features = true }
+polkadot-node-core-approval-voting = { workspace = true, optional = true }
 
 [build-dependencies]
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["with-rocksdb-weights", "rocksdb", "sql", "txpool"]
+default = ["full-node", "with-rocksdb-weights", "rocksdb", "sql", "txpool"]
 rocksdb = [
     "sc-cli/rocksdb",
     "sc-service/rocksdb",
@@ -111,6 +168,32 @@ rocksdb = [
     "fc-db/rocksdb",
     "fc-mapping-sync/rocksdb",
     "fc-rpc/rocksdb",
+]
+full-node = [
+    "polkadot-node-core-av-store",
+    "polkadot-node-core-approval-voting",
+    "polkadot-availability-bitfield-distribution",
+    "polkadot-availability-distribution",
+    "polkadot-availability-recovery",
+    "polkadot-collator-protocol",
+    "polkadot-dispute-distribution",
+    "polkadot-gossip-support",
+    "polkadot-network-bridge",
+    "polkadot-node-collation-generation",
+    "polkadot-node-core-backing",
+    "polkadot-node-core-bitfield-signing",
+    "polkadot-node-core-candidate-validation",
+    "polkadot-node-core-chain-api",
+    "polkadot-node-core-chain-selection",
+    "polkadot-node-core-dispute-coordinator",
+    "polkadot-node-core-provisioner",
+    "polkadot-node-core-runtime-api",
+    "polkadot-statement-distribution",
+    "polkadot-approval-distribution",
+    "polkadot-node-core-pvf",
+    "polkadot-node-core-pvf-checker",
+    "kvdb-rocksdb",
+    "parity-db",
 ]
 sql = ["fc-db/sql", "fc-mapping-sync/sql"]
 with-rocksdb-weights = ["atleta-runtime/with-rocksdb-weights"]

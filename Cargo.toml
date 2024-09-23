@@ -56,6 +56,7 @@ thiserror = "1.0"
 tokio = "1.36.0"
 
 # Substrate Client
+sc-authority-discovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-basic-authorship = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-block-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-chain-spec = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
@@ -78,19 +79,30 @@ sc-network-sync = { git = "https://github.com/atleta-network/polkadot-sdk", bran
 sc-offchain = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-rpc-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+sc-sysinfo =  { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-service = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sc-storage-monitor = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+sc-sync-state-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sc-telemetry = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+sc-tracing = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sc-transaction-pool = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-transaction-pool-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sc-utils = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
-# Substrate Primitive
+
+# Substrate Client
+mmr-gadget = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+mmr-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+binary-merkle-tree = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+sp-authority-discovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-block-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-genesis-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-blockchain = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sp-consensus = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sp-consensus-babe = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+sp-consensus-beefy = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+sc-consensus-beefy = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+sc-consensus-beefy-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-consensus-grandpa = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-core = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-core-hashing = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
@@ -100,6 +112,7 @@ sp-inherents = { git = "https://github.com/atleta-network/polkadot-sdk", branch 
 sp-io = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-keyring = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 sp-keystore = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+sp-mmr-primitives = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-offchain = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-runtime = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 sp-runtime-interface = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
@@ -124,6 +137,8 @@ frame-system-rpc-runtime-api = { git = "https://github.com/atleta-network/polkad
 pallet-authority-discovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-authorship = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-babe = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-beefy = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-beefy-mmr = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-bags-list = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-balances = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-collective = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
@@ -136,6 +151,7 @@ pallet-im-online = { git = "https://github.com/atleta-network/polkadot-sdk", bra
 pallet-insecure-randomness-collective-flip = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-membership = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-message-queue = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-mmr = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-nomination-pools = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-nomination-pools-runtime-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-offences = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
@@ -159,9 +175,10 @@ pallet-fast-unstake = { git = "https://github.com/atleta-network/polkadot-sdk", 
 frame-benchmarking-cli = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 substrate-prometheus-endpoint = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 substrate-build-script-utils = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
-substrate-frame-rpc-system = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+substrate-frame-rpc-system = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 substrate-test-runtime-client = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 substrate-wasm-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+substrate-state-trie-migration-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
 # Frontier Client
 fc-api = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
@@ -201,9 +218,52 @@ precompile-utils = { git = "https://github.com/atleta-network/frontier", branch 
 polkadot-cli = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 polkadot-node-metrics = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 polkadot-primitives = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+
+gum = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", package = "tracing-gum" }
+
+polkadot-core-primitives = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-parachains-inherent = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-overseer = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-primitives = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-subsystem-util = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-subsystem-types = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-subsystem-test-helpers = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-test-client = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-network-bridge = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+
 polkadot-service = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 runtime-parachains = { git = "https://github.com/atleta-network/polkadot-sdk", package = "polkadot-runtime-parachains", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-subsystem = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 runtime-common = { git = "https://github.com/atleta-network/polkadot-sdk", package = "polkadot-runtime-common", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-av-store = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-network-protocol = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-approval-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-availability-bitfield-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-jaeger = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+
+polkadot-availability-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-collator-protocol = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-dispute-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-gossip-support = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-collation-generation = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-backing = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-bitfield-signing = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-candidate-validation = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-chain-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-chain-selection = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-dispute-coordinator = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-provisioner = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+
+polkadot-availability-recovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-pvf = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-pvf-checker = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-runtime-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-statement-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+polkadot-node-core-approval-voting = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+
+prometheus-endpoint = { package = "substrate-prometheus-endpoint", git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0" }
+polkadot-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
+
 
 # XCM 
 xcm = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", package = "staging-xcm", default-features = false }

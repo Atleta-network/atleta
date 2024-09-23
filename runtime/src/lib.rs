@@ -26,7 +26,7 @@ use sp_runtime::{
     impl_opaque_keys,
     traits::{
         self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
-        IdentifyAccount, IdentityLookup, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -36,7 +36,7 @@ use sp_runtime::{
     Permill,
 };
 use sp_staking::currency_to_vote::U128CurrencyToVote;
-use sp_std::{marker::PhantomData, prelude::*};
+use sp_std::{collections::btree_map::BTreeMap, marker::PhantomData, prelude::*};
 use sp_version::RuntimeVersion;
 // Substrate FRAME
 use frame_election_provider_support::{
@@ -56,12 +56,11 @@ use frame_support::{
         fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
         ConstBool, ConstU32, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
-        KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize, ProcessMessage,
-        ProcessMessageError,
+        KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
-        IdentityFee, Weight, WeightMeter, WeightToFee as _,
+        IdentityFee, Weight,
     },
     PalletId,
 };
@@ -80,21 +79,29 @@ use pallet_ethereum::{
 use pallet_evm::{
     Account as EVMAccount, EnsureAccountId20, FeeCalculator, IdentityAddressMapping, Runner,
 };
+use sp_consensus_beefy::{
+    ecdsa_crypto::{AuthorityId as BeefyId, Signature as BeefySignature},
+    mmr::{BeefyDataProvider, MmrLeafVersion},
+};
 // Parachains
-use runtime_parachains::configuration;
 use runtime_parachains::{
     assigner_coretime as parachains_assigner_coretime,
     assigner_on_demand as parachains_assigner_on_demand, configuration as parachains_configuration,
-    coretime, disputes as parachains_disputes,
-    disputes::slashing as parachains_slashing,
+    disputes as parachains_disputes, disputes::slashing as parachains_slashing,
     dmp as parachains_dmp, hrmp as parachains_hrmp, inclusion as parachains_inclusion,
-    inclusion::{AggregateMessageOrigin, UmpQueueId},
     initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
-    paras_inherent as parachains_paras_inherent, scheduler as parachains_scheduler,
+    paras_inherent as parachains_paras_inherent,
+    runtime_api_impl::v10 as parachains_runtime_api_impl, scheduler as parachains_scheduler,
     session_info as parachains_session_info, shared as parachains_shared,
 };
 // Polkadot
-use polkadot_primitives::{Id as ParaId, ValidatorId, ValidatorIndex};
+use polkadot_primitives::{
+    runtime_api, slashing, CandidateEvent, CandidateHash, CommittedCandidateReceipt, CoreState,
+    DisputeState, ExecutorParams, GroupRotationInfo, Id as ParaId, InboundDownwardMessage,
+    InboundHrmpMessage, OccupiedCoreAssumption, PersistedValidationData, ScrapedOnChainVotes,
+    SessionIndex, SessionInfo, ValidationCode, ValidationCodeHash, ValidatorId, ValidatorIndex,
+    PARACHAIN_KEY_TYPE_ID,
+};
 use runtime_common::{paras_registrar, paras_sudo_wrapper, slots};
 // other
 use static_assertions::const_assert;
@@ -188,7 +195,7 @@ pub mod opaque {
 pub const BABE_GENESIS_EPOCH_CONFIG: sp_consensus_babe::BabeEpochConfiguration =
     sp_consensus_babe::BabeEpochConfiguration {
         c: PRIMARY_PROBABILITY,
-        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryPlainSlots,
+        allowed_slots: sp_consensus_babe::AllowedSlots::PrimaryAndSecondaryVRFSlots,
     };
 
 // Runtime version
@@ -1196,6 +1203,80 @@ impl pallet_im_online::Config for Runtime {
     type MaxPeerInHeartbeats = MaxPeerInHeartbeats;
 }
 
+parameter_types! {
+    pub const BeefySetIdSessionEntries: u32 = BondingDuration::get() * SessionsPerEra::get();
+}
+
+impl pallet_beefy::Config for Runtime {
+    type BeefyId = BeefyId;
+    type MaxAuthorities = MaxAuthorities;
+    type MaxSetIdSessionEntries = BeefySetIdSessionEntries;
+    type MaxNominators = ConstU32<0>;
+    type OnNewValidatorSet = MmrLeaf;
+    type WeightInfo = ();
+    type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, BeefyId)>>::Proof;
+    type EquivocationReportSystem =
+        pallet_beefy::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
+}
+
+mod mmr {
+    use super::Runtime;
+    pub use pallet_mmr::primitives::*;
+
+    pub type Leaf = <<Runtime as pallet_mmr::Config>::LeafData as LeafDataProvider>::LeafData;
+    pub type Hashing = <Runtime as pallet_mmr::Config>::Hashing;
+}
+
+impl pallet_mmr::Config for Runtime {
+    const INDEXING_PREFIX: &'static [u8] = mmr::INDEXING_PREFIX;
+    type Hashing = Keccak256;
+    type OnNewRoot = pallet_beefy_mmr::DepositBeefyDigest<Runtime>;
+    type WeightInfo = ();
+    type LeafData = pallet_beefy_mmr::Pallet<Runtime>;
+    type BlockHashProvider = pallet_mmr::DefaultBlockHashProvider<Runtime>;
+}
+
+pub struct ParaHeadsRootProvider;
+impl BeefyDataProvider<H256> for ParaHeadsRootProvider {
+    fn extra_data() -> H256 {
+        let mut para_heads: Vec<(u32, Vec<u8>)> = parachains_paras::Parachains::<Runtime>::get()
+            .into_iter()
+            .filter_map(|id| {
+                parachains_paras::Heads::<Runtime>::get(&id).map(|head| (id.into(), head.0))
+            })
+            .collect();
+        para_heads.sort();
+        binary_merkle_tree::merkle_root::<mmr::Hashing, _>(
+            para_heads.into_iter().map(|pair| pair.encode()),
+        )
+        .into()
+    }
+}
+
+impl pallet_beefy_mmr::Config for Runtime {
+    type LeafVersion = LeafVersion;
+    type BeefyAuthorityToMerkleLeaf = pallet_beefy_mmr::BeefyEcdsaToEthereum;
+    type LeafExtra = H256;
+    type BeefyDataProvider = ParaHeadsRootProvider;
+}
+
+parameter_types! {
+    /// Version of the produced MMR leaf.
+    ///
+    /// The version consists of two parts;
+    /// - `major` (3 bits)
+    /// - `minor` (5 bits)
+    ///
+    /// `major` should be updated only if decoding the previous MMR Leaf format from the payload
+    /// is not possible (i.e. backward incompatible change).
+    /// `minor` should be updated if fields are added to the previous MMR Leaf, which given SCALE
+    /// encoding does not prevent old leafs from being decoded.
+    ///
+    /// Hence we expect `major` to be changed really rarely (think never).
+    /// See [`MmrLeafVersion`] type documentation for more details.
+    pub LeafVersion: MmrLeafVersion = MmrLeafVersion::new(0, 0);
+}
+
 // EVM
 impl pallet_evm_chain_id::Config for Runtime {}
 
@@ -1563,6 +1644,11 @@ construct_runtime!(
         XcmPallet: pallet_xcm,
         // // Generalized message queue
         // MessageQueue: pallet_message_queue,
+        Beefy: pallet_beefy,
+        // MMR leaf construction must be after session in order to have a leaf's next_auth_set
+        // refer to block<N>. See https://github.com/polkadot-fellows/runtimes/issues/160 for details.
+        Mmr: pallet_mmr,
+        MmrLeaf: pallet_beefy_mmr,
     }
 );
 
@@ -1760,6 +1846,12 @@ impl_runtime_apis! {
         }
     }
 
+    impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce> for Runtime {
+        fn account_nonce(account: AccountId) -> Nonce {
+            System::account_nonce(account)
+        }
+    }
+
     impl sp_transaction_pool::runtime_api::TaggedTransactionQueue<Block> for Runtime {
         fn validate_transaction(
             source: TransactionSource,
@@ -1861,6 +1953,49 @@ impl_runtime_apis! {
         }
     }
 
+    impl sp_authority_discovery::AuthorityDiscoveryApi<Block> for Runtime {
+        fn authorities() -> Vec<sp_authority_discovery::AuthorityId> {
+            parachains_runtime_api_impl::relevant_authority_ids::<Runtime>()
+        }
+    }
+
+    impl sp_consensus_beefy::BeefyApi<Block, BeefyId> for Runtime {
+        fn beefy_genesis() -> Option<BlockNumber> {
+            pallet_beefy::GenesisBlock::<Runtime>::get()
+        }
+
+        fn validator_set() -> Option<sp_consensus_beefy::ValidatorSet<BeefyId>> {
+            Beefy::validator_set()
+        }
+
+        fn submit_report_equivocation_unsigned_extrinsic(
+            equivocation_proof: sp_consensus_beefy::EquivocationProof<
+                BlockNumber,
+                BeefyId,
+                BeefySignature,
+            >,
+            key_owner_proof: sp_consensus_beefy::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            let key_owner_proof = key_owner_proof.decode()?;
+
+            Beefy::submit_unsigned_equivocation_report(
+                equivocation_proof,
+                key_owner_proof,
+            )
+        }
+
+        fn generate_key_ownership_proof(
+            _set_id: sp_consensus_beefy::ValidatorSetId,
+            authority_id: BeefyId,
+        ) -> Option<sp_consensus_beefy::OpaqueKeyOwnershipProof> {
+            use parity_scale_codec::Encode;
+
+            Historical::prove((sp_consensus_beefy::KEY_TYPE, authority_id))
+                .map(|p| p.encode())
+                .map(sp_consensus_beefy::OpaqueKeyOwnershipProof::new)
+        }
+    }
+
     impl pallet_nomination_pools_runtime_api::NominationPoolsApi<Block, AccountId, Balance> for Runtime {
         fn pending_rewards(who: AccountId) -> Balance {
             NominationPools::api_pending_rewards(who).unwrap_or_default()
@@ -1886,12 +2021,6 @@ impl_runtime_apis! {
 
         fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
             vec![]
-        }
-    }
-
-    impl frame_system_rpc_runtime_api::AccountNonceApi<Block, AccountId, Nonce> for Runtime {
-        fn account_nonce(account: AccountId) -> Nonce {
-            System::account_nonce(account)
         }
     }
 
@@ -2127,6 +2256,16 @@ impl_runtime_apis! {
         }
     }
 
+    impl pallet_beefy_mmr::BeefyMmrApi<Block, Hash> for RuntimeApi {
+        fn authority_set_proof() -> sp_consensus_beefy::mmr::BeefyAuthoritySet<Hash> {
+            MmrLeaf::authority_set_proof()
+        }
+
+        fn next_authority_set_proof() -> sp_consensus_beefy::mmr::BeefyNextAuthoritySet<Hash> {
+            MmrLeaf::next_authority_set_proof()
+        }
+    }
+
     impl pallet_contracts::ContractsApi<Block, AccountId, Balance, BlockNumber, Hash, EventRecord>
         for Runtime
     {
@@ -2203,6 +2342,185 @@ impl_runtime_apis! {
             encoded: Vec<u8>,
         ) -> Option<Vec<(Vec<u8>, KeyTypeId)>> {
             opaque::SessionKeys::decode_into_raw_public_keys(&encoded)
+        }
+    }
+
+    impl sp_mmr_primitives::MmrApi<Block, Hash, BlockNumber> for Runtime {
+        fn mmr_root() -> Result<Hash, sp_mmr_primitives::Error> {
+            Ok(Mmr::mmr_root())
+        }
+
+        fn mmr_leaf_count() -> Result<sp_mmr_primitives::LeafIndex, sp_mmr_primitives::Error> {
+            Ok(Mmr::mmr_leaves())
+        }
+
+        fn generate_proof(
+            block_numbers: Vec<BlockNumber>,
+            best_known_block_number: Option<BlockNumber>,
+        ) -> Result<(Vec<sp_mmr_primitives::EncodableOpaqueLeaf>, sp_mmr_primitives::Proof<Hash>), sp_mmr_primitives::Error> {
+             Mmr::generate_proof(block_numbers, best_known_block_number).map(
+                |(leaves, proof)| {
+                    (
+                        leaves
+                            .into_iter()
+                            .map(|leaf| mmr::EncodableOpaqueLeaf::from_leaf(&leaf))
+                            .collect(),
+                        proof,
+                    )
+                },
+            )
+        }
+
+        fn verify_proof(leaves: Vec<sp_mmr_primitives::EncodableOpaqueLeaf>, proof: sp_mmr_primitives::Proof<Hash>)
+            -> Result<(), sp_mmr_primitives::Error>
+        {
+             let leaves = leaves.into_iter().map(|leaf|
+                leaf.into_opaque_leaf()
+                .try_decode()
+                .ok_or(mmr::Error::Verify)).collect::<Result<Vec<mmr::Leaf>, mmr::Error>>()?;
+            Mmr::verify_leaves(leaves, proof)
+        }
+
+        fn verify_proof_stateless(
+            root: Hash,
+            leaves: Vec<sp_mmr_primitives::EncodableOpaqueLeaf>,
+            proof: sp_mmr_primitives::Proof<Hash>
+        ) -> Result<(), sp_mmr_primitives::Error> {
+            let nodes = leaves.into_iter().map(|leaf|mmr::DataOrHash::Data(leaf.into_opaque_leaf())).collect();
+            pallet_mmr::verify_leaves_proof::<mmr::Hashing, _>(root, nodes, proof)
+        }
+    }
+
+    impl runtime_api::ParachainHost<Block> for Runtime {
+        fn validators() -> Vec<ValidatorId> {
+            parachains_runtime_api_impl::validators::<Runtime>()
+        }
+
+        fn validator_groups() -> (Vec<Vec<ValidatorIndex>>, GroupRotationInfo<BlockNumber>) {
+            parachains_runtime_api_impl::validator_groups::<Runtime>()
+        }
+
+        fn availability_cores() -> Vec<CoreState<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::availability_cores::<Runtime>()
+        }
+
+        fn persisted_validation_data(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<PersistedValidationData<Hash, BlockNumber>> {
+            parachains_runtime_api_impl::persisted_validation_data::<Runtime>(para_id, assumption)
+        }
+
+        fn assumed_validation_data(
+            para_id: ParaId,
+            expected_persisted_validation_data_hash: Hash,
+        ) -> Option<(PersistedValidationData<Hash, BlockNumber>, ValidationCodeHash)> {
+            parachains_runtime_api_impl::assumed_validation_data::<Runtime>(
+                para_id,
+                expected_persisted_validation_data_hash,
+            )
+        }
+
+        fn check_validation_outputs(
+            para_id: ParaId,
+            outputs: polkadot_primitives::CandidateCommitments,
+        ) -> bool {
+            parachains_runtime_api_impl::check_validation_outputs::<Runtime>(para_id, outputs)
+        }
+
+        fn session_index_for_child() -> SessionIndex {
+            parachains_runtime_api_impl::session_index_for_child::<Runtime>()
+        }
+
+        fn validation_code(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code::<Runtime>(para_id, assumption)
+        }
+
+        fn candidate_pending_availability(para_id: ParaId) -> Option<CommittedCandidateReceipt<Hash>> {
+            #[allow(deprecated)]
+            parachains_runtime_api_impl::candidate_pending_availability::<Runtime>(para_id)
+        }
+
+        fn candidate_events() -> Vec<CandidateEvent<Hash>> {
+            parachains_runtime_api_impl::candidate_events::<Runtime, _>(|ev| {
+                match ev {
+                    RuntimeEvent::ParaInclusion(ev) => {
+                        Some(ev)
+                    }
+                    _ => None,
+                }
+            })
+        }
+
+        fn session_info(index: SessionIndex) -> Option<SessionInfo> {
+            parachains_runtime_api_impl::session_info::<Runtime>(index)
+        }
+
+        fn session_executor_params(session_index: SessionIndex) -> Option<ExecutorParams> {
+            parachains_runtime_api_impl::session_executor_params::<Runtime>(session_index)
+        }
+
+        fn dmq_contents(recipient: ParaId) -> Vec<InboundDownwardMessage<BlockNumber>> {
+            parachains_runtime_api_impl::dmq_contents::<Runtime>(recipient)
+        }
+
+        fn inbound_hrmp_channels_contents(
+            recipient: ParaId
+        ) -> BTreeMap<ParaId, Vec<InboundHrmpMessage<BlockNumber>>> {
+            parachains_runtime_api_impl::inbound_hrmp_channels_contents::<Runtime>(recipient)
+        }
+
+        fn validation_code_by_hash(hash: ValidationCodeHash) -> Option<ValidationCode> {
+            parachains_runtime_api_impl::validation_code_by_hash::<Runtime>(hash)
+        }
+
+        fn on_chain_votes() -> Option<ScrapedOnChainVotes<Hash>> {
+            parachains_runtime_api_impl::on_chain_votes::<Runtime>()
+        }
+
+        fn submit_pvf_check_statement(
+            stmt: polkadot_primitives::PvfCheckStatement,
+            signature: polkadot_primitives::ValidatorSignature
+        ) {
+            parachains_runtime_api_impl::submit_pvf_check_statement::<Runtime>(stmt, signature)
+        }
+
+        fn pvfs_require_precheck() -> Vec<ValidationCodeHash> {
+            parachains_runtime_api_impl::pvfs_require_precheck::<Runtime>()
+        }
+
+        fn validation_code_hash(para_id: ParaId, assumption: OccupiedCoreAssumption)
+            -> Option<ValidationCodeHash>
+        {
+            parachains_runtime_api_impl::validation_code_hash::<Runtime>(para_id, assumption)
+        }
+
+        fn disputes() -> Vec<(SessionIndex, CandidateHash, DisputeState<BlockNumber>)> {
+            parachains_runtime_api_impl::get_session_disputes::<Runtime>()
+        }
+
+        fn unapplied_slashes(
+        ) -> Vec<(SessionIndex, CandidateHash, slashing::PendingSlashes)> {
+            parachains_runtime_api_impl::unapplied_slashes::<Runtime>()
+        }
+
+        fn key_ownership_proof(
+            validator_id: ValidatorId,
+        ) -> Option<slashing::OpaqueKeyOwnershipProof> {
+            use parity_scale_codec::Encode;
+
+            Historical::prove((PARACHAIN_KEY_TYPE_ID, validator_id))
+                .map(|p| p.encode())
+                .map(slashing::OpaqueKeyOwnershipProof::new)
+        }
+
+        fn submit_report_dispute_lost(
+            dispute_proof: slashing::DisputeProof,
+            key_ownership_proof: slashing::OpaqueKeyOwnershipProof,
+        ) -> Option<()> {
+            parachains_runtime_api_impl::submit_unsigned_slashing_report::<Runtime>(
+                dispute_proof,
+                key_ownership_proof,
+            )
         }
     }
 
