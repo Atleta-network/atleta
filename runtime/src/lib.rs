@@ -1410,7 +1410,7 @@ impl parachains_inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
     type RewardValidators = RewardValidators;
-    type MessageQueue = MessageQueue;
+    type MessageQueue = ();
     type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
 }
 
