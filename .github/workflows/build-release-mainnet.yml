@@ -26,6 +26,6 @@ jobs:
     - name: Build and push docker image
       run: |
           docker build --build-arg BUILD_FEATURES=mainnet-runtime --tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} .
-          docker tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:main-latest
+          docker tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:mainnet-latest
           docker push docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP}
           docker push docker.io/atletanetwork/atleta-node:mainnet-latest
