@@ -132,6 +132,112 @@ pub fn testnet_config() -> ChainSpec {
         .build()
 }
 
+pub fn mainnet_config() -> ChainSpec {
+    ChainSpec::builder(WASM_BINARY.expect("WAST not found"), Default::default())
+        .with_name("Atleta")
+        .with_id("mainnet")
+        .with_chain_type(ChainType::Custom("Mainet".to_string()))
+        .with_properties(properties())
+        .with_genesis_config_patch(mainnet_genesis(
+            mainnet_keys::sudo_account(),
+            vec![
+                mainnet_keys::validator_1(),
+                /*
+                mainnet_keys::validator_2(),
+                mainnet_keys::validator_3(),
+                mainnet_keys::validator_4(),
+                mainnet_keys::validator_5(),
+                */
+            ],
+            mainnet_keys::prefunded(),
+            SS58Prefix::get() as u64,
+        ))
+        .build()
+}
+
+// TODO: add technical committee
+fn mainnet_genesis(
+    sudo_key: AccountId,
+    // initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, ValidatorId, AssignmentId, AuthorityDiscoveryId, BeefyId)>,
+    validators_keys: Vec<mainnet_keys::ValidatorKeys>,
+    initial_balances: impl IntoIterator<Item = (AccountId, Balance)>,
+    chain_id: u64,
+) -> serde_json::Value {
+    const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * DOLLARS;
+    const STASH_INITIAL_BALANCE: Balance = 25_000 * DOLLARS;
+
+    let mut initial_balances =
+        std::collections::BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
+
+    for keys in &validators_keys {
+        initial_balances.insert(keys.id, VALIDATOR_INITIAL_BALANCE);
+    }
+
+    let stakers = validators_keys
+        .iter()
+        .map(|keys| {
+            (keys.id, keys.stash, STASH_INITIAL_BALANCE, StakerStatus::<AccountId>::Validator)
+        })
+        .collect::<Vec<_>>();
+
+    serde_json::json!({
+        "sudo": {
+            "key": Some(sudo_key),
+        },
+        "balances": {
+            "balances": initial_balances.into_iter().collect::<Vec<_>>(),
+        },
+        "babe": {
+            "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
+        },
+        "session": {
+            "keys": validators_keys
+                .iter()
+                .cloned()
+                .map(|keys| {
+                    let id = keys.id;
+                    let stash = keys.stash;
+                    let session_keys: SessionKeys = keys.into();
+                    (stash, id, session_keys)
+                })
+                .collect::<Vec<_>>(),
+        },
+        "staking": {
+            "validatorCount": validators_keys.len() as u32,
+            "minimumValidatorCount": validators_keys.len() as u32,
+            "invulnerables": validators_keys.iter().map(|x| x.id).collect::<Vec<_>>(),
+            "slashRewardFraction": Perbill::from_percent(5),
+            // TODO: verify
+            "stakers": stakers,
+            "minValidatorBond": 75_000 * DOLLARS,
+            "minNominatorBond": 1_000 * DOLLARS,
+        },
+        "nominationPools": {
+            "minCreateBond": 100 * DOLLARS,
+            "minJoinBond": 100 * DOLLARS,
+        },
+        "elections": {
+            "members": validators_keys
+                .iter()
+                .take((validators_keys.len() + 1) / 2)
+                .cloned()
+                .map(|member| (member.id, STASH_INITIAL_BALANCE))
+                .collect::<Vec<_>>(),
+        },
+        "technicalCommittee": {
+            "members": validators_keys
+                .iter()
+                .take((validators_keys.len() + 1) / 2)
+                .cloned()
+                .map(|keys| keys.id)
+                .collect::<Vec<_>>(),
+        },
+        "evmChainId": {
+            "chainId": chain_id,
+        },
+    })
+}
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
     sudo_key: AccountId,
@@ -486,6 +592,79 @@ mod testnet_keys {
             .into(),
         )
     }
+}
+
+#[rustfmt::skip]
+mod mainnet_keys {
+    use super::*;
+
+    pub fn sudo_account() -> AccountId {
+        AccountId::from(hex!("a9a55e9de3c8d70c9f1107b58e33070fa816335c"))
+    }
+
+    pub fn prefunded() -> Vec<(AccountId, Balance)> {
+        vec![
+            (sudo_account(), 3_000_000_000_000 * DOLLARS),
+        ]
+    }
+
+    #[derive(Clone)]
+    pub struct ValidatorKeys {
+        pub id: AccountId,
+        pub stash: AccountId,
+        pub babe: BabeId,
+        pub grandpa: GrandpaId,
+        pub im_online: ImOnlineId,
+        pub para_validator: ValidatorId,
+        pub para_assignment: AssignmentId,
+        pub authority_discovery: AuthorityDiscoveryId,
+        pub beefy: BeefyId,
+    }
+
+    impl From<ValidatorKeys> for SessionKeys {
+        fn from(val: ValidatorKeys) -> SessionKeys {
+            SessionKeys {
+                babe: val.babe,
+                grandpa: val.grandpa,
+                im_online: val.im_online,
+                para_validator: val.para_validator,
+                para_assignment: val.para_assignment,
+                authority_discovery: val.authority_discovery,
+                beefy: val.beefy,
+            }
+        }
+    }
+
+    pub fn validator_1() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("f09513bBf1D425528269F93Fc2fBc307994e1443")),
+            stash: AccountId::from(hex!("8a1D46E9352F2EC83Ed3d003A3279B7c80F870f8")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("447025a919267b34e074eee48cc1bd04f185b833cfe262cb7ca44a9a1f39fd24")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("af3f0b366ccd9a7f1f009d20bd6fa3ffdec315c4e49d24eeb9a356b01f190caf")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("d47e92d313adc8b46693e3b0fe84e3d7c8d55445d9b3f28289e188f82e06491c")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("3a5b6abfdfb49830ea593110f36e3beb89fd428d248422eaeeeb205c5db99b0d")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("ecd157484fd9b20cade0dad081b882d823cd4931c5ad0914f151c5292078af4b")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("64a34afd6712b5ec27726c709d36d857dc9f127661873a7ad66116f195419a14")).into(),
+            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0242ac90e719c9b8f1a7b36d14bee73bfa55bf60bbaac9a323624f256649093803")).into(),
+        }
+    }
+
+
+
+    /*
+    pub(super) fn validator() -> Keys {
+        Keys {
+            id:    AccountId::from(hex!("")),
+            stash: AccountId::from(hex!("")),
+            babe:                sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            grandpa:             sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            im_online:           sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            assignment:          sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            authority_discovery: sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            beefy:               sp_core::sr25519::Public::from_raw(hex!("")).into(),
+        }
+    }
+    */
 }
 
 fn session_keys(
