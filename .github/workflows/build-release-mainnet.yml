@@ -1,4 +1,4 @@
-name: Build and Release Devnet
+name: Build and Release Mainnet
 
 on:
   workflow_dispatch:
@@ -7,9 +7,6 @@ on:
 
 jobs:
   deploy_image:
-
-    environment: stagenet
-
     runs-on: ubuntu-latest
 
     steps:

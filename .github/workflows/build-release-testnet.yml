@@ -1,4 +1,4 @@
-name: Build and Release Devnet
+name: Build and Release Testnet
 
 on:
   workflow_dispatch:
