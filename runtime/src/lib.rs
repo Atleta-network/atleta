@@ -55,7 +55,7 @@ use frame_support::{
     traits::{
         fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU32, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
+        ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
         KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize,
     },
     weights::{
@@ -336,7 +336,7 @@ parameter_types! {
     pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
     pub const ReportLongevity: u64 =
         BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
-    pub const MaxAuthorities: u32 = 100;
+    pub const MaxAuthorities: u32 = 10_000;
 }
 
 impl pallet_babe::Config for Runtime {
@@ -358,9 +358,10 @@ impl pallet_grandpa::Config for Runtime {
     type WeightInfo = ();
     type MaxAuthorities = MaxAuthorities;
     type MaxNominators = MaxNominators;
-    type MaxSetIdSessionEntries = ();
-    type KeyOwnerProof = sp_core::Void;
-    type EquivocationReportSystem = ();
+    type MaxSetIdSessionEntries = ConstU64<168>;
+    type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+    type EquivocationReportSystem =
+        pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
 
 // timestamp
@@ -378,11 +379,12 @@ impl pallet_timestamp::Config for Runtime {
 
 // balances
 parameter_types! {
-    pub const ExistentialDeposit: Balance = 0;
+    pub const ExistentialDeposit: Balance = 30 * CENTS;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
     // This number may need to be adjusted in the future if this assumption no longer holds true.
     pub const MaxLocks: u32 = 50;
     pub const MaxReserves: u32 = 50;
+    pub const MaxFreezes: u32 = 1;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -397,7 +399,7 @@ impl pallet_balances::Config for Runtime {
     type FreezeIdentifier = RuntimeFreezeReason;
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
-    type MaxFreezes = ConstU32<1>;
+    type MaxFreezes = MaxFreezes;
     type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
@@ -1212,7 +1214,7 @@ impl pallet_beefy::Config for Runtime {
     type BeefyId = BeefyId;
     type MaxAuthorities = MaxAuthorities;
     type MaxSetIdSessionEntries = BeefySetIdSessionEntries;
-    type MaxNominators = ConstU32<0>;
+    type MaxNominators = MaxNominators;
     type OnNewValidatorSet = MmrLeaf;
     type WeightInfo = ();
     type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, BeefyId)>>::Proof;
@@ -1408,7 +1410,7 @@ impl parachains_inclusion::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     type DisputesHandler = ParasDisputes;
     type RewardValidators = RewardValidators;
-    type MessageQueue = ();
+    type MessageQueue = MessageQueue;
     type WeightInfo = weights::runtime_parachains_inclusion::WeightInfo<Runtime>;
 }
 
