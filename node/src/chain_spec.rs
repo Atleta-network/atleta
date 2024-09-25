@@ -136,7 +136,7 @@ pub fn mainnet_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WAST not found"), Default::default())
         .with_name("Atleta")
         .with_id("mainnet")
-        .with_chain_type(ChainType::Custom("Mainet".to_string()))
+        .with_chain_type(ChainType::Live)
         .with_properties(properties())
         .with_genesis_config_patch(mainnet_genesis(
             mainnet_keys::sudo_account(),
