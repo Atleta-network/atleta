@@ -208,7 +208,7 @@ fn mainnet_genesis(
             "slashRewardFraction": Perbill::from_percent(5),
             // TODO: verify
             "stakers": stakers,
-            "minValidatorBond": 75_000 * DOLLARS,
+            "minValidatorBond": 5_000 * DOLLARS,
             "minNominatorBond": 1_000 * DOLLARS,
         },
         "nominationPools": {
