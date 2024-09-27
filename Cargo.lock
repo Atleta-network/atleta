@@ -694,6 +694,7 @@ dependencies = [
  "sc-consensus-slots",
  "sc-executor",
  "sc-executor-wasmtime",
+ "sc-keystore",
  "sc-network",
  "sc-network-sync",
  "sc-offchain",
