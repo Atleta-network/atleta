@@ -1544,7 +1544,7 @@ construct_runtime!(
         Babe: pallet_babe,
         Grandpa: pallet_grandpa,
         Balances: pallet_balances,
-        Faucet: pallet_faucet,
+        // Faucet: pallet_faucet,
         TransactionPayment: pallet_transaction_payment,
         Sudo: pallet_sudo,
         Treasury: pallet_treasury,
