@@ -573,7 +573,7 @@ pub async fn new_full<
         };
         Some(ExtendedOverseerGenArgs {
             keystore: keystore_container.local_keystore(),
-            parachains_db,s
+            parachains_db,
             candidate_validation_config: None,
             availability_config: AVAILABILITY_CONFIG,
             pov_req_receiver,
