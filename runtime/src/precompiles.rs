@@ -55,7 +55,7 @@ where
             a if a == hash(2002) => Some(TreasuryPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2003) => Some(PreimagePrecompile::<Runtime>::execute(handle)),
             a if a == hash(2004) => Some(StakingPrecompile::<Runtime>::execute(handle)),
-            a if a == hash(2005) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
+            // a if a == hash(2005) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2006) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2007) => Some(BabePrecompile::<Runtime>::execute(handle)),
             _ => None,

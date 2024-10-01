@@ -747,14 +747,14 @@ parameter_types! {
     pub const FaucetPalletId: PalletId = PalletId(*b"ATFAUCET");
 }
 
-impl pallet_faucet::Config for Runtime {
-    type AccumulationPeriod = AccumulationPeriod;
-    type RuntimeEvent = RuntimeEvent;
-    type Currency = Balances;
-    type PalletId = FaucetPalletId;
-    type FaucetAmount = FaucetAmount;
-    type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
-}
+// impl pallet_faucet::Config for Runtime {
+//     type AccumulationPeriod = AccumulationPeriod;
+//     type RuntimeEvent = RuntimeEvent;
+//     type Currency = Balances;
+//     type PalletId = FaucetPalletId;
+//     type FaucetAmount = FaucetAmount;
+//     type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
+// }
 
 // nomination pools
 parameter_types! {
