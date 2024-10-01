@@ -1,4 +1,4 @@
-name: Build and Release Mainnet
+name: Build and Release Stagenet
 
 on:
   workflow_dispatch:
@@ -25,7 +25,7 @@ jobs:
 
     - name: Build and push docker image
       run: |
-          docker build --build-arg BUILD_FEATURES=mainnet-runtime --tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} .
-          docker tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:mainnet-latest
-          docker push docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP}
-          docker push docker.io/atletanetwork/atleta-node:mainnet-latest
+          docker build --build-arg BUILD_FEATURES=mainnet-runtime --tag docker.io/atletanetwork/atleta-node:stagenet-${TIMESTAMP} .
+          docker tag docker.io/atletanetwork/atleta-node:stagenet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:stagenet-latest
+          docker push docker.io/atletanetwork/atleta-node:stagenet-${TIMESTAMP}
+          docker push docker.io/atletanetwork/atleta-node:stagenet-latest
