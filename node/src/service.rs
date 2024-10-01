@@ -550,33 +550,6 @@ pub async fn new_full<
         None
     } else {
         let parachains_db = open_database(&config.database)?;
-        let candidate_validation_config = if !role.is_authority() {
-            let (prep_worker_path, exec_worker_path) = crate::workers::determine_workers_paths(
-                workers_path,
-                workers_names,
-                node_version.clone(),
-            )?;
-
-            log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
-            log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
-
-            Some(CandidateValidationConfig {
-                artifacts_cache_path: config
-                    .database
-                    .path()
-                    .ok_or(Error::DatabasePathRequired)?
-                    .join("pvf-artifacts"),
-                node_version,
-                secure_validator_mode,
-                prep_worker_path,
-                exec_worker_path,
-                pvf_execute_workers_max_num: 4,
-                pvf_prepare_workers_soft_max_num: prepare_workers_soft_max_num.unwrap_or(1),
-                pvf_prepare_workers_hard_max_num: prepare_workers_hard_max_num.unwrap_or(2),
-            })
-        } else {
-            None
-        };
         let (statement_req_receiver, cfg) =
             IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
         net_config.add_request_response_protocol(cfg);
@@ -600,8 +573,8 @@ pub async fn new_full<
         };
         Some(ExtendedOverseerGenArgs {
             keystore: keystore_container.local_keystore(),
-            parachains_db,
-            candidate_validation_config,
+            parachains_db,s
+            candidate_validation_config: None,
             availability_config: AVAILABILITY_CONFIG,
             pov_req_receiver,
             chunk_req_receiver,
