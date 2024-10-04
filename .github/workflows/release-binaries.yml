@@ -47,7 +47,11 @@ jobs:
           components: rust-src
 
       - uses: actions/checkout@v4
-      - run: cargo build --locked --release
+
+      - id: build
+        env:
+          RUSTFLAGS: --allow warnings
+        run: cargo build --locked --release
 
       - id: artifact
         env:
@@ -80,7 +84,11 @@ jobs:
           components: rust-src
 
       - uses: actions/checkout@v4
-      - run: cargo build --locked --release
+
+      - id: build
+        env:
+          RUSTFLAGS: --allow warnings
+        run: cargo build --locked --release
 
       - id: artifact
         env:
