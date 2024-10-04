@@ -1,4 +1,4 @@
-name: Release Atleta Node bins
+name: Release Atleta Node binaries
 
 env:
   CARGO_TERM_COLOR: always
@@ -8,6 +8,9 @@ on:
   push:
     branches:
       - devnet
+      - testnet
+      - stagenet
+      - mainnet
     tags:
       - 'release-v*'
 
