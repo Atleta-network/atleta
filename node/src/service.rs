@@ -9,7 +9,6 @@ use polkadot_node_subsystem_util::database::Database;
 use {
     polkadot_node_core_approval_voting::Config as ApprovalVotingConfig,
     polkadot_node_core_av_store::Config as AvailabilityConfig,
-    polkadot_node_core_candidate_validation::Config as CandidateValidationConfig,
     polkadot_node_core_chain_selection::{
         self as chain_selection_subsystem, Config as ChainSelectionConfig,
     },
@@ -357,20 +356,12 @@ pub async fn new_full<
     polkadot_service::NewFullParams {
         is_parachain_node,
         enable_beefy,
-        force_authoring_backoff: _,
         jaeger_agent,
-        telemetry_worker_handle: _,
-        node_version,
-        secure_validator_mode,
-        workers_path,
-        workers_names,
         overseer_gen,
         overseer_message_channel_capacity_override,
         malus_finality_delay: _malus_finality_delay,
         hwbench,
-        execute_workers_max_num: _,
-        prepare_workers_soft_max_num,
-        prepare_workers_hard_max_num,
+        ..
     }: polkadot_service::NewFullParams<OverseerGenerator>,
 ) -> Result<TaskManager, Error> {
     use polkadot_node_network_protocol::request_response::IncomingRequest;

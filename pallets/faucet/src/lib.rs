@@ -7,6 +7,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![warn(clippy::all)]
 #![warn(missing_docs)]
+#![allow(clippy::manual_inspect)] // TODO: remove, as we have this error from macro expansion
 
 pub use pallet::*;
 

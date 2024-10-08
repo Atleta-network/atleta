@@ -12,7 +12,7 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
 use pallet_evm_precompile_babe::BabePrecompile;
-use pallet_evm_precompile_faucet::FaucetPrecompile;
+// use pallet_evm_precompile_faucet::FaucetPrecompile;
 use pallet_evm_precompile_governance::GovernancePrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
