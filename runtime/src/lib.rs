@@ -1372,6 +1372,13 @@ pub type CheckedExtrinsic =
     fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 /// The payload being signed in transactions.
 pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+pub type Migrations = migrations::Unreleased;
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
     Runtime,
@@ -1379,13 +1386,21 @@ pub type Executive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    pallet_contracts::Migration<Runtime>,
+    Migrations,
 >;
 
 pub type EventRecord = frame_system::EventRecord<
     <Runtime as frame_system::Config>::RuntimeEvent,
     <Runtime as frame_system::Config>::Hash,
 >;
+
+/// The runtime migrations per release.
+#[allow(deprecated, missing_docs)]
+pub mod migrations {
+    use crate::*;
+
+    pub type Unreleased = ();
+}
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {
     type SignedInfo = H160;
@@ -2001,6 +2016,26 @@ impl_runtime_apis! {
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok(batches)
+        }
+    }
+
+    #[cfg(feature = "try-runtime")]
+    impl frame_try_runtime::TryRuntime<Block> for Runtime {
+        fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
+            log::info!("try-runtime::on_runtime_upgrade atleta.");
+            let weight = Executive::try_runtime_upgrade(checks).unwrap();
+            (weight, RuntimeBlockWeights::get().max_block)
+        }
+
+        fn execute_block(
+            block: Block,
+            state_root_check: bool,
+            signature_check: bool,
+            select: frame_try_runtime::TryStateSelect,
+        ) -> Weight {
+            // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
+            // have a backtrace here.
+            Executive::try_execute_block(block, state_root_check, signature_check, select).unwrap()
         }
     }
 }
