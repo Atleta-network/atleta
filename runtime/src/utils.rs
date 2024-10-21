@@ -5,7 +5,8 @@
 /// different values for different environments.
 ///
 /// Usage:
-/// ```rust
+/// ```Rust
+///
 /// parameter_types! {
 ///     pub LaunchPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 1 * DAYS, devnet: HOURS);
 ///     pub const VotingPeriod: BlockNumber = conf!(mainnet: 7 * DAYS, testnet: 5 * MINUTES, devnet: 1 * MINUTES);
