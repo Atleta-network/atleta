@@ -9,7 +9,6 @@ use polkadot_node_subsystem_util::database::Database;
 use {
     polkadot_node_core_approval_voting::Config as ApprovalVotingConfig,
     polkadot_node_core_av_store::Config as AvailabilityConfig,
-    polkadot_node_core_candidate_validation::Config as CandidateValidationConfig,
     polkadot_node_core_chain_selection::{
         self as chain_selection_subsystem, Config as ChainSelectionConfig,
     },
@@ -357,20 +356,12 @@ pub async fn new_full<
     polkadot_service::NewFullParams {
         is_parachain_node,
         enable_beefy,
-        force_authoring_backoff: _,
         jaeger_agent,
-        telemetry_worker_handle: _,
-        node_version,
-        secure_validator_mode,
-        workers_path,
-        workers_names,
         overseer_gen,
         overseer_message_channel_capacity_override,
         malus_finality_delay: _malus_finality_delay,
         hwbench,
-        execute_workers_max_num: _,
-        prepare_workers_soft_max_num,
-        prepare_workers_hard_max_num,
+        ..
     }: polkadot_service::NewFullParams<OverseerGenerator>,
 ) -> Result<TaskManager, Error> {
     use polkadot_node_network_protocol::request_response::IncomingRequest;
@@ -550,33 +541,6 @@ pub async fn new_full<
         None
     } else {
         let parachains_db = open_database(&config.database)?;
-        let candidate_validation_config = if !role.is_authority() {
-            let (prep_worker_path, exec_worker_path) = crate::workers::determine_workers_paths(
-                workers_path,
-                workers_names,
-                node_version.clone(),
-            )?;
-
-            log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
-            log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
-
-            Some(CandidateValidationConfig {
-                artifacts_cache_path: config
-                    .database
-                    .path()
-                    .ok_or(Error::DatabasePathRequired)?
-                    .join("pvf-artifacts"),
-                node_version,
-                secure_validator_mode,
-                prep_worker_path,
-                exec_worker_path,
-                pvf_execute_workers_max_num: 4,
-                pvf_prepare_workers_soft_max_num: prepare_workers_soft_max_num.unwrap_or(1),
-                pvf_prepare_workers_hard_max_num: prepare_workers_hard_max_num.unwrap_or(2),
-            })
-        } else {
-            None
-        };
         let (statement_req_receiver, cfg) =
             IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
         net_config.add_request_response_protocol(cfg);
@@ -601,7 +565,7 @@ pub async fn new_full<
         Some(ExtendedOverseerGenArgs {
             keystore: keystore_container.local_keystore(),
             parachains_db,
-            candidate_validation_config,
+            candidate_validation_config: None,
             availability_config: AVAILABILITY_CONFIG,
             pov_req_receiver,
             chunk_req_receiver,

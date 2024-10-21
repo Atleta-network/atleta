@@ -16,6 +16,8 @@
 
 //! Utilities and tests for locating the PVF worker binaries.
 
+#![allow(dead_code)]
+
 use is_executable::IsExecutable;
 use polkadot_service::Error;
 use std::path::PathBuf;
