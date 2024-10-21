@@ -134,10 +134,11 @@ pub type Hash = H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem;
 
-/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
-/// the specifics of the runtime. They can then be made to be agnostic over specific formats
-/// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core data structures.
+/// Opaque types used by the CLI to instantiate machinery without needing runtime specifics.
+/// This allows them to remain compatible across runtime upgrades.
+///
+/// These abstractions enable the CLI to handle data like extrinsics agnostically, ensuring
+/// seamless network synchronization even if core data structures change.
 pub mod opaque {
     use super::*;
 
@@ -570,9 +571,11 @@ parameter_types! {
         ElectionBoundsBuilder::default().voters_count(MaxElectingVoters::get().into()).build();
 }
 
-/// The numbers configured here could always be more than the the maximum limits of staking pallet
-/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
-/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
+/// Configurations for benchmarking the election provider to prevent memory issues.
+/// These numbers are smaller than the maximum staking pallet limits for now.
+///
+/// This ensures the election snapshot does not exhaust memory, and since staking is bounded,
+/// the weight pipeline won't take too long to complete for this pallet.
 pub struct ElectionProviderBenchmarkConfig;
 
 impl pallet_election_provider_multi_phase::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
@@ -1397,8 +1400,6 @@ pub type EventRecord = frame_system::EventRecord<
 /// The runtime migrations per release.
 #[allow(deprecated, missing_docs)]
 pub mod migrations {
-    use crate::*;
-
     pub type Unreleased = ();
 }
 
