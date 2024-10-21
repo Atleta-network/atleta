@@ -215,4 +215,5 @@ testnet-runtime = [
 devnet-runtime = [
     "atleta-runtime/devnet-runtime",
 ]
+try-runtime = ["atleta-runtime/try-runtime"]
 

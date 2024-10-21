@@ -135,6 +135,7 @@ frame-system = { git = "https://github.com/atleta-network/polkadot-sdk", branch 
 frame-system-benchmarking = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 frame-system-rpc-runtime-api = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-authority-discovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
+frame-try-runtime = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-authorship = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-babe = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 pallet-beefy = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
@@ -265,7 +266,7 @@ prometheus-endpoint = { package = "substrate-prometheus-endpoint", git = "https:
 polkadot-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
 
-# XCM 
+# XCM
 xcm = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", package = "staging-xcm", default-features = false }
 xcm-executor = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", package = "staging-xcm-executor", default-features = false }
 xcm-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", package = "staging-xcm-builder", default-features = false }
