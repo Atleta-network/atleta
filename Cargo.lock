@@ -191,9 +191,9 @@ dependencies = [
 
 [[package]]
 name = "anyhow"
-version = "1.0.89"
+version = "1.0.90"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "86fdf8605db99b54d3cd748a44c6d04df638eb5dafb219b135d0149bd0db01f6"
+checksum = "37bf3594c4c988a53154954629820791dde498571819ae4ca50ca811e060cc95"
 
 [[package]]
 name = "approx"
@@ -229,7 +229,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -651,7 +651,7 @@ checksum = "721cae7de5c34fbb2acd27e21e6d2cf7b886dce0c27388d46c4e6c47ea4318dd"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -797,8 +797,7 @@ dependencies = [
  "sp-transaction-storage-proof",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
- "substrate-prometheus-endpoint 0.10.0-dev",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "substrate-state-trie-migration-rpc",
  "thiserror",
  "tracing-gum",
@@ -925,7 +924,7 @@ checksum = "3c87f3f15e7794432337fc718554eaa4dc8f04c9677a950ffe366f20a162ae42"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -1041,13 +1040,13 @@ dependencies = [
  "lazy_static",
  "lazycell",
  "peeking_take_while",
- "prettyplease 0.2.22",
+ "prettyplease 0.2.24",
  "proc-macro2",
  "quote",
  "regex",
  "rustc-hash",
  "shlex",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -1242,9 +1241,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.7.2"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "428d9aa8fbc0670b7b8d6030a7fadd0f86151cae55e4dbbece15f3780a3dfaf3"
+checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
 
 [[package]]
 name = "bzip2-sys"
@@ -1307,9 +1306,9 @@ checksum = "fd6c0e7b807d60291f42f33f58480c0bfafe28ed08286446f45e463728cf9c1c"
 
 [[package]]
 name = "cc"
-version = "1.1.30"
+version = "1.1.31"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b16803a61b81d9eabb7eae2588776c4c1e584b738ede45fdbb4c972cec1e9945"
+checksum = "c2e7962b54006dcfcc61cb72735f4d89bb97061dd6a7ed882ec6b8ee53714c6f"
 dependencies = [
  "jobserver",
  "libc",
@@ -1492,7 +1491,7 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -1940,7 +1939,7 @@ checksum = "f46882e17999c6cc590af592290432be3bce0428cb0d5f8b6715e4dc7b383eb3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -1967,7 +1966,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "scratch",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -1984,7 +1983,7 @@ checksum = "a1719100f31492cd6adeeab9a0f46cdbc846e615fdb66d7b398aa46ec7fdd06f"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2078,7 +2077,7 @@ checksum = "d65d7ce8132b7c0e54497a4d9a55a1c2a0912a0d786cf894472ba818fba45762"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2091,7 +2090,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustc_version 0.4.1",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2180,7 +2179,7 @@ checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2220,7 +2219,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "regex",
- "syn 2.0.79",
+ "syn 2.0.82",
  "termcolor",
  "toml 0.8.19",
  "walkdir",
@@ -2410,7 +2409,7 @@ dependencies = [
  "heck 0.5.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2430,7 +2429,7 @@ checksum = "de0d48a183585823424a4ce1aa132d174a6a81bd540895822eb4c8373a8e49e8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2441,7 +2440,7 @@ checksum = "2f9ed6b3789237c8a0c1c505af1c7eb2c560df6186f01b098c3a1064ea532f38"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2489,7 +2488,7 @@ dependencies = [
  "fixed-hash",
  "impl-codec 0.6.0",
  "impl-rlp",
- "impl-serde",
+ "impl-serde 0.4.0",
  "scale-info",
  "tiny-keccak",
 ]
@@ -2522,7 +2521,7 @@ dependencies = [
  "fixed-hash",
  "impl-codec 0.6.0",
  "impl-rlp",
- "impl-serde",
+ "impl-serde 0.4.0",
  "primitive-types 0.12.2",
  "scale-info",
  "uint 0.9.5",
@@ -2643,10 +2642,10 @@ dependencies = [
  "blake2 0.10.6",
  "file-guard",
  "fs-err",
- "prettyplease 0.2.22",
+ "prettyplease 0.2.24",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -2840,7 +2839,7 @@ dependencies = [
  "sp-state-machine",
  "sp-storage 19.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "sp-timestamp",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio",
 ]
@@ -3004,9 +3003,9 @@ dependencies = [
 
 [[package]]
 name = "flume"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55ac459de2512911e4b674ce33cf20befaba382d05b62b008afc1c8b57cbf181"
+checksum = "da0e4dd2a88388a1f4ccc7c9ce104604dab68d9f408dc34cd45823d5a9069095"
 dependencies = [
  "futures-core",
  "futures-sink",
@@ -3057,7 +3056,7 @@ version = "1.0.0-dev"
 source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#34b47ba2c9c64e51faa73847e53408f507887f67"
 dependencies = [
  "hex",
- "impl-serde",
+ "impl-serde 0.4.0",
  "libsecp256k1",
  "log",
  "parity-scale-codec",
@@ -3243,7 +3242,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -3351,7 +3350,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "sp-crypto-hashing",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -3363,7 +3362,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -3373,7 +3372,7 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -3545,7 +3544,7 @@ checksum = "162ee34ebcb7c64a8abebc059ce0fee27c2262618d7b60ed8faf72fef13c3650"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -4152,6 +4151,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "impl-serde"
+version = "0.5.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a143eada6a1ec4aefa5049037a26a6d597bfd64f8c026d07b77133e02b7dd0b"
+dependencies = [
+ "serde",
+]
+
+[[package]]
 name = "impl-trait-for-tuples"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4399,7 +4407,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5218,7 +5226,7 @@ dependencies = [
  "macro_magic_core",
  "macro_magic_macros",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5232,7 +5240,7 @@ dependencies = [
  "macro_magic_core_macros",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5243,7 +5251,7 @@ checksum = "b02abfe41815b5bd98dbd4260173db2c116dda171dc0fe7838cb206333b83308"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5254,7 +5262,7 @@ checksum = "73ea28ee64b88876bf45277ed9a5817c1817df061a74f2b988971a12570e5869"
 dependencies = [
  "macro_magic_core",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5499,7 +5507,7 @@ dependencies = [
  "cfg-if",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -5631,7 +5639,7 @@ dependencies = [
  "proc-macro-error",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
  "synstructure 0.13.1",
 ]
 
@@ -5964,7 +5972,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -6047,7 +6055,7 @@ checksum = "a948666b637a0f465e8564c73e89d4dde00d72d4d473cc972f390fc3dcee7d9c"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -6374,7 +6382,7 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -7041,7 +7049,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -7429,7 +7437,7 @@ dependencies = [
  "pest_meta",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -7470,7 +7478,7 @@ checksum = "a4502d8515ca9f32f1fb543d987f63d95a14934883db45bdb48060b6b69257f8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -8086,7 +8094,7 @@ dependencies = [
  "sc-cli",
  "sc-service",
  "sc-tracing",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing-gum",
 ]
 
@@ -8174,7 +8182,7 @@ dependencies = [
  "sp-blockchain",
  "sp-consensus-babe",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -8533,7 +8541,7 @@ dependencies = [
  "sp-version",
  "sp-weights",
  "staging-xcm",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tracing-gum",
  "xcm-fee-payment-runtime-api",
@@ -8622,7 +8630,7 @@ dependencies = [
  "polkavm-common",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -8632,7 +8640,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ba81f7b5faac81e528eb6158a6f3c9e0bb1008e0ffa19653bc8dea925ecb429"
 dependencies = [
  "polkavm-derive-impl",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -8746,7 +8754,7 @@ source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-
 dependencies = [
  "case",
  "num_enum",
- "prettyplease 0.2.22",
+ "prettyplease 0.2.24",
  "proc-macro2",
  "quote",
  "sp-crypto-hashing",
@@ -8805,12 +8813,12 @@ dependencies = [
 
 [[package]]
 name = "prettyplease"
-version = "0.2.22"
+version = "0.2.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "479cf940fbbb3426c32c5d5176f62ad57549a0bb84773423ba8be9d089f5faba"
+checksum = "910d41a655dac3b764f1ade94821093d3610248694320cd072303a8eedcf221d"
 dependencies = [
  "proc-macro2",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -8822,7 +8830,7 @@ dependencies = [
  "fixed-hash",
  "impl-codec 0.6.0",
  "impl-rlp",
- "impl-serde",
+ "impl-serde 0.4.0",
  "scale-info",
  "uint 0.9.5",
 ]
@@ -8915,7 +8923,7 @@ checksum = "834da187cfe638ae8abb0203f0b33e5ccdb02a28e7199f2f47b3e2754f50edca"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -8961,7 +8969,7 @@ checksum = "440f724eba9f6996b75d63681b0a92b06947f1457076d503a4d2e2c8f56442b8"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -9029,7 +9037,7 @@ dependencies = [
  "itertools 0.12.1",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -9363,7 +9371,7 @@ checksum = "bcc303e793d3734489387d205e9b186fac9c6cfacedd98cbb2e8a5943595f3e6"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -9800,7 +9808,7 @@ dependencies = [
  "sp-core",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -9823,7 +9831,7 @@ dependencies = [
  "sp-core",
  "sp-inherents",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -9876,7 +9884,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -9944,7 +9952,7 @@ dependencies = [
  "sp-statement-store",
  "sp-storage 19.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "sp-trie",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -9994,7 +10002,7 @@ dependencies = [
  "sp-core",
  "sp-runtime",
  "sp-state-machine",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10023,7 +10031,7 @@ dependencies = [
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10059,7 +10067,7 @@ dependencies = [
  "sp-inherents",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10116,7 +10124,7 @@ dependencies = [
  "sp-keystore",
  "sp-mmr-primitives",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio",
  "wasm-timer",
@@ -10194,7 +10202,7 @@ dependencies = [
  "sp-crypto-hashing",
  "sp-keystore",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10249,7 +10257,7 @@ dependencies = [
  "sp-keystore",
  "sp-runtime",
  "sp-timestamp",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -10442,7 +10450,7 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio",
  "tokio-stream",
@@ -10486,7 +10494,7 @@ dependencies = [
  "sc-network-types",
  "schnellru",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tracing",
 ]
 
@@ -10542,7 +10550,7 @@ dependencies = [
  "sp-consensus-grandpa",
  "sp-core",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
  "tokio",
  "tokio-stream",
@@ -10565,7 +10573,7 @@ dependencies = [
  "sc-utils",
  "sp-consensus",
  "sp-runtime",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -10623,7 +10631,7 @@ version = "0.17.0"
 source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
 dependencies = [
  "log",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
 ]
 
 [[package]]
@@ -10690,7 +10698,7 @@ dependencies = [
  "jsonrpsee",
  "log",
  "serde_json",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tokio",
  "tower",
  "tower-http",
@@ -10784,7 +10792,7 @@ dependencies = [
  "sp-trie",
  "sp-version",
  "static_init",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "tempfile",
  "thiserror",
  "tokio",
@@ -10914,7 +10922,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -10940,7 +10948,7 @@ dependencies = [
  "sp-runtime",
  "sp-tracing 16.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "sp-transaction-pool",
- "substrate-prometheus-endpoint 0.17.0",
+ "substrate-prometheus-endpoint",
  "thiserror",
 ]
 
@@ -11186,9 +11194,9 @@ checksum = "388a1df253eca08550bef6c72392cfe7c30914bf41df5269b68cbd6ff8f570a3"
 
 [[package]]
 name = "serde"
-version = "1.0.210"
+version = "1.0.211"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c8e3592472072e6e22e0a54d5904d9febf8508f65fb8552499a1abc7d1078c3a"
+checksum = "1ac55e59090389fb9f0dd9e0f3c09615afed1d19094284d0b200441f13550793"
 dependencies = [
  "serde_derive",
 ]
@@ -11204,20 +11212,20 @@ dependencies = [
 
 [[package]]
 name = "serde_derive"
-version = "1.0.210"
+version = "1.0.211"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "243902eda00fad750862fc144cea25caca5e20d615af0a81bee94ca738f1df1f"
+checksum = "54be4f245ce16bc58d57ef2716271d0d4519e0f6defa147f6e081005bcb278ff"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
 name = "serde_json"
-version = "1.0.129"
+version = "1.0.132"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6dbcf9b78a125ee667ae19388837dd12294b858d101fdd393cb9d5501ef09eb2"
+checksum = "d726bfaff4b320266d395898905d0eba0345aae23b54aee3a737e260fd46db03"
 dependencies = [
  "itoa",
  "memchr",
@@ -11532,7 +11540,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -11734,7 +11742,7 @@ dependencies = [
  "futures",
  "hash-db",
  "hash256-std-hasher",
- "impl-serde",
+ "impl-serde 0.4.0",
  "itertools 0.10.5",
  "k256",
  "libsecp256k1",
@@ -11768,7 +11776,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -11805,7 +11813,7 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 dependencies = [
  "quote",
  "sp-crypto-hashing",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -11824,17 +11832,17 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -11850,7 +11858,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -12065,7 +12073,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -12091,20 +12099,20 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "Inflector",
  "expander 2.2.1",
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -12186,14 +12194,14 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
 source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
 dependencies = [
- "impl-serde",
+ "impl-serde 0.4.0",
  "parity-scale-codec",
  "ref-cast",
  "serde",
@@ -12203,9 +12211,9 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
- "impl-serde",
+ "impl-serde 0.5.0",
  "parity-scale-codec",
  "ref-cast",
  "serde",
@@ -12238,7 +12246,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -12297,7 +12305,7 @@ name = "sp-version"
 version = "29.0.0"
 source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
 dependencies = [
- "impl-serde",
+ "impl-serde 0.4.0",
  "parity-scale-codec",
  "parity-wasm",
  "scale-info",
@@ -12317,7 +12325,7 @@ dependencies = [
  "parity-scale-codec",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -12335,7 +12343,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#73a51fd9d6a365350ffa428337096ffae15ddf4f"
+source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -12704,7 +12712,7 @@ dependencies = [
  "proc-macro2",
  "quote",
  "rustversion",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -12741,18 +12749,6 @@ dependencies = [
  "sp-blockchain",
  "sp-core",
  "sp-runtime",
-]
-
-[[package]]
-name = "substrate-prometheus-endpoint"
-version = "0.10.0-dev"
-source = "git+https://github.com/paritytech/substrate?branch=polkadot-v1.0.0#948fbd2fd1233dc26dbb9f9bbc1d2cca2c03945d"
-dependencies = [
- "hyper",
- "log",
- "prometheus",
- "thiserror",
- "tokio",
 ]
 
 [[package]]
@@ -12828,9 +12824,9 @@ dependencies = [
 
 [[package]]
 name = "syn"
-version = "2.0.79"
+version = "2.0.82"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89132cd0bf050864e1d38dc3bbc07a0eb8e7530af26344d3d2bbbef83499f590"
+checksum = "83540f837a8afc019423a8edb95b52a8effe46957ee402287f4292fae35be021"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -12857,7 +12853,7 @@ checksum = "c8af7666ab7b6390ab78131fb5b0fce11d6b7a6951602017c35fa82800708971"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -12948,7 +12944,7 @@ checksum = "08904e7672f5eb876eaaf87e0ce17857500934f4981c4a0ab2b4aa98baac7fc3"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -13091,7 +13087,7 @@ checksum = "693d596312e88961bc67d7f1f97af8a70227d9f90c31bba5806eec004978d752"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -13264,7 +13260,7 @@ checksum = "34704c8d6ebcbc939824180af020566b01a7c01f80641264eba0999f6c2b6be7"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -13307,7 +13303,7 @@ dependencies = [
  "proc-macro-crate 3.2.0",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -13764,7 +13760,7 @@ dependencies = [
  "once_cell",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
  "wasm-bindgen-shared",
 ]
 
@@ -13798,7 +13794,7 @@ checksum = "26c6ab57572f7a24a4985830b120de1594465e5d500f24afe89e16b4e833ef68"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
  "wasm-bindgen-backend",
  "wasm-bindgen-shared",
 ]
@@ -14581,7 +14577,7 @@ dependencies = [
  "Inflector",
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -14625,7 +14621,7 @@ checksum = "fa4f8080344d4671fb4e831a13ad1e68092748387dfc4f55e356242fae12ce3e"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]
@@ -14645,7 +14641,7 @@ checksum = "ce36e65b0d2999d2aafac989fb249189a141aee1f53c612c1f37d72631959f69"
 dependencies = [
  "proc-macro2",
  "quote",
- "syn 2.0.79",
+ "syn 2.0.82",
 ]
 
 [[package]]

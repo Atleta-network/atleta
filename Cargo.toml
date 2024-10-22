@@ -262,7 +262,6 @@ polkadot-node-core-runtime-api = { git = "https://github.com/atleta-network/polk
 polkadot-statement-distribution = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0", default-features = false }
 polkadot-node-core-approval-voting = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
-prometheus-endpoint = { package = "substrate-prometheus-endpoint", git = "https://github.com/paritytech/substrate", branch = "polkadot-v1.0.0" }
 polkadot-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
 

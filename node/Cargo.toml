@@ -152,7 +152,6 @@ polkadot-node-core-pvf = { workspace = true, default-features = true, optional =
 polkadot-node-core-pvf-checker = { workspace = true, default-features = true, optional = true }
 polkadot-node-core-runtime-api = { workspace = true, default-features = true, optional = true }
 polkadot-statement-distribution = { workspace = true, default-features = true, optional = true }
-prometheus-endpoint = { workspace = true }
 polkadot-rpc = { workspace = true, default-features = true }
 polkadot-node-core-approval-voting = { workspace = true, optional = true }
 

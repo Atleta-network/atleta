@@ -36,7 +36,7 @@ pub enum Error {
     Overseer(#[from] polkadot_overseer::SubsystemError),
 
     #[error(transparent)]
-    Prometheus(#[from] prometheus_endpoint::PrometheusError),
+    Prometheus(#[from] substrate_prometheus_endpoint::PrometheusError),
 
     #[error(transparent)]
     Telemetry(#[from] sc_telemetry::Error),
