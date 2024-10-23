@@ -74,6 +74,8 @@ pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
     pub pool: Arc<P>,
     /// The SelectChain Strategy
     pub select_chain: SC,
+    /// A copy of the chain spec.
+    pub chain_spec: Box<dyn sc_chain_spec::ChainSpec>,
     /// Whether to deny unsafe calls
     pub deny_unsafe: DenyUnsafe,
     /// Manual seal command sink
@@ -136,6 +138,8 @@ where
     use sc_consensus_beefy_rpc::{Beefy, BeefyApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
+    use sc_rpc_spec_v2::chain_spec::{ChainSpec, ChainSpecApiServer};
+    use sc_sync_state_rpc::{SyncState, SyncStateApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
     use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
@@ -144,6 +148,7 @@ where
         client,
         pool,
         select_chain,
+        chain_spec,
         deny_unsafe,
         command_sink,
         eth,
@@ -161,15 +166,20 @@ where
         finality_provider,
     } = grandpa;
 
+    let chain_name = chain_spec.name().to_string();
+    let genesis_hash = client.hash(0).ok().flatten().expect("Genesis block exists; qed");
+    let properties = chain_spec.properties();
+
+    io.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
     io.merge(StateMigration::new(client.clone(), backend.clone(), deny_unsafe).into_rpc())?;
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(
-        Babe::new(client.clone(), worker_handle, keystore, select_chain, deny_unsafe).into_rpc(),
+        Babe::new(client.clone(), worker_handle.clone(), keystore, select_chain, deny_unsafe).into_rpc(),
     )?;
     io.merge(
         Mmr::new(
-            client,
+            client.clone(),
             backend
                 .offchain_storage()
                 .ok_or("Backend doesn't provide the required offchain storage")?,
@@ -186,6 +196,10 @@ where
         )
         .into_rpc(),
     )?;
+    io.merge(
+        SyncState::new(chain_spec, client, shared_authority_set, worker_handle)?.into_rpc(),
+    )?;
+
     io.merge(
         Beefy::<Block>::new(
             beefy.beefy_finality_proof_stream,

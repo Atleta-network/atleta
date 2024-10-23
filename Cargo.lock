@@ -727,6 +727,9 @@ dependencies = [
  "polkadot-node-core-provisioner",
  "polkadot-node-core-pvf",
  "polkadot-node-core-pvf-checker",
+ "polkadot-node-core-pvf-common",
+ "polkadot-node-core-pvf-execute-worker",
+ "polkadot-node-core-pvf-prepare-worker",
  "polkadot-node-core-runtime-api",
  "polkadot-node-jaeger",
  "polkadot-node-metrics",
@@ -765,6 +768,7 @@ dependencies = [
  "sc-offchain",
  "sc-rpc",
  "sc-rpc-api",
+ "sc-rpc-spec-v2",
  "sc-service",
  "sc-storage-monitor",
  "sc-sync-state-rpc",
@@ -905,6 +909,7 @@ dependencies = [
  "staging-xcm-executor",
  "static_assertions",
  "substrate-wasm-builder",
+ "xcm-fee-payment-runtime-api",
 ]
 
 [[package]]
@@ -8046,6 +8051,43 @@ dependencies = [
 ]
 
 [[package]]
+name = "polkadot-node-core-pvf-execute-worker"
+version = "7.0.0"
+source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
+dependencies = [
+ "cfg-if",
+ "cpu-time",
+ "libc",
+ "nix 0.27.1",
+ "parity-scale-codec",
+ "polkadot-node-core-pvf-common",
+ "polkadot-parachain-primitives",
+ "polkadot-primitives",
+ "tracing-gum",
+]
+
+[[package]]
+name = "polkadot-node-core-pvf-prepare-worker"
+version = "7.0.0"
+source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
+dependencies = [
+ "blake3",
+ "cfg-if",
+ "libc",
+ "nix 0.27.1",
+ "parity-scale-codec",
+ "polkadot-node-core-pvf-common",
+ "polkadot-primitives",
+ "rayon",
+ "sc-executor-common",
+ "sc-executor-wasmtime",
+ "staging-tracking-allocator",
+ "tikv-jemalloc-ctl",
+ "tikv-jemallocator",
+ "tracing-gum",
+]
+
+[[package]]
 name = "polkadot-node-core-runtime-api"
 version = "7.0.0"
 source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
@@ -11776,7 +11818,7 @@ dependencies = [
 [[package]]
 name = "sp-crypto-ec-utils"
 version = "0.10.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "ark-bls12-377",
  "ark-bls12-377-ext",
@@ -11838,7 +11880,7 @@ dependencies = [
 [[package]]
 name = "sp-debug-derive"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -11858,7 +11900,7 @@ dependencies = [
 [[package]]
 name = "sp-externalities"
 version = "0.25.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "environmental",
  "parity-scale-codec",
@@ -12073,7 +12115,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface"
 version = "24.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "bytes",
  "impl-trait-for-tuples",
@@ -12105,7 +12147,7 @@ dependencies = [
 [[package]]
 name = "sp-runtime-interface-proc-macro"
 version = "17.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "Inflector",
  "expander 2.2.1",
@@ -12194,7 +12236,7 @@ source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polka
 [[package]]
 name = "sp-std"
 version = "14.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 
 [[package]]
 name = "sp-storage"
@@ -12211,7 +12253,7 @@ dependencies = [
 [[package]]
 name = "sp-storage"
 version = "19.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "impl-serde 0.5.0",
  "parity-scale-codec",
@@ -12246,7 +12288,7 @@ dependencies = [
 [[package]]
 name = "sp-tracing"
 version = "16.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "parity-scale-codec",
  "tracing",
@@ -12343,7 +12385,7 @@ dependencies = [
 [[package]]
 name = "sp-wasm-interface"
 version = "20.0.0"
-source = "git+https://github.com/paritytech/polkadot-sdk#d1cf996354342b33bd7ae327ddae68b286784363"
+source = "git+https://github.com/paritytech/polkadot-sdk#b4732add46910370443d092a3f479986060f6df5"
 dependencies = [
  "anyhow",
  "impl-trait-for-tuples",
@@ -12539,6 +12581,11 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "staging-tracking-allocator"
+version = "2.0.0"
+source = "git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0#4565359887380c8cb94e0987e521648466354195"
 
 [[package]]
 name = "staging-xcm"
@@ -13004,6 +13051,16 @@ checksum = "9402443cb8fd499b6f327e40565234ff34dbda27460c5b47db0db77443dd85d1"
 dependencies = [
  "cc",
  "libc",
+]
+
+[[package]]
+name = "tikv-jemallocator"
+version = "0.5.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "965fe0c26be5c56c94e38ba547249074803efd52adfb66de62107d95aab3eaca"
+dependencies = [
+ "libc",
+ "tikv-jemalloc-sys",
 ]
 
 [[package]]

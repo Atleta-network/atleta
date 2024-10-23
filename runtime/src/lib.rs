@@ -60,7 +60,7 @@ use frame_support::{
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
-        IdentityFee, Weight,
+        IdentityFee, Weight, WeightToFee,
     },
     PalletId,
 };
@@ -103,6 +103,8 @@ use polkadot_primitives::{
     PARACHAIN_KEY_TYPE_ID,
 };
 use runtime_common::{paras_registrar, paras_sudo_wrapper, slots};
+use xcm::{VersionedAssetId, VersionedXcm, VersionedLocation, VersionedAssets, IntoVersion};
+use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 // other
 use static_assertions::const_assert;
 
@@ -2500,6 +2502,37 @@ impl_runtime_apis! {
                 key_ownership_proof,
             )
         }
+    }
+
+    impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
+        fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
+			if !matches!(xcm_version, 3 | 4) {
+				return Err(XcmPaymentApiError::UnhandledXcmVersion);
+			}
+			Ok([VersionedAssetId::V4(xcm_config::TokenLocation::get().into())]
+				.into_iter()
+				.filter_map(|asset| asset.into_version(xcm_version).ok())
+				.collect())
+		}
+
+		fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
+			let local_asset = VersionedAssetId::V4(xcm_config::TokenLocation::get().into());
+			let asset = asset
+				.into_version(4)
+				.map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+
+			if  asset != local_asset { return Err(XcmPaymentApiError::AssetNotFound); }
+
+			Ok(<IdentityFee<Balance> as WeightToFee>::weight_to_fee(&weight))
+		}
+
+		fn query_xcm_weight(message: VersionedXcm<()>) -> Result<Weight, XcmPaymentApiError> {
+			XcmPallet::query_xcm_weight(message)
+		}
+
+		fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>) -> Result<VersionedAssets, XcmPaymentApiError> {
+			XcmPallet::query_delivery_fees(destination, message)
+		}
     }
 
     #[cfg(feature = "runtime-benchmarks")]

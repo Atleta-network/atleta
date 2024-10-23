@@ -82,6 +82,7 @@ pallet-treasury = { workspace = true }
 pallet-utility = { workspace = true }
 pallet-fast-unstake = { workspace = true }
 pallet-xcm = { workspace = true }
+xcm-fee-payment-runtime-api = { workspace = true }
 xcm = { workspace = true }
 xcm-builder = { workspace = true }
 xcm-executor = { workspace = true }
@@ -260,6 +261,7 @@ std = [
     "xcm-executor/std",
     "xcm-builder/std",
     "pallet-xcm/std",
+    "xcm-fee-payment-runtime-api/std",
     # Atleta Pallets
     "pallet-faucet/std",
     # Atleta Precompile Pallets
@@ -285,4 +287,6 @@ runtime-benchmarks = [
     "pallet-contracts/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
+    "pallet-xcm/runtime-benchmarks",
+    "xcm-builder/runtime-benchmarks",
 ]
