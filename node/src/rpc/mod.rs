@@ -10,13 +10,6 @@ use sc_client_api::{
     client::BlockchainEvents,
     AuxStore, UsageProvider,
 };
-use sc_consensus_babe::BabeWorkerHandle;
-use sc_consensus_beefy::communication::notification::{
-    BeefyBestBlockStream, BeefyVersionedFinalityProofStream,
-};
-use sc_consensus_grandpa::{
-    FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
-};
 use sc_consensus_manual_seal::rpc::EngineCommand;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
@@ -25,46 +18,14 @@ use sc_transaction_pool::ChainApi;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_inherents::CreateInherentDataProviders;
-use sp_keystore::KeystorePtr;
 use sp_runtime::traits::Block as BlockT;
 // Runtime
 use atleta_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
+use polkadot_rpc::{BabeDeps, BeefyDeps, GrandpaDeps};
 
 mod consensus_data_provider;
 mod eth;
 pub use self::eth::{create_eth, EthDeps};
-
-/// Extra dependencies for BABE.
-pub struct BabeDeps {
-    /// The keystore that manages the keys of the node.
-    pub keystore: KeystorePtr,
-    /// The worker handle.
-    pub worker_handle: BabeWorkerHandle<Block>,
-}
-
-/// Extra dependencies for GRANDPA
-pub struct GrandpaDeps<B> {
-    /// Voting round info.
-    pub shared_voter_state: SharedVoterState,
-    /// Authority set info.
-    pub shared_authority_set: SharedAuthoritySet<Hash, BlockNumber>,
-    /// Receives notifications about justification events from Grandpa.
-    pub justification_stream: GrandpaJustificationStream<Block>,
-    /// Executor to drive the subscription manager in the Grandpa RPC handler.
-    pub subscription_executor: SubscriptionTaskExecutor,
-    /// Finality proof provider.
-    pub finality_provider: Arc<FinalityProofProvider<B, Block>>,
-}
-
-/// Dependencies for BEEFY
-pub struct BeefyDeps {
-    /// Receives notifications about finality proof events from BEEFY.
-    pub beefy_finality_proof_stream: BeefyVersionedFinalityProofStream<Block>,
-    /// Receives notifications about best block events from BEEFY.
-    pub beefy_best_block_stream: BeefyBestBlockStream<Block>,
-    /// Executor to drive the subscription manager in the BEEFY RPC handler.
-    pub subscription_executor: sc_rpc::SubscriptionTaskExecutor,
-}
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
@@ -74,6 +35,8 @@ pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
     pub pool: Arc<P>,
     /// The SelectChain Strategy
     pub select_chain: SC,
+    /// A copy of the chain spec.
+    pub chain_spec: Box<dyn sc_chain_spec::ChainSpec>,
     /// Whether to deny unsafe calls
     pub deny_unsafe: DenyUnsafe,
     /// Manual seal command sink
@@ -136,6 +99,8 @@ where
     use sc_consensus_beefy_rpc::{Beefy, BeefyApiServer};
     use sc_consensus_grandpa_rpc::{Grandpa, GrandpaApiServer};
     use sc_consensus_manual_seal::rpc::{ManualSeal, ManualSealApiServer};
+    use sc_rpc_spec_v2::chain_spec::{ChainSpec, ChainSpecApiServer};
+    use sc_sync_state_rpc::{SyncState, SyncStateApiServer};
     use substrate_frame_rpc_system::{System, SystemApiServer};
     use substrate_state_trie_migration_rpc::{StateMigration, StateMigrationApiServer};
 
@@ -144,6 +109,7 @@ where
         client,
         pool,
         select_chain,
+        chain_spec,
         deny_unsafe,
         command_sink,
         eth,
@@ -152,7 +118,7 @@ where
         beefy,
         backend,
     } = deps;
-    let BabeDeps { keystore, worker_handle } = babe;
+    let BabeDeps { keystore, babe_worker_handle } = babe;
     let GrandpaDeps {
         shared_voter_state,
         shared_authority_set,
@@ -161,15 +127,21 @@ where
         finality_provider,
     } = grandpa;
 
+    let chain_name = chain_spec.name().to_string();
+    let genesis_hash = client.hash(0).ok().flatten().expect("Genesis block exists; qed");
+    let properties = chain_spec.properties();
+
+    io.merge(ChainSpec::new(chain_name, genesis_hash, properties).into_rpc())?;
     io.merge(StateMigration::new(client.clone(), backend.clone(), deny_unsafe).into_rpc())?;
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(
-        Babe::new(client.clone(), worker_handle, keystore, select_chain, deny_unsafe).into_rpc(),
+        Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe)
+            .into_rpc(),
     )?;
     io.merge(
         Mmr::new(
-            client,
+            client.clone(),
             backend
                 .offchain_storage()
                 .ok_or("Backend doesn't provide the required offchain storage")?,
@@ -186,6 +158,10 @@ where
         )
         .into_rpc(),
     )?;
+    io.merge(
+        SyncState::new(chain_spec, client, shared_authority_set, babe_worker_handle)?.into_rpc(),
+    )?;
+
     io.merge(
         Beefy::<Block>::new(
             beefy.beefy_finality_proof_stream,

@@ -9,6 +9,7 @@ use polkadot_node_subsystem_util::database::Database;
 use {
     polkadot_node_core_approval_voting::Config as ApprovalVotingConfig,
     polkadot_node_core_av_store::Config as AvailabilityConfig,
+    polkadot_node_core_candidate_validation::Config as CandidateValidationConfig,
     polkadot_node_core_chain_selection::{
         self as chain_selection_subsystem, Config as ChainSelectionConfig,
     },
@@ -33,7 +34,7 @@ pub use {
 };
 
 #[cfg(feature = "full-node")]
-pub use polkadot_service::{Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs};
+pub use polkadot_service::{workers, Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs};
 
 // Substrate
 use sc_client_api::Backend as BackendT;
@@ -361,7 +362,15 @@ pub async fn new_full<
         overseer_message_channel_capacity_override,
         malus_finality_delay: _malus_finality_delay,
         hwbench,
-        ..
+        force_authoring_backoff,
+        telemetry_worker_handle: _,
+        secure_validator_mode,
+        workers_path,
+        workers_names,
+        execute_workers_max_num,
+        prepare_workers_hard_max_num,
+        prepare_workers_soft_max_num,
+        node_version,
     }: polkadot_service::NewFullParams<OverseerGenerator>,
 ) -> Result<TaskManager, Error> {
     use polkadot_node_network_protocol::request_response::IncomingRequest;
@@ -371,8 +380,12 @@ pub async fn new_full<
 
     let role = config.role.clone();
     let force_authoring = config.force_authoring;
-    let backoff_authoring_blocks =
-        Some(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default());
+    let backoff_authoring_blocks = if !force_authoring_backoff {
+        None
+    } else {
+        Some(sc_consensus_slots::BackoffAuthoringOnFinalizedHeadLagging::default())
+    };
+
     let name = config.network.node_name.clone();
 
     let prometheus_registry = config.prometheus_registry().cloned();
@@ -541,6 +554,32 @@ pub async fn new_full<
         None
     } else {
         let parachains_db = open_database(&config.database)?;
+        let candidate_validation_config = if role.is_authority() {
+            let (prep_worker_path, exec_worker_path) = workers::determine_workers_paths(
+                workers_path,
+                workers_names,
+                node_version.clone(),
+            )?;
+            log::info!("🚀 Using prepare-worker binary at: {:?}", prep_worker_path);
+            log::info!("🚀 Using execute-worker binary at: {:?}", exec_worker_path);
+
+            Some(CandidateValidationConfig {
+                artifacts_cache_path: config
+                    .database
+                    .path()
+                    .ok_or(Error::DatabasePathRequired)?
+                    .join("pvf-artifacts"),
+                node_version,
+                secure_validator_mode,
+                prep_worker_path,
+                exec_worker_path,
+                pvf_execute_workers_max_num: execute_workers_max_num.unwrap_or(4),
+                pvf_prepare_workers_soft_max_num: prepare_workers_soft_max_num.unwrap_or(1),
+                pvf_prepare_workers_hard_max_num: prepare_workers_hard_max_num.unwrap_or(2),
+            })
+        } else {
+            None
+        };
         let (statement_req_receiver, cfg) =
             IncomingRequest::get_config_receiver::<_, Network>(&req_protocol_names);
         net_config.add_request_response_protocol(cfg);
@@ -565,7 +604,7 @@ pub async fn new_full<
         Some(ExtendedOverseerGenArgs {
             keystore: keystore_container.local_keystore(),
             parachains_db,
-            candidate_validation_config: None,
+            candidate_validation_config,
             availability_config: AVAILABILITY_CONFIG,
             pov_req_receiver,
             chunk_req_receiver,
@@ -815,11 +854,15 @@ pub async fn new_full<
         None
     };
 
+    let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
+    let rpc_setup = shared_voter_state.clone();
+
     let rpc_builder = {
         // all these double clones are actually needed here, because we need Fn, but not FnOnce
         let client = client.clone();
         let pool = transaction_pool.clone();
         let select_chain = select_chain.clone();
+        let chain_spec = config.chain_spec.cloned_box();
         let keystore = keystore_container.keystore().clone();
         let pubsub_notification_sinks = pubsub_notification_sinks.clone();
         let justification_stream = grandpa_link.justification_stream();
@@ -831,26 +874,26 @@ pub async fn new_full<
         let backend = backend.clone();
 
         move |deny_unsafe, subscription_executor: sc_rpc::SubscriptionTaskExecutor| {
-            let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
             let deps = crate::rpc::FullDeps {
                 client: client.clone(),
                 pool: pool.clone(),
                 select_chain: select_chain.clone(),
+                chain_spec: chain_spec.cloned_box(),
                 deny_unsafe,
                 command_sink: None,
                 eth: eth_rpc_params.clone(),
-                babe: crate::rpc::BabeDeps {
+                babe: polkadot_rpc::BabeDeps {
                     keystore: keystore.clone(),
-                    worker_handle: worker_handle.clone(),
+                    babe_worker_handle: worker_handle.clone(),
                 },
-                grandpa: crate::rpc::GrandpaDeps {
-                    shared_voter_state,
+                grandpa: polkadot_rpc::GrandpaDeps {
+                    shared_voter_state: shared_voter_state.clone(),
                     shared_authority_set: shared_authority_set.clone(),
                     justification_stream: justification_stream.clone(),
                     subscription_executor: subscription_executor.clone(),
                     finality_provider: finality_provider.clone(),
                 },
-                beefy: crate::rpc::BeefyDeps {
+                beefy: polkadot_rpc::BeefyDeps {
                     beefy_finality_proof_stream: beefy_rpc_links.from_voter_justif_stream.clone(),
                     beefy_best_block_stream: beefy_rpc_links.from_voter_best_beefy_stream.clone(),
                     subscription_executor: subscription_executor.clone(),
@@ -980,9 +1023,6 @@ pub async fn new_full<
                             slot_duration,
                         );
 
-                    // TODO huh?
-                    // let dynamic_fee = fp_dynamic_fee::InherentDataProvider(U256::from(target_gas_price));
-                    // Ok((slot, timestamp, dynamic_fee))
                     Ok((slot, timestamp, parachain))
                 }
             },
@@ -1006,6 +1046,7 @@ pub async fn new_full<
         // if the node isn't actively participating in consensus then it doesn't
         // need a keystore, regardless of which protocol we use below.
         let keystore = if role.is_authority() { Some(keystore_container.keystore()) } else { None };
+        let voting_rules_builder = sc_consensus_grandpa::VotingRulesBuilder::default();
 
         let grandpa_config = sc_consensus_grandpa::Config {
             // FIXME #1578 make this available through chainspec
@@ -1032,9 +1073,9 @@ pub async fn new_full<
                 network,
                 sync: sync_service,
                 notification_service: grandpa_notification_service,
-                voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
+                voting_rule: voting_rules_builder.build(),
                 prometheus_registry,
-                shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
+                shared_voter_state: rpc_setup,
                 telemetry: telemetry.as_ref().map(|x| x.handle()),
                 offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
             })?;
@@ -1054,7 +1095,7 @@ pub async fn new_full<
 // ///
 // /// The actual "flavor", aka if it will use `Polkadot`, `Rococo` or `Kusama` is determined based on
 // /// [`IdentifyVariant`] using the chain spec.
-// #[cfg(feature = "full-node")]
+#[cfg(feature = "full-node")]
 pub async fn build_full<OverseerGenerator: OverseerGen>(
     config: Configuration,
     eth_config: EthConfiguration,

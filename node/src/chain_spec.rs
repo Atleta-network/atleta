@@ -42,6 +42,10 @@ pub struct Extensions {
     pub fork_blocks: sc_client_api::ForkBlocks<Block>,
     /// Known bad block hashes.
     pub bad_blocks: sc_client_api::BadBlocks<Block>,
+    /// The light sync state.
+    ///
+    /// This value will be set by the `sync-state rpc` implementation.
+    pub light_sync_state: sc_sync_state_rpc::LightSyncStateExtension,
 }
 
 /// Specialized `ChainSpec`. This is a specialization of the general Substrate ChainSpec type.
