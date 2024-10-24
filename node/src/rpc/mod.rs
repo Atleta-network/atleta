@@ -10,15 +10,7 @@ use sc_client_api::{
     client::BlockchainEvents,
     AuxStore, UsageProvider,
 };
-use sc_consensus_babe::BabeWorkerHandle;
-use sc_consensus_beefy::communication::notification::{
-    BeefyBestBlockStream, BeefyVersionedFinalityProofStream,
-};
-use sc_consensus_grandpa::{
-    FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
-};
 use sc_consensus_manual_seal::rpc::EngineCommand;
-use sc_network_sync::SyncState;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TransactionPool;
@@ -26,11 +18,10 @@ use sc_transaction_pool::ChainApi;
 use sp_api::{CallApiAt, ProvideRuntimeApi};
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_inherents::CreateInherentDataProviders;
-use sp_keystore::KeystorePtr;
 use sp_runtime::traits::Block as BlockT;
 // Runtime
 use atleta_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
-use polkadot_rpc::{BabeDeps, GrandpaDeps, BeefyDeps};
+use polkadot_rpc::{BabeDeps, BeefyDeps, GrandpaDeps};
 
 mod consensus_data_provider;
 mod eth;
@@ -145,7 +136,8 @@ where
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(
-        Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe).into_rpc(),
+        Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe)
+            .into_rpc(),
     )?;
     io.merge(
         Mmr::new(

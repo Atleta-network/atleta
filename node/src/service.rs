@@ -34,7 +34,7 @@ pub use {
 };
 
 #[cfg(feature = "full-node")]
-pub use polkadot_service::{Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs, workers};
+pub use polkadot_service::{workers, Error, ExtendedOverseerGenArgs, OverseerGen, OverseerGenArgs};
 
 // Substrate
 use sc_client_api::Backend as BackendT;
@@ -363,7 +363,7 @@ pub async fn new_full<
         malus_finality_delay: _malus_finality_delay,
         hwbench,
         force_authoring_backoff,
-        telemetry_worker_handle,
+        telemetry_worker_handle: _,
         secure_validator_mode,
         workers_path,
         workers_names,
