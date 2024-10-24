@@ -18,6 +18,7 @@ use sc_consensus_grandpa::{
     FinalityProofProvider, GrandpaJustificationStream, SharedAuthoritySet, SharedVoterState,
 };
 use sc_consensus_manual_seal::rpc::EngineCommand;
+use sc_network_sync::SyncState;
 use sc_rpc::SubscriptionTaskExecutor;
 use sc_rpc_api::DenyUnsafe;
 use sc_service::TransactionPool;
@@ -29,42 +30,11 @@ use sp_keystore::KeystorePtr;
 use sp_runtime::traits::Block as BlockT;
 // Runtime
 use atleta_runtime::{opaque::Block, AccountId, Balance, BlockNumber, Hash, Nonce};
+use polkadot_rpc::{BabeDeps, GrandpaDeps, BeefyDeps};
 
 mod consensus_data_provider;
 mod eth;
 pub use self::eth::{create_eth, EthDeps};
-
-/// Extra dependencies for BABE.
-pub struct BabeDeps {
-    /// The keystore that manages the keys of the node.
-    pub keystore: KeystorePtr,
-    /// The worker handle.
-    pub worker_handle: BabeWorkerHandle<Block>,
-}
-
-/// Extra dependencies for GRANDPA
-pub struct GrandpaDeps<B> {
-    /// Voting round info.
-    pub shared_voter_state: SharedVoterState,
-    /// Authority set info.
-    pub shared_authority_set: SharedAuthoritySet<Hash, BlockNumber>,
-    /// Receives notifications about justification events from Grandpa.
-    pub justification_stream: GrandpaJustificationStream<Block>,
-    /// Executor to drive the subscription manager in the Grandpa RPC handler.
-    pub subscription_executor: SubscriptionTaskExecutor,
-    /// Finality proof provider.
-    pub finality_provider: Arc<FinalityProofProvider<B, Block>>,
-}
-
-/// Dependencies for BEEFY
-pub struct BeefyDeps {
-    /// Receives notifications about finality proof events from BEEFY.
-    pub beefy_finality_proof_stream: BeefyVersionedFinalityProofStream<Block>,
-    /// Receives notifications about best block events from BEEFY.
-    pub beefy_best_block_stream: BeefyBestBlockStream<Block>,
-    /// Executor to drive the subscription manager in the BEEFY RPC handler.
-    pub subscription_executor: sc_rpc::SubscriptionTaskExecutor,
-}
 
 /// Full client dependencies.
 pub struct FullDeps<C, P, BE, A: ChainApi, CT, SC, CIDP> {
@@ -157,7 +127,7 @@ where
         beefy,
         backend,
     } = deps;
-    let BabeDeps { keystore, worker_handle } = babe;
+    let BabeDeps { keystore, babe_worker_handle } = babe;
     let GrandpaDeps {
         shared_voter_state,
         shared_authority_set,
@@ -175,7 +145,7 @@ where
     io.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
     io.merge(TransactionPayment::new(client.clone()).into_rpc())?;
     io.merge(
-        Babe::new(client.clone(), worker_handle.clone(), keystore, select_chain, deny_unsafe).into_rpc(),
+        Babe::new(client.clone(), babe_worker_handle.clone(), keystore, select_chain, deny_unsafe).into_rpc(),
     )?;
     io.merge(
         Mmr::new(
@@ -197,7 +167,7 @@ where
         .into_rpc(),
     )?;
     io.merge(
-        SyncState::new(chain_spec, client, shared_authority_set, worker_handle)?.into_rpc(),
+        SyncState::new(chain_spec, client, shared_authority_set, babe_worker_handle)?.into_rpc(),
     )?;
 
     io.merge(

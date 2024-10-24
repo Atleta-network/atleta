@@ -854,6 +854,9 @@ pub async fn new_full<
         None
     };
 
+    let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
+    let rpc_setup = shared_voter_state.clone();
+
     let rpc_builder = {
         // all these double clones are actually needed here, because we need Fn, but not FnOnce
         let client = client.clone();
@@ -871,8 +874,6 @@ pub async fn new_full<
         let backend = backend.clone();
 
         move |deny_unsafe, subscription_executor: sc_rpc::SubscriptionTaskExecutor| {
-            let shared_voter_state = sc_consensus_grandpa::SharedVoterState::empty();
-
             let deps = crate::rpc::FullDeps {
                 client: client.clone(),
                 pool: pool.clone(),
@@ -881,18 +882,18 @@ pub async fn new_full<
                 deny_unsafe,
                 command_sink: None,
                 eth: eth_rpc_params.clone(),
-                babe: crate::rpc::BabeDeps {
+                babe: polkadot_rpc::BabeDeps {
                     keystore: keystore.clone(),
-                    worker_handle: worker_handle.clone(),
+                    babe_worker_handle: worker_handle.clone(),
                 },
-                grandpa: crate::rpc::GrandpaDeps {
-                    shared_voter_state,
+                grandpa: polkadot_rpc::GrandpaDeps {
+                    shared_voter_state: shared_voter_state.clone(),
                     shared_authority_set: shared_authority_set.clone(),
                     justification_stream: justification_stream.clone(),
                     subscription_executor: subscription_executor.clone(),
                     finality_provider: finality_provider.clone(),
                 },
-                beefy: crate::rpc::BeefyDeps {
+                beefy: polkadot_rpc::BeefyDeps {
                     beefy_finality_proof_stream: beefy_rpc_links.from_voter_justif_stream.clone(),
                     beefy_best_block_stream: beefy_rpc_links.from_voter_best_beefy_stream.clone(),
                     subscription_executor: subscription_executor.clone(),
@@ -1045,6 +1046,7 @@ pub async fn new_full<
         // if the node isn't actively participating in consensus then it doesn't
         // need a keystore, regardless of which protocol we use below.
         let keystore = if role.is_authority() { Some(keystore_container.keystore()) } else { None };
+        let voting_rules_builder = sc_consensus_grandpa::VotingRulesBuilder::default();
 
         let grandpa_config = sc_consensus_grandpa::Config {
             // FIXME #1578 make this available through chainspec
@@ -1071,9 +1073,9 @@ pub async fn new_full<
                 network,
                 sync: sync_service,
                 notification_service: grandpa_notification_service,
-                voting_rule: sc_consensus_grandpa::VotingRulesBuilder::default().build(),
+                voting_rule: voting_rules_builder.build(),
                 prometheus_registry,
-                shared_voter_state: sc_consensus_grandpa::SharedVoterState::empty(),
+                shared_voter_state: rpc_setup,
                 telemetry: telemetry.as_ref().map(|x| x.handle()),
                 offchain_tx_pool_factory: OffchainTransactionPoolFactory::new(transaction_pool),
             })?;
