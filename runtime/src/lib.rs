@@ -55,12 +55,12 @@ use frame_support::{
     traits::{
         fungible::HoldConsideration,
         tokens::{PayFromAccount, UnityAssetBalanceConversion},
-        ConstBool, ConstU32, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
+        ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
         KeyOwnerProofSystem, LinearStoragePrice, LockIdentifier, OnFinalize,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
-        IdentityFee, Weight,
+        IdentityFee, Weight, WeightToFee,
     },
     PalletId,
 };
@@ -103,6 +103,8 @@ use polkadot_primitives::{
     PARACHAIN_KEY_TYPE_ID,
 };
 use runtime_common::{paras_registrar, paras_sudo_wrapper, slots};
+use xcm::{IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation, VersionedXcm};
+use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
 // other
 use static_assertions::const_assert;
 
@@ -163,10 +165,11 @@ pub type Hash = H256;
 /// Digest item type.
 pub type DigestItem = generic::DigestItem;
 
-/// Opaque types. These are used by the CLI to instantiate machinery that don't need to know
-/// the specifics of the runtime. They can then be made to be agnostic over specific formats
-/// of data like extrinsics, allowing for them to continue syncing the network through upgrades
-/// to even the core data structures.
+/// Opaque types used by the CLI to instantiate machinery without needing runtime specifics.
+/// This allows them to remain compatible across runtime upgrades.
+///
+/// These abstractions enable the CLI to handle data like extrinsics agnostically, ensuring
+/// seamless network synchronization even if core data structures change.
 pub mod opaque {
     use super::*;
 
@@ -336,7 +339,7 @@ parameter_types! {
     pub const ExpectedBlockTime: Moment = MILLISECS_PER_BLOCK;
     pub const ReportLongevity: u64 =
         BondingDuration::get() as u64 * SessionsPerEra::get() as u64 * EpochDuration::get();
-    pub const MaxAuthorities: u32 = 100;
+    pub const MaxAuthorities: u32 = 10_000;
 }
 
 impl pallet_babe::Config for Runtime {
@@ -358,9 +361,10 @@ impl pallet_grandpa::Config for Runtime {
     type WeightInfo = ();
     type MaxAuthorities = MaxAuthorities;
     type MaxNominators = MaxNominators;
-    type MaxSetIdSessionEntries = ();
-    type KeyOwnerProof = sp_core::Void;
-    type EquivocationReportSystem = ();
+    type MaxSetIdSessionEntries = ConstU64<168>;
+    type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, GrandpaId)>>::Proof;
+    type EquivocationReportSystem =
+        pallet_grandpa::EquivocationReportSystem<Self, Offences, Historical, ReportLongevity>;
 }
 
 // timestamp
@@ -378,11 +382,12 @@ impl pallet_timestamp::Config for Runtime {
 
 // balances
 parameter_types! {
-    pub const ExistentialDeposit: Balance = 0;
+    pub const ExistentialDeposit: Balance = 30 * CENTS;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
     // This number may need to be adjusted in the future if this assumption no longer holds true.
     pub const MaxLocks: u32 = 50;
     pub const MaxReserves: u32 = 50;
+    pub const MaxFreezes: u32 = 1;
 }
 
 impl pallet_balances::Config for Runtime {
@@ -397,7 +402,7 @@ impl pallet_balances::Config for Runtime {
     type FreezeIdentifier = RuntimeFreezeReason;
     type MaxLocks = MaxLocks;
     type MaxReserves = MaxReserves;
-    type MaxFreezes = ConstU32<1>;
+    type MaxFreezes = MaxFreezes;
     type RuntimeFreezeReason = RuntimeFreezeReason;
 }
 
@@ -605,9 +610,11 @@ parameter_types! {
         ElectionBoundsBuilder::default().voters_count(MaxElectingVoters::get().into()).build();
 }
 
-/// The numbers configured here could always be more than the the maximum limits of staking pallet
-/// to ensure election snapshot will not run out of memory. For now, we set them to smaller values
-/// since the staking is bounded and the weight pipeline takes hours for this single pallet.
+/// Configurations for benchmarking the election provider to prevent memory issues.
+/// These numbers are smaller than the maximum staking pallet limits for now.
+///
+/// This ensures the election snapshot does not exhaust memory, and since staking is bounded,
+/// the weight pipeline won't take too long to complete for this pallet.
 pub struct ElectionProviderBenchmarkConfig;
 
 impl pallet_election_provider_multi_phase::BenchmarkingConfig for ElectionProviderBenchmarkConfig {
@@ -1212,7 +1219,7 @@ impl pallet_beefy::Config for Runtime {
     type BeefyId = BeefyId;
     type MaxAuthorities = MaxAuthorities;
     type MaxSetIdSessionEntries = BeefySetIdSessionEntries;
-    type MaxNominators = ConstU32<0>;
+    type MaxNominators = MaxNominators;
     type OnNewValidatorSet = MmrLeaf;
     type WeightInfo = ();
     type KeyOwnerProof = <Historical as KeyOwnerProofSystem<(KeyTypeId, BeefyId)>>::Proof;
@@ -1666,6 +1673,13 @@ pub type CheckedExtrinsic =
     fp_self_contained::CheckedExtrinsic<AccountId, RuntimeCall, SignedExtra, H160>;
 /// The payload being signed in transactions.
 pub type SignedPayload = generic::SignedPayload<RuntimeCall, SignedExtra>;
+
+/// All migrations that will run on the next runtime upgrade.
+///
+/// This contains the combined migrations of the last 10 releases. It allows to skip runtime
+/// upgrades in case governance decides to do so. THE ORDER IS IMPORTANT.
+pub type Migrations = migrations::Unreleased;
+
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
     Runtime,
@@ -1673,13 +1687,19 @@ pub type Executive = frame_executive::Executive<
     frame_system::ChainContext<Runtime>,
     Runtime,
     AllPalletsWithSystem,
-    pallet_contracts::Migration<Runtime>,
+    Migrations,
 >;
 
 pub type EventRecord = frame_system::EventRecord<
     <Runtime as frame_system::Config>::RuntimeEvent,
     <Runtime as frame_system::Config>::Hash,
 >;
+
+/// The runtime migrations per release.
+#[allow(deprecated, missing_docs)]
+pub mod migrations {
+    pub type Unreleased = ();
+}
 
 impl fp_self_contained::SelfContainedCall for RuntimeCall {
     type SignedInfo = H160;
@@ -2484,6 +2504,37 @@ impl_runtime_apis! {
         }
     }
 
+    impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
+        fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
+            if !matches!(xcm_version, 3 | 4) {
+                return Err(XcmPaymentApiError::UnhandledXcmVersion);
+            }
+            Ok([VersionedAssetId::V4(xcm_config::TokenLocation::get().into())]
+                .into_iter()
+                .filter_map(|asset| asset.into_version(xcm_version).ok())
+                .collect())
+        }
+
+        fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
+            let local_asset = VersionedAssetId::V4(xcm_config::TokenLocation::get().into());
+            let asset = asset
+                .into_version(4)
+                .map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
+
+            if  asset != local_asset { return Err(XcmPaymentApiError::AssetNotFound); }
+
+            Ok(<IdentityFee<Balance> as WeightToFee>::weight_to_fee(&weight))
+        }
+
+        fn query_xcm_weight(message: VersionedXcm<()>) -> Result<Weight, XcmPaymentApiError> {
+            XcmPallet::query_xcm_weight(message)
+        }
+
+        fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>) -> Result<VersionedAssets, XcmPaymentApiError> {
+            XcmPallet::query_delivery_fees(destination, message)
+        }
+    }
+
     #[cfg(feature = "runtime-benchmarks")]
     impl frame_benchmarking::Benchmark<Block> for Runtime {
         fn benchmark_metadata(extra: bool) -> (
@@ -2527,6 +2578,26 @@ impl_runtime_apis! {
 
             if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
             Ok(batches)
+        }
+    }
+
+    #[cfg(feature = "try-runtime")]
+    impl frame_try_runtime::TryRuntime<Block> for Runtime {
+        fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
+            log::info!("try-runtime::on_runtime_upgrade atleta.");
+            let weight = Executive::try_runtime_upgrade(checks).unwrap();
+            (weight, RuntimeBlockWeights::get().max_block)
+        }
+
+        fn execute_block(
+            block: Block,
+            state_root_check: bool,
+            signature_check: bool,
+            select: frame_try_runtime::TryStateSelect,
+        ) -> Weight {
+            // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
+            // have a backtrace here.
+            Executive::try_execute_block(block, state_root_check, signature_check, select).unwrap()
         }
     }
 }

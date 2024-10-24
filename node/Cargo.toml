@@ -1,3 +1,11 @@
+[[bin]]
+name = "polkadot-execute-worker"
+path = "src/bin/execute-worker.rs"
+
+[[bin]]
+name = "polkadot-prepare-worker"
+path = "src/bin/prepare-worker.rs"
+
 [package]
 name = "atleta-node"
 version = "0.0.0"
@@ -52,6 +60,7 @@ sc-network-sync = { workspace = true }
 sc-offchain = { workspace = true }
 sc-rpc = { workspace = true }
 sc-rpc-api = { workspace = true }
+sc-rpc-spec-v2 = { workspace = true }
 sc-service = { workspace = true }
 sc-sync-state-rpc = { workspace = true, default-features = true }
 sc-storage-monitor = { workspace = true }
@@ -149,10 +158,12 @@ polkadot-node-core-chain-selection = { workspace = true, default-features = true
 polkadot-node-core-dispute-coordinator = { workspace = true, default-features = true, optional = true }
 polkadot-node-core-provisioner = { workspace = true, default-features = true, optional = true }
 polkadot-node-core-pvf = { workspace = true, default-features = true, optional = true }
+polkadot-node-core-pvf-common = { workspace = true, default-features = true }
+polkadot-node-core-pvf-execute-worker = { workspace = true, default-features = true }
+polkadot-node-core-pvf-prepare-worker = { workspace = true, default-features = true }
 polkadot-node-core-pvf-checker = { workspace = true, default-features = true, optional = true }
 polkadot-node-core-runtime-api = { workspace = true, default-features = true, optional = true }
 polkadot-statement-distribution = { workspace = true, default-features = true, optional = true }
-prometheus-endpoint = { workspace = true }
 polkadot-rpc = { workspace = true, default-features = true }
 polkadot-node-core-approval-voting = { workspace = true, optional = true }
 
@@ -215,4 +226,5 @@ testnet-runtime = [
 devnet-runtime = [
     "atleta-runtime/devnet-runtime",
 ]
+try-runtime = ["atleta-runtime/try-runtime"]
 

@@ -36,7 +36,7 @@ pub enum Error {
     Overseer(#[from] polkadot_overseer::SubsystemError),
 
     #[error(transparent)]
-    Prometheus(#[from] prometheus_endpoint::PrometheusError),
+    Prometheus(#[from] substrate_prometheus_endpoint::PrometheusError),
 
     #[error(transparent)]
     Telemetry(#[from] sc_telemetry::Error),
@@ -184,7 +184,6 @@ pub struct RunCmd {
     /// pool for tasks with the priority below critical.
     ///
     ///  **Dangerous!** Do not touch unless explicitly advised to.
-
     #[arg(long)]
     pub prepare_workers_soft_max_num: Option<usize>,
     /// Override the absolute number of pvf workers that can be spawned in the pvf prepare pool.
