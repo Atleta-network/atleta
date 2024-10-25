@@ -142,6 +142,42 @@ where
         ))
     }
 
+    #[precompile::public("create(uint256,address,address,address)")]
+    fn create(
+        h: &mut impl PrecompileHandle,
+        amount: U256,
+        root: Address,
+        nominator: Address,
+        bouncer: Address,
+    ) -> EvmResult<()> {
+        let amount = Self::u256_to_amount(amount)?;
+        let root = Runtime::Lookup::lookup(Runtime::AddressMapping::into_account_id(root.0))
+            .map_err(|_| Self::custom_err("Unable to lookup root address"))?;
+        let nominator =
+            Runtime::Lookup::lookup(Runtime::AddressMapping::into_account_id(nominator.0))
+                .map_err(|_| Self::custom_err("Unable to lookup nominator address"))?;
+        let bouncer = Runtime::Lookup::lookup(Runtime::AddressMapping::into_account_id(bouncer.0))
+            .map_err(|_| Self::custom_err("Unable to lookup bouncer address"))?;
+
+        let call =
+            pallet_nomination_pools::Call::<Runtime>::create { amount, root, nominator, bouncer };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("set_metadata(uint32,uint8[])")]
+    fn set_metadata(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        metadata: Vec<u8>,
+    ) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::set_metadata { pool_id, metadata };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()
