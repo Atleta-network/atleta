@@ -129,7 +129,9 @@ jobs:
           echo "archive=${{ env.tarball }}" > "$GITHUB_OUTPUT"
       
       # deleting tag w/ release is required (otherwise we have inconsistent release content)
-      - if: ${{ github.ref == 'refs/heads/devnet' }}
+      # TODO: rolling timestamp for mainnet tags
+      # TODO: setup cleanup and other jobs conditions in vars as contextual policy object
+      - if: ${{ contains(['refs/heads/devnet', 'refs/heads/stagenet'], github.ref) }}
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
