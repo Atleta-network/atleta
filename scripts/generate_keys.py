@@ -76,34 +76,46 @@ def print_pair(pair):
     
 
 def generate_session_keys(mnemonic, names):
-    result = []
-    for name in names:
-        keys = {}
-        keys["name"] = name
-        keys["babe"] = generate_session_key(mnemonic, name, "babe", "sr25519")
-        keys["gran"] = generate_session_key(mnemonic, name, "gran", "ed25519")
-        keys["imon"] = generate_session_key(mnemonic, name, "imon", "sr25519")
+     session_key_definitions = {
+            "babe": "sr25519",
+            "gran": "ed25519",
+            "imon": "sr25519",
+            "para": "sr25519",
+            "asgn": "sr25519",
+            "audi": "sr25519",
+            "beef": "ecdsa",
+     }
 
-        result.append(keys)
+     result = []
+     for name in names:
+         keys_dict = {"name": name}
+         for code, scheme in session_key_definitions.items():
+             keys_dict[code] = generate_session_key(mnemonic, name, code, scheme)
+         result.append(keys_dict)
 
-    return result
+     return result
+
+
+def get_scheme(code):
+    schemes = {
+        "babe": "sr25519",
+        "gran": "ed25519",
+        "imon": "sr25519",
+        "para": "sr25519",
+        "asgn": "sr25519",
+        "audi": "sr25519",
+        "beef": "ecdsa",
+    }
+    return schemes.get(code, "unknown")
 
 
 def print_session_keys(session_keys):
     for keys in session_keys:
         print(f"# {keys['name']} Session Keys:\n")
-
-        print("# BABE")
-        print_pair(keys['babe'])
-        print("\n")
-        
-        print("# GRAN (GRANDPA)")
-        print_pair(keys['gran'])
-        print("\n")
-
-        print("# IMON (I'm Online)")
-        print_pair(keys['imon'])
-        print("\n")
+        for code in ["gran", "babe", "imon", "para", "asgn", "audi", "beef"]:
+            print(f"# {code.upper()}" + (f" (Scheme: {get_scheme(code)})" if code == "gran" else ""))
+            print_pair(keys[code])
+            print("\n")
 
 
 def generate_session_key(mnemonic, name, code, scheme):
@@ -112,7 +124,8 @@ def generate_session_key(mnemonic, name, code, scheme):
     if result.returncode == 0:
         output = result.stdout
     else:
-        print("This is also an error message", file=sys.stderr)
+        print(f"Error generating session key '{code}' for '{name}':", file=sys.stderr)
+        print(result.stderr, file=sys.stderr)
         exit(1)
 
     pair = {}
@@ -130,7 +143,7 @@ def get_from_subkey_out(key, output):
     if match:
         return match.group(1)
     else:
-        print(f"{key} not found")
+        print(f"{key} not found in subkey output.", file=sys.stderr)
         exit(1)
 
 
@@ -178,18 +191,17 @@ def write_dotenv(accounts, session_keys, filepath):
         file.write("\n# SESSION KEYS\n\n")
         for keys in session_keys:
             file.write(f"# {keys['name']}\n")
-            for code in ["babe", "gran", "imon"]:
+            for code in ["gran", "babe", "imon", "para", "asgn", "audi", "beef"]:
                 file.write(f"{keys['name'].upper().replace('//', '_')}_{code.upper()}_PRIVATE=")
                 file.write(f'"{keys[code]["seed"]}"')
                 file.write("\n")
-                
+
                 file.write(f"{keys['name'].upper().replace('//', '_')}_{code.upper()}_PUBLIC=")
                 file.write(f'"{keys[code]["public"]}"')
                 file.write("\n")
 
             file.write("\n")
-            
-        
+
 
 if __name__ == "__main__":
     main()

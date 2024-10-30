@@ -1,39 +1,49 @@
-name: Check
+name: Code Hygiene
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [ "devnet" ]
   pull_request:
-    branches: [ "devnet" ]
+    branches:
+      - devnet
+      - testnet
+      - stagenet
+      - mainnet
 
-env:
-  CARGO_TERM_COLOR: always
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 
 jobs:
-  build:
-
+  rust:
+    name: 'cargo check'
     runs-on: ubuntu-latest
+
+    env:
+      CARGO_TERM_COLOR: always
 
     steps:
     - uses: actions/checkout@v4
+
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
         target: wasm32-unknown-unknown
         components: rustfmt clippy rust-src
-    - name: Install system deps
-      run: sudo apt-get install protobuf-compiler jq ripgrep shellcheck fd-find
-    - name: Build
-      run: cargo build --locked
-    - name: Run tests
-      run: cargo test --locked
+
+    - run: sudo apt-get install protobuf-compiler jq ripgrep
+
+    - run: cargo build --locked
+
+    - run: cargo test --locked
+
     - name: Check format
       run: |
         rustup toolchain add nightly-x86_64-unknown-linux-gnu
         rustup component add --toolchain nightly-x86_64-unknown-linux-gnu rustfmt
         cargo +nightly fmt -- --check
-    - name: Clippy checks
-      run: cargo clippy --all-targets -- --deny warnings
+
+    - run: cargo clippy --all-targets -- --deny warnings
+
     - name: Clippy checks all features (exclude node and runtime)
       run: |
         set -o pipefail
@@ -41,5 +51,16 @@ jobs:
           | jq '.packages | .[] | .name' \
           | rg --invert-match 'atleta-(node|runtime)' \
           | xargs -I {} cargo clippy --package {} --all-targets --all-features -- --deny warnings --deny missing_docs
-    - name: Run shellcheck
+
+
+  etc:
+    name: 'shell scripts'
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - run: sudo apt-get install shellcheck fd-find
+
+    - name: Run ShellCheck
       run: fdfind --type executable --exec bash -c 'echo {}; shellcheck {}'

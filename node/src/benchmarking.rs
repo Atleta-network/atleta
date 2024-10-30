@@ -175,5 +175,15 @@ pub fn inherent_benchmark_data() -> Result<InherentData> {
 
     futures::executor::block_on(timestamp.provide_inherent_data(&mut inherent_data))
         .map_err(|e| format!("creating inherent data: {:?}", e))?;
+
+    let para_data = polkadot_primitives::InherentData {
+        bitfields: Vec::new(),
+        backed_candidates: Vec::new(),
+        disputes: Vec::new(),
+        parent_header: header,
+    };
+
+    inherent_data.put_data(polkadot_primitives::PARACHAINS_INHERENT_IDENTIFIER, &para_data)?;
+
     Ok(inherent_data)
 }

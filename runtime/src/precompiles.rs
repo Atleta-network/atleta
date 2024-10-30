@@ -12,7 +12,7 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
 use pallet_evm_precompile_babe::BabePrecompile;
-use pallet_evm_precompile_faucet::FaucetPrecompile;
+// use pallet_evm_precompile_faucet::FaucetPrecompile;
 use pallet_evm_precompile_governance::GovernancePrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -55,7 +55,7 @@ where
             a if a == hash(2002) => Some(TreasuryPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2003) => Some(PreimagePrecompile::<Runtime>::execute(handle)),
             a if a == hash(2004) => Some(StakingPrecompile::<Runtime>::execute(handle)),
-            a if a == hash(2005) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
+            // a if a == hash(2005) => Some(FaucetPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2006) => Some(NominationPoolsPrecompile::<Runtime>::execute(handle)),
             a if a == hash(2007) => Some(BabePrecompile::<Runtime>::execute(handle)),
             _ => None,

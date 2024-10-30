@@ -64,8 +64,8 @@ fi
 
 echo -n "Fetching release info... "
 release_version=$(mktemp)
-curl -Ls https://api.github.com/repos/Atleta-network/atleta/releases/latest -o $release_version
-echo "OK ($(jq -r .name < $release_version))"
+curl -Ls https://api.github.com/repos/Atleta-network/atleta/releases/latest -o "$release_version"
+echo "OK ($(jq -r .name < "$release_version"))"
 
 echo "All required dependencies are installed."
 

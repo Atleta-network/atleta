@@ -9,10 +9,15 @@ mod benchmarking;
 mod chain_spec;
 mod cli;
 mod command;
+mod error;
 mod eth;
+mod grandpa_support;
+mod parachains_db;
+mod relay_chain_selection;
 mod rpc;
 mod service;
+mod workers;
 
-fn main() -> sc_cli::Result<()> {
+fn main() -> command::Result<()> {
     command::run()
 }
