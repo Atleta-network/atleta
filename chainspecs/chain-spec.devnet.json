@@ -8,7 +8,6 @@
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
   ],
-  "telemetryEndpoints": null,
   "protocolId": null,
   "properties": {
     "ss58Format": 2300,
