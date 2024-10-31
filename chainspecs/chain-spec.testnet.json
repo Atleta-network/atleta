@@ -5,7 +5,7 @@
     "Custom": "Testnet"
   },
   "bootNodes": [
-    "/ip4/38.242.223.59 /tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp"
+    "/ip4/35.214.231.144/tcp/30333/p2p/12D3KooWHqMEWZUKja1mj2P5o7nkXSrQg7MS5vtcTgmfsp6o4bvp"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
