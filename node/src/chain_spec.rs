@@ -18,12 +18,17 @@ use sp_runtime::{
 };
 
 // Frontier
-use atleta_runtime::{constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig, Block, EVMChainIdConfig, ElectionsConfig, MaxNominations, NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY, EVMConfig};
+use atleta_runtime::{
+    constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
+    Block, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations, NominationPoolsConfig,
+    RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig,
+    SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
+};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 // Parachain
-use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
 use crate::chain_spec::mainnet_keys::ValidatorKeys;
+use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
 // The URL for the telemetry server.
 // const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
@@ -60,19 +65,20 @@ pub fn development_config() -> ChainSpec {
         .with_id("devnet")
         .with_chain_type(ChainType::Development)
         .with_properties(properties())
-        .with_genesis_config(serde_json::to_value(testnet_genesis(
-            // Sudo account (Alith)
-            alith(),
-            // Pre-funded accounts
-            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
-            // Initial Validators and PoA authorities
-            vec![authority_keys_from_seed("Alice")],
-            // Initial nominators
-            vec![],
-            // Ethereum chain ID
-            SS58Prefix::get() as u64,
-        ))
-            .expect("Invalid genesis config")
+        .with_genesis_config(
+            serde_json::to_value(testnet_genesis(
+                // Sudo account (Alith)
+                alith(),
+                // Pre-funded accounts
+                vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
+                // Initial Validators and PoA authorities
+                vec![authority_keys_from_seed("Alice")],
+                // Initial nominators
+                vec![],
+                // Ethereum chain ID
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -86,18 +92,19 @@ pub fn local_testnet_config() -> ChainSpec {
         .with_id("local")
         .with_chain_type(ChainType::Local)
         .with_properties(properties())
-        .with_genesis_config(serde_json::to_value(testnet_genesis(
-            // Initial PoA authorities
-            // Sudo account (Alith)
-            alith(),
-            // Pre-funded accounts
-            vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
-            vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-            vec![],
-            // Ethereum chain ID
-            SS58Prefix::get() as u64,
-        ))
-            .expect("Invalid genesis config")
+        .with_genesis_config(
+            serde_json::to_value(testnet_genesis(
+                // Initial PoA authorities
+                // Sudo account (Alith)
+                alith(),
+                // Pre-funded accounts
+                vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
+                vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
+                vec![],
+                // Ethereum chain ID
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -111,29 +118,30 @@ pub fn testnet_config() -> ChainSpec {
         .with_id("testnet")
         .with_chain_type(ChainType::Custom("Testnet".to_string()))
         .with_properties(properties())
-        .with_genesis_config(serde_json::to_value(testnet_genesis(
-            // Initial PoA authorities
-            // Sudo account (Alith)
-            lionel(),
-            // Pre-funded accounts
-            vec![
+        .with_genesis_config(
+            serde_json::to_value(testnet_genesis(
+                // Initial PoA authorities
+                // Sudo account (Alith)
                 lionel(),
-                diego(),
-                pele(),
-                franz(),
-                johan(),
-                ronaldo(),
-                zinedine(),
-                cristiano(),
-                michel(),
-                roberto(),
-            ],
-            vec![diego_session_keys(), pele_session_keys(), franz_session_keys()],
-            vec![],
-            // Ethereum chain ID
-            SS58Prefix::get() as u64,
-        ))
-            .expect("Invalid genesis config")
+                // Pre-funded accounts
+                vec![
+                    lionel(),
+                    diego(),
+                    pele(),
+                    franz(),
+                    johan(),
+                    ronaldo(),
+                    zinedine(),
+                    cristiano(),
+                    michel(),
+                    roberto(),
+                ],
+                vec![diego_session_keys(), pele_session_keys(), franz_session_keys()],
+                vec![],
+                // Ethereum chain ID
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -223,16 +231,11 @@ fn testnet_genesis(
     };
 
     RuntimeGenesisConfig {
-        babe: BabeConfig {
-            epoch_config: BABE_GENESIS_EPOCH_CONFIG,
-            ..Default::default()
-        },
+        babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
         balances: BalancesConfig {
             balances: endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
-        sudo: SudoConfig {
-            key: Some(sudo_key),
-        },
+        sudo: SudoConfig { key: Some(sudo_key) },
         session: SessionConfig {
             keys: initial_authorities
                 .iter()
@@ -261,7 +264,7 @@ fn testnet_genesis(
                 .take((num_endowed_accounts + 1) / 2)
                 .cloned()
                 .map(|member| (member, STASH))
-                .collect::<Vec<_>>()
+                .collect::<Vec<_>>(),
         },
         technical_committee: TechnicalCommitteeConfig {
             members: endowed_accounts
@@ -271,14 +274,8 @@ fn testnet_genesis(
                 .collect::<Vec<_>>(),
             ..Default::default()
         },
-        evm_chain_id: EVMChainIdConfig {
-            chain_id,
-            ..Default::default()
-        },
-        evm: EVMConfig {
-            accounts: evm_accounts,
-            ..Default::default()
-        },
+        evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
+        evm: EVMConfig { accounts: evm_accounts, ..Default::default() },
         nomination_pools: NominationPoolsConfig {
             min_create_bond: 10 * DOLLARS,
             min_join_bond: DOLLARS,
@@ -294,13 +291,14 @@ pub fn mainnet_config() -> ChainSpec {
         .with_id("mainnet")
         .with_chain_type(ChainType::Live)
         .with_properties(properties())
-        .with_genesis_config(serde_json::to_value(mainnet_genesis(
-            mainnet_keys::sudo_account(),
-            mainnet_keys::validators(),
-            mainnet_keys::prefunded(),
-            SS58Prefix::get() as u64,
-        ))
-            .expect("Invalid genesis config")
+        .with_genesis_config(
+            serde_json::to_value(mainnet_genesis(
+                mainnet_keys::sudo_account(),
+                mainnet_keys::validators(),
+                mainnet_keys::prefunded(),
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -314,8 +312,7 @@ fn mainnet_genesis(
     const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * DOLLARS;
     const STASH_INITIAL_BALANCE: Balance = 25_000 * DOLLARS;
 
-    let mut initial_balances =
-        BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
+    let mut initial_balances = BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
 
     for keys in &validators_keys {
         initial_balances.insert(keys.id, VALIDATOR_INITIAL_BALANCE);
@@ -329,16 +326,9 @@ fn mainnet_genesis(
         .collect::<Vec<_>>();
 
     RuntimeGenesisConfig {
-        babe: BabeConfig {
-            epoch_config: BABE_GENESIS_EPOCH_CONFIG,
-            ..Default::default()
-        },
-        balances: BalancesConfig {
-            balances: initial_balances.into_iter().collect::<Vec<_>>(),
-        },
-        sudo: SudoConfig {
-            key: Some(sudo_key),
-        },
+        babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
+        balances: BalancesConfig { balances: initial_balances.into_iter().collect::<Vec<_>>() },
+        sudo: SudoConfig { key: Some(sudo_key) },
         staking: StakingConfig {
             validator_count: validators_keys.len() as u32,
             minimum_validator_count: validators_keys.len() as u32,
@@ -376,10 +366,7 @@ fn mainnet_genesis(
             ..Default::default()
         },
         council: mainnet_keys::council_config(),
-        evm_chain_id: EVMChainIdConfig {
-            chain_id,
-            ..Default::default()
-        },
+        evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
         ..Default::default()
     }
 }
@@ -417,8 +404,8 @@ mod devnet_keys {
 }
 
 mod testnet_keys {
-    use crate::chain_spec::mainnet_keys::ValidatorKeys;
     use super::*;
+    use crate::chain_spec::mainnet_keys::ValidatorKeys;
 
     pub(super) fn lionel() -> AccountId {
         AccountId::from(hex!("08e390762f64ABA6F9F9269589e1A702623e90F1"))
@@ -462,43 +449,106 @@ mod testnet_keys {
 
     pub(super) fn diego_session_keys() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("FFa4645462F429E8FB9a6534E22f9f4f75094aB4")),
+            id: AccountId::from(hex!("FFa4645462F429E8FB9a6534E22f9f4f75094aB4")),
             stash: AccountId::from(hex!("d04a0d2CfBA9d3ae7054dF317e5e1E6bBbBA2472")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("562cd8c70c00ec3a3a031f5c9885978dd03a3a4fdb27bcf126887a9da11ff405")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("ffe39c882d4ec6800a7501e1ccf3193b1f4d789d599d37f03db7f92bffb26471")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("928b6cc65c0af10060c041ab2cf2a7acd5ee5cfe983d33df47b4569513601119")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("54f81f0289afd8d99f9ec60efeb6541bbc953d60d1743f0e41d0ec5f4e1c8b54")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("4c6feb3c3f7c547a4630e181853d885498c55d72df686d7ab8e5d9854fbdeb7e")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("02e5967d94fbffa084b5c818adf500e0ef85d1aaf125e8bf90d3ca3d85b4ccd9f9")).into(),
+            babe: sp_core::sr25519::Public::from_raw(hex!(
+                "562cd8c70c00ec3a3a031f5c9885978dd03a3a4fdb27bcf126887a9da11ff405"
+            ))
+            .into(),
+            grandpa: sp_core::ed25519::Public::from_raw(hex!(
+                "ffe39c882d4ec6800a7501e1ccf3193b1f4d789d599d37f03db7f92bffb26471"
+            ))
+            .into(),
+            im_online: sp_core::sr25519::Public::from_raw(hex!(
+                "76bb986cb29126a2d7848317cd1dcbdbdd743bf69c0daf673674dbed19b70e4d"
+            ))
+            .into(),
+            para_validator: sp_core::sr25519::Public::from_raw(hex!(
+                "928b6cc65c0af10060c041ab2cf2a7acd5ee5cfe983d33df47b4569513601119"
+            ))
+            .into(),
+            para_assignment: sp_core::sr25519::Public::from_raw(hex!(
+                "54f81f0289afd8d99f9ec60efeb6541bbc953d60d1743f0e41d0ec5f4e1c8b54"
+            ))
+            .into(),
+            authority_discovery: sp_core::sr25519::Public::from_raw(hex!(
+                "4c6feb3c3f7c547a4630e181853d885498c55d72df686d7ab8e5d9854fbdeb7e"
+            ))
+            .into(),
+            beefy: sp_core::ecdsa::Public::from_raw(hex!(
+                "02e5967d94fbffa084b5c818adf500e0ef85d1aaf125e8bf90d3ca3d85b4ccd9f9"
+            ))
+            .into(),
         }
     }
 
     pub(super) fn pele_session_keys() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("8834dc7eB54957Bf37CAC825E93D9632dC42c3f2")),
+            id: AccountId::from(hex!("8834dc7eB54957Bf37CAC825E93D9632dC42c3f2")),
             stash: AccountId::from(hex!("55DE108cb01Acf946A0ddE3C40D5EdE3AE9201C1")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("84bb180709195c3f12bc22e16fb971a0369ebd45b6b8334f6f03d50aa986c213")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("16ec13de87e30ee2eb9be5874558a9a82a39d2707d3ab67670c5e94bb64646ac")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("801c1833f11bacf7e886ba0f638ea5f94a55f4d0e25ed7e055a6b05392982173")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("b2e8ded1345c31db85751ba36053f6e0ae03a53474118ed2ffc771c702e2b536")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("387681fa78ded7783f7bf0cd05d249b9b624125392c2ec0766602dde1f02e454")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("03f077b84a3d6fc7032a797cc8f068e43c0358c0181234cc7309159e57056a11e3")).into(),
+            babe: sp_core::sr25519::Public::from_raw(hex!(
+                "84bb180709195c3f12bc22e16fb971a0369ebd45b6b8334f6f03d50aa986c213"
+            ))
+            .into(),
+            grandpa: sp_core::ed25519::Public::from_raw(hex!(
+                "16ec13de87e30ee2eb9be5874558a9a82a39d2707d3ab67670c5e94bb64646ac"
+            ))
+            .into(),
+            im_online: sp_core::sr25519::Public::from_raw(hex!(
+                "30a332f8874e0f7a66770917b27aba5fc5ca25f81c31332baaf5f1e897e4b404"
+            ))
+            .into(),
+            para_validator: sp_core::sr25519::Public::from_raw(hex!(
+                "801c1833f11bacf7e886ba0f638ea5f94a55f4d0e25ed7e055a6b05392982173"
+            ))
+            .into(),
+            para_assignment: sp_core::sr25519::Public::from_raw(hex!(
+                "b2e8ded1345c31db85751ba36053f6e0ae03a53474118ed2ffc771c702e2b536"
+            ))
+            .into(),
+            authority_discovery: sp_core::sr25519::Public::from_raw(hex!(
+                "387681fa78ded7783f7bf0cd05d249b9b624125392c2ec0766602dde1f02e454"
+            ))
+            .into(),
+            beefy: sp_core::ecdsa::Public::from_raw(hex!(
+                "03f077b84a3d6fc7032a797cc8f068e43c0358c0181234cc7309159e57056a11e3"
+            ))
+            .into(),
         }
     }
 
     pub(super) fn franz_session_keys() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("5124ed655cc596DBD17afddE990E46857B5421F2")),
+            id: AccountId::from(hex!("5124ed655cc596DBD17afddE990E46857B5421F2")),
             stash: AccountId::from(hex!("F87EfACD0e08cF7F6667B2a8BEc9fC3a2DB1572F")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("22c09973a99e38bcf899411fac369257bd8971eddc167e718b1a9014279a2415")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("e73dc222fb879f67add8aeedf30156a47fd8740d02432e3db5d4ebe8c78f1b87")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("b8dd60e50c7ca1b47feb4faa58f1f2741fff68c527c297fc70ba72b91436cd71")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("98fbdacb195db4f1a31238687e0e2e2c3311a3c6f00fef708a645630ce97f716")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("60a678a7410322ad55e77064d595ed81e1c4a024fd81adbc3d56e4e4f841781c")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0200e692bbc231d1521133b3aa20f09b2dfbeca8682fd2ad23fa437fe51e49daab")).into(),
+            babe: sp_core::sr25519::Public::from_raw(hex!(
+                "22c09973a99e38bcf899411fac369257bd8971eddc167e718b1a9014279a2415"
+            ))
+            .into(),
+            grandpa: sp_core::ed25519::Public::from_raw(hex!(
+                "e73dc222fb879f67add8aeedf30156a47fd8740d02432e3db5d4ebe8c78f1b87"
+            ))
+            .into(),
+            im_online: sp_core::sr25519::Public::from_raw(hex!(
+                "44bea1479765faa200b5ee7b37ac00795891ff97fd629c2676c481bbb6e27f61"
+            ))
+            .into(),
+            para_validator: sp_core::sr25519::Public::from_raw(hex!(
+                "b8dd60e50c7ca1b47feb4faa58f1f2741fff68c527c297fc70ba72b91436cd71"
+            ))
+            .into(),
+            para_assignment: sp_core::sr25519::Public::from_raw(hex!(
+                "98fbdacb195db4f1a31238687e0e2e2c3311a3c6f00fef708a645630ce97f716"
+            ))
+            .into(),
+            authority_discovery: sp_core::sr25519::Public::from_raw(hex!(
+                "60a678a7410322ad55e77064d595ed81e1c4a024fd81adbc3d56e4e4f841781c"
+            ))
+            .into(),
+            beefy: sp_core::ecdsa::Public::from_raw(hex!(
+                "0200e692bbc231d1521133b3aa20f09b2dfbeca8682fd2ad23fa437fe51e49daab"
+            ))
+            .into(),
         }
     }
 }
@@ -816,19 +866,17 @@ where
 }
 
 /// Generate authority keys
-pub fn authority_keys_from_seed(
-    s: &str,
-) -> ValidatorKeys {
+pub fn authority_keys_from_seed(s: &str) -> ValidatorKeys {
     ValidatorKeys {
-        id:    get_account_id_from_seed::<ecdsa::Public>(s),
+        id: get_account_id_from_seed::<ecdsa::Public>(s),
         stash: get_account_id_from_seed::<ecdsa::Public>(&format!("{}//stash", s)),
-        babe:                     get_from_seed::<BabeId>(s),
-        grandpa:                  get_from_seed::<GrandpaId>(s),
-        im_online:                get_from_seed::<ImOnlineId>(s),
-        para_validator:           get_from_seed::<ValidatorId>(s),
-        para_assignment:          get_from_seed::<AssignmentId>(s),
-        authority_discovery:      get_from_seed::<AuthorityDiscoveryId>(s),
-        beefy:                    get_from_seed::<BeefyId>(s),
+        babe: get_from_seed::<BabeId>(s),
+        grandpa: get_from_seed::<GrandpaId>(s),
+        im_online: get_from_seed::<ImOnlineId>(s),
+        para_validator: get_from_seed::<ValidatorId>(s),
+        para_assignment: get_from_seed::<AssignmentId>(s),
+        authority_discovery: get_from_seed::<AuthorityDiscoveryId>(s),
+        beefy: get_from_seed::<BeefyId>(s),
     }
 }
 
