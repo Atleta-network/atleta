@@ -139,9 +139,13 @@ try-runtime = [
     "frame-executive/try-runtime",
     "frame-system/try-runtime",
     "frame-try-runtime",
+    "runtime-parachains/try-runtime",
+    "pallet-authority-discovery/try-runtime",
     "pallet-authorship/try-runtime",
     "pallet-base-fee/try-runtime",
     "pallet-babe/try-runtime",
+    "pallet-beefy/try-runtime",
+    "pallet-beefy-mmr/try-runtime",
     "pallet-base-fee/try-runtime",
     "pallet-bags-list/try-runtime",
     "pallet-balances/try-runtime",
@@ -159,7 +163,9 @@ try-runtime = [
     "pallet-im-online/try-runtime",
     "pallet-insecure-randomness-collective-flip/try-runtime",
     "pallet-membership/try-runtime",
+    "pallet-message-queue/try-runtime",
     "pallet-multisig/try-runtime",
+    "pallet-mmr/try-runtime",
     "pallet-nomination-pools/try-runtime",
     "pallet-offences/try-runtime",
     "pallet-preimage/try-runtime",
@@ -171,7 +177,9 @@ try-runtime = [
     "pallet-transaction-payment/try-runtime",
     "pallet-treasury/try-runtime",
     "pallet-utility/try-runtime",
-    "pallet-fast-unstake/try-runtime"
+    "pallet-xcm/try-runtime",
+    "pallet-fast-unstake/try-runtime",
+    "runtime-common/try-runtime"
 ]
 std = [
     "log/std",
