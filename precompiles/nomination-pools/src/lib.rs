@@ -169,7 +169,7 @@ where
         Ok(())
     }
 
-    #[precompile::public("set_metadata(uint32,uint8[])")]
+    #[precompile::public("setMetadata(uint32,uint8[])")]
     fn set_metadata(
         h: &mut impl PrecompileHandle,
         pool_id: u32,
