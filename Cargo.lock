@@ -6791,6 +6791,7 @@ dependencies = [
  "frame-system",
  "pallet-evm",
  "pallet-nomination-pools",
+ "parity-scale-codec",
  "precompile-utils",
  "sp-core",
  "sp-io",

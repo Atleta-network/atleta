@@ -9,8 +9,11 @@ use frame_support::{
 use pallet_evm::{AddressMapping, PrecompileFailure};
 use pallet_nomination_pools::BondExtra;
 use precompile_utils::prelude::*;
-use sp_core::{H160, U256};
-use sp_runtime::traits::{Dispatchable, StaticLookup};
+use sp_core::{Decode, H160, U256};
+use sp_runtime::{
+    traits::{Dispatchable, StaticLookup},
+    Perbill,
+};
 use sp_std::{marker::PhantomData, vec::Vec};
 
 pub struct NominationPoolsPrecompile<Runtime>(PhantomData<Runtime>);
@@ -173,6 +176,115 @@ where
         metadata: Vec<u8>,
     ) -> EvmResult<()> {
         let call = pallet_nomination_pools::Call::<Runtime>::set_metadata { pool_id, metadata };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommission(uint32,uint32,address)")]
+    fn set_commission(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        commission: u32,
+        payee: Address,
+    ) -> EvmResult<()> {
+        let commission = Perbill::from_percent(commission);
+        let payee = Runtime::AddressMapping::into_account_id(payee.0);
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission {
+            pool_id,
+            new_commission: Some((commission, payee)),
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommission(uint32)")]
+    fn set_commission_none(h: &mut impl PrecompileHandle, pool_id: u32) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission {
+            pool_id,
+            new_commission: None,
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("chill(uint32)")]
+    fn chill(h: &mut impl PrecompileHandle, pool_id: u32) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::chill { pool_id };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setState(uint32,uint8)")]
+    fn set_state(h: &mut impl PrecompileHandle, pool_id: u32, pool_state: u8) -> EvmResult<()> {
+        let state = pallet_nomination_pools::PoolState::decode(&mut &[pool_state][..])
+            .map_err(|_| Self::custom_err("Unable to decode PoolState variant"))?;
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_state { pool_id, state };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setClaimPermission(uint8)")]
+    fn set_claim_permission(h: &mut impl PrecompileHandle, permission: u8) -> EvmResult<()> {
+        let permission =
+            pallet_nomination_pools::ClaimPermission::decode(&mut &[permission][..])
+                .map_err(|_| Self::custom_err("Unable to decode ClaimPermission variant"))?;
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_claim_permission { permission };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("updateRoles(uint32,uint8[])")]
+    fn update_roles(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        encoded_roles: Vec<u8>,
+    ) -> EvmResult<()> {
+        use pallet_nomination_pools::ConfigOp;
+
+        fn conv<T, U>(op: ConfigOp<T>, f: impl FnOnce(T) -> U) -> ConfigOp<U>
+        where
+            T: sp_std::fmt::Debug + parity_scale_codec::Codec,
+            U: sp_std::fmt::Debug + parity_scale_codec::Codec,
+        {
+            match op {
+                ConfigOp::Noop => ConfigOp::Noop,
+                ConfigOp::Set(val) => ConfigOp::Set(f(val)),
+                ConfigOp::Remove => ConfigOp::Remove,
+            }
+        }
+
+        let (new_root, new_nominator, new_bouncer) = <(
+            ConfigOp<[u8; 20]>,
+            ConfigOp<[u8; 20]>,
+            ConfigOp<[u8; 20]>,
+        )>::decode(&mut &encoded_roles[..])
+        .map_err(|_| Self::custom_err("Unable to decode Roles custom tuple"))
+        .map(|(new_root, new_nominator, new_bouncer)| {
+            let new_root =
+                conv(new_root, |bytes| Runtime::AddressMapping::into_account_id(bytes.into()));
+            let new_nominator =
+                conv(new_nominator, |bytes| Runtime::AddressMapping::into_account_id(bytes.into()));
+            let new_bouncer =
+                conv(new_bouncer, |bytes| Runtime::AddressMapping::into_account_id(bytes.into()));
+
+            (new_root, new_nominator, new_bouncer)
+        })?;
+
+        let call = pallet_nomination_pools::Call::<Runtime>::update_roles {
+            pool_id,
+            new_root,
+            new_nominator,
+            new_bouncer,
+        };
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
