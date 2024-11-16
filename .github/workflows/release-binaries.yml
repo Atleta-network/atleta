@@ -19,7 +19,7 @@ permissions:
 
 jobs:
   define_vars:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       release_name: ${{ steps.vars.outputs.release_name }}
       commit_sha: ${{ steps.vars.outputs.commit_sha }}
@@ -31,7 +31,7 @@ jobs:
           echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
   linux_build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: define_vars
     outputs:
       artifact: ${{ steps.artifact.outputs.name }}
@@ -103,7 +103,7 @@ jobs:
           if-no-files-found: error
 
   publish_release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [define_vars, linux_build, macos_build]
 
     steps:
