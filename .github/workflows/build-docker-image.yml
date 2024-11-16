@@ -22,8 +22,8 @@ jobs:
            
     - name: Build and Push Docker Image
       env:
-        build_features: ${{ steps.features.outputs.build_features }}
-        image_tag: ${{ github.ref_name }}
+        build_features: devnet
+        image_tag: devnet
       run: |
         TIMESTAMP=$(date +%d%m%y-%H%M%S)
         docker build --build-arg BUILD_FEATURES=${build_features} --tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} . 
