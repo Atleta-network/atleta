@@ -21,12 +21,9 @@ jobs:
     - run: docker login --username atletanetwork --password ${{ secrets.REGISTRYPASS }} docker.io
            
     - name: Build and Push Docker Image
-      env:
-        build_features: devnet
-        image_tag: devnet
       run: |
         TIMESTAMP=$(date +%d%m%y-%H%M%S)
-        docker build --build-arg BUILD_FEATURES=${build_features} --tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} . 
-        docker tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} docker.io/atletanetwork/atleta-node:${image_tag}-latest
-        docker push docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP}
-        docker push docker.io/atletanetwork/atleta-node:${image_tag}-latest
+        docker build --build-arg BUILD_FEATURES="devnet" --tag docker.io/atletanetwork/atleta-node:devnet-${TIMESTAMP} . 
+        docker tag docker.io/atletanetwork/atleta-node:devnet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:devnet-latest
+        docker push docker.io/atletanetwork/atleta-node:devnet-${TIMESTAMP}
+        docker push docker.io/atletanetwork/atleta-node:devnet-latest
