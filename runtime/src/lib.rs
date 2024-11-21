@@ -208,7 +208,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("atleta"),
     impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
-    spec_version: 4,
+    spec_version: 6,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 3,
@@ -750,18 +750,19 @@ impl pallet_bags_list::Config<VoterBagsListInstance> for Runtime {
 // faucet
 parameter_types! {
     pub AccumulationPeriod: BlockNumber = HOURS * 24;
-    pub const FaucetAmount: Balance = 1000 * DOLLARS;
+    pub const FaucetAmount: Balance = 250 * DOLLARS;
     pub const FaucetPalletId: PalletId = PalletId(*b"ATFAUCET");
 }
 
-// impl pallet_faucet::Config for Runtime {
-//     type AccumulationPeriod = AccumulationPeriod;
-//     type RuntimeEvent = RuntimeEvent;
-//     type Currency = Balances;
-//     type PalletId = FaucetPalletId;
-//     type FaucetAmount = FaucetAmount;
-//     type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
-// }
+#[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
+impl pallet_faucet::Config for Runtime {
+    type AccumulationPeriod = AccumulationPeriod;
+    type RuntimeEvent = RuntimeEvent;
+    type Currency = Balances;
+    type PalletId = FaucetPalletId;
+    type FaucetAmount = FaucetAmount;
+    type WeightInfo = pallet_faucet::weights::FaucetWeight<Runtime>;
+}
 
 // nomination pools
 parameter_types! {
@@ -1564,77 +1565,86 @@ impl paras_sudo_wrapper::Config for Runtime {}
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
     pub enum Runtime {
-        System: frame_system,
-        Timestamp: pallet_timestamp,
-        Babe: pallet_babe,
-        Grandpa: pallet_grandpa,
-        Balances: pallet_balances,
-        // Faucet: pallet_faucet,
-        TransactionPayment: pallet_transaction_payment,
-        Sudo: pallet_sudo,
-        Treasury: pallet_treasury,
-        Ethereum: pallet_ethereum,
-        // Authorship must be before session in order to note author in the correct session and era
-        // for im-online and staking.
-        Authorship: pallet_authorship,
-        Utility: pallet_utility,
-        Offences: pallet_offences,
-        ImOnline: pallet_im_online,
-        // staking related pallets
-        ElectionProviderMultiPhase: pallet_election_provider_multi_phase,
-        Staking: pallet_staking,
-        FastUnstake: pallet_fast_unstake,
-        Session: pallet_session,
-        Democracy: pallet_democracy,
-        Council: pallet_collective::<Instance1>,
-        TechnicalCommittee: pallet_collective::<Instance2>,
-        Elections: pallet_elections_phragmen,
-        TechnicalMembership: pallet_membership::<Instance1>,
-        VoterList: pallet_bags_list::<Instance1>,
-        Historical: pallet_session::historical::{Pallet},
-        AuthorityDiscovery: pallet_authority_discovery,
-        Scheduler: pallet_scheduler,
-        Multisig: pallet_multisig,
-        Preimage: pallet_preimage,
-        NominationPools: pallet_nomination_pools,
-        // EVM
-        EVM: pallet_evm,
-        EVMChainId: pallet_evm_chain_id,
-        DynamicFee: pallet_dynamic_fee,
-        BaseFee: pallet_base_fee,
-        HotfixSufficients: pallet_hotfix_sufficients,
+        // Core system pallets
+        System: frame_system = 0,
+        Timestamp: pallet_timestamp = 1,
+        Babe: pallet_babe = 2,
+        Grandpa: pallet_grandpa = 3,
+        Balances: pallet_balances = 4,
+        TransactionPayment: pallet_transaction_payment = 5,
+        Sudo: pallet_sudo = 6,
+
+        // Core utilities
+        Utility: pallet_utility = 10,
+        Multisig: pallet_multisig = 11,
+
+        // Governance-related pallets
+        Treasury: pallet_treasury = 20,
+        Democracy: pallet_democracy = 21,
+        Council: pallet_collective::<Instance1> = 22,
+        TechnicalCommittee: pallet_collective::<Instance2> = 23,
+        Elections: pallet_elections_phragmen = 24,
+        TechnicalMembership: pallet_membership::<Instance1> = 25,
+        Scheduler: pallet_scheduler = 26,
+        Preimage: pallet_preimage = 27,
+
+        // EVM and Ethereum compatibility
+        Ethereum: pallet_ethereum = 30,
+        EVM: pallet_evm = 31,
+        EVMChainId: pallet_evm_chain_id = 32,
+        DynamicFee: pallet_dynamic_fee = 33,
+        BaseFee: pallet_base_fee = 34,
+        HotfixSufficients: pallet_hotfix_sufficients = 35,
+
         // Smart contracts
-        RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip,
-        Contracts: pallet_contracts,
-        // Parachains pallets
-        ParachainsOrigin: parachains_origin,
-        Configuration: parachains_configuration,
-        ParasShared: parachains_shared,
-        ParaInclusion: parachains_inclusion,
-        ParaInherent: parachains_paras_inherent,
-        ParaScheduler: parachains_scheduler,
-        Paras: parachains_paras,
-        Initializer: parachains_initializer,
-        Dmp: parachains_dmp,
-        Hrmp: parachains_hrmp,
-        ParaSessionInfo: parachains_session_info,
-        ParasDisputes: parachains_disputes,
-        ParasSlashing: parachains_slashing,
-        OnDemandAssignmentProvider: parachains_assigner_on_demand,
-        CoretimeAssignmentProvider: parachains_assigner_coretime,
-        // Parachain Onboarding Pallets. Start indices at 80 to leave room.
-        Registrar: paras_registrar,
-        Slots: slots,
-        ParasSudoWrapper: paras_sudo_wrapper,
-        // Pallet for sending XCM.
-        XcmPallet: pallet_xcm,
-        // Generalized message queue
-        // MessageQueue: pallet_message_queue,
-        Beefy: pallet_beefy,
-        // MMR leaf construction must be after session in order to have a leaf's next_auth_set
-        // refer to block<N>. See https://github.com/polkadot-fellows/runtimes/issues/160 for details.
-        Mmr: pallet_mmr,
-        MmrLeaf: pallet_beefy_mmr,
+        Contracts: pallet_contracts = 40,
+        RandomnessCollectiveFlip: pallet_insecure_randomness_collective_flip = 41,
+
+        // Staking and session management
+        Staking: pallet_staking = 50,
+        Session: pallet_session = 51,
+        Authorship: pallet_authorship = 52,
+        ImOnline: pallet_im_online = 53,
+        Offences: pallet_offences = 54,
+        Historical: pallet_session::historical::{Pallet} = 55,
+        AuthorityDiscovery: pallet_authority_discovery = 56,
+        ElectionProviderMultiPhase: pallet_election_provider_multi_phase = 57,
+        FastUnstake: pallet_fast_unstake = 58,
+        VoterList: pallet_bags_list::<Instance1> = 59,
+        NominationPools: pallet_nomination_pools = 60,
+
+        // Parachains-related pallets
+        ParachainsOrigin: parachains_origin = 70,
+        Configuration: parachains_configuration = 71,
+        ParasShared: parachains_shared = 72,
+        ParaInclusion: parachains_inclusion = 73,
+        ParaInherent: parachains_paras_inherent = 74,
+        ParaScheduler: parachains_scheduler = 75,
+        Paras: parachains_paras = 76,
+        Initializer: parachains_initializer = 77,
+        Dmp: parachains_dmp = 78,
+        Hrmp: parachains_hrmp = 79,
+        ParaSessionInfo: parachains_session_info = 80,
+        ParasDisputes: parachains_disputes = 81,
+        ParasSlashing: parachains_slashing = 82,
+        OnDemandAssignmentProvider: parachains_assigner_on_demand = 83,
+        CoretimeAssignmentProvider: parachains_assigner_coretime = 84,
+
+        // Parachain onboarding pallets
+        Registrar: paras_registrar = 90,
+        Slots: slots = 91,
+        ParasSudoWrapper: paras_sudo_wrapper = 92,
+
+        // XCM and messaging
+        XcmPallet: pallet_xcm = 100,
+
+        // BEEFY and MMR support
+        Beefy: pallet_beefy = 110,
+        Mmr: pallet_mmr = 111,
+        MmrLeaf: pallet_beefy_mmr = 112,
+
+        #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
+        Faucet: pallet_faucet = 120,
     }
 );
 
