@@ -18,12 +18,9 @@ use sp_runtime::{
 };
 
 // Frontier
-use atleta_runtime::{
-    constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
-    Block, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations, NominationPoolsConfig,
-    RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig,
-    SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
-};
+use atleta_runtime::{constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig, Block, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations, NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY};
+#[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
+use atleta_runtime::FaucetConfig;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 // Parachain
@@ -72,7 +69,7 @@ pub fn development_config() -> ChainSpec {
                 // Pre-funded accounts
                 vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
                 // Initial Validators and PoA authorities
-                vec![authority_keys_from_seed("Alice")],
+                vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
                 // Initial nominators
                 vec![],
                 // Ethereum chain ID
@@ -157,7 +154,7 @@ fn testnet_genesis(
     // endow all authorities and nominators.
     initial_authorities
         .iter()
-        .map(|x| &x.stash)
+        .map(|x| &x.id)
         .chain(initial_nominators.iter())
         .for_each(|x| {
             if !endowed_accounts.contains(x) {
@@ -173,7 +170,7 @@ fn testnet_genesis(
     let mut rng = rand::thread_rng();
     let stakers = initial_authorities
         .iter()
-        .map(|x| (x.id, x.stash, STASH, StakerStatus::Validator))
+        .map(|x| (x.id, x.id, STASH, StakerStatus::Validator))
         .chain(initial_nominators.iter().map(|x| {
             use rand::{seq::SliceRandom, Rng};
             let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
@@ -181,7 +178,7 @@ fn testnet_genesis(
             let nominations = initial_authorities
                 .as_slice()
                 .choose_multiple(&mut rng, count)
-                .map(|choice| choice.stash)
+                .map(|choice| choice.id)
                 .collect::<Vec<_>>();
             (*x, *x, STASH, StakerStatus::Nominator(nominations))
         }))
@@ -242,7 +239,7 @@ fn testnet_genesis(
                 .cloned()
                 .map(|keys| {
                     let id = keys.id;
-                    let stash = keys.stash;
+                    let stash = keys.id;
                     let session_keys: SessionKeys = keys.into();
                     (stash, id, session_keys)
                 })
@@ -280,6 +277,10 @@ fn testnet_genesis(
             min_create_bond: 10 * DOLLARS,
             min_join_bond: DOLLARS,
             ..Default::default()
+        },
+        #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
+        faucet: FaucetConfig {
+            initial_balance: 1_000_000 * DOLLARS,
         },
         ..Default::default()
     }
