@@ -5,7 +5,9 @@
   "bootNodes": [
     "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWN5AsYXvuDmaKbp5jbF5MQfAu61TyEiauy3KXwMRQNLyk"
   ],
-  "telemetryEndpoints": null,
+  "telemetryEndpoints": [
+     ["wss://telemetry.atleta.network/submit", 1]
+  ],
   "protocolId": null,
   "properties": {
     "ss58Format": 2300,
