@@ -290,6 +290,97 @@ where
         Ok(())
     }
 
+    #[precompile::public("claimCommission(uint32)")]
+    fn claim_commission(h: &mut impl PrecompileHandle, pool_id: u32) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::claim_commission { pool_id };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommissionChangeRate(uint32,uint32,uint32)")]
+    fn set_commission_change_rate(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        max_increase: u32,
+        min_delay: u32,
+    ) -> EvmResult<()> {
+        let max_increase = Perbill::from_percent(max_increase);
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission_change_rate {
+            pool_id,
+            change_rate: pallet_nomination_pools::CommissionChangeRate {
+                max_increase,
+                min_delay: min_delay.into(),
+            },
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommissionMax(uint32,uint32)")]
+    fn set_commission_max(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        max_commission: u32,
+    ) -> EvmResult<()> {
+        let max_commission = Perbill::from_percent(max_commission);
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission_max {
+            pool_id,
+            max_commission,
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommissionClaimPermissionNone(uint32)")]
+    fn set_commission_claim_permission_none(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+    ) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission_claim_permission {
+            pool_id,
+            permission: None,
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommissionClaimPermissionless(uint32)")]
+    fn set_commission_claim_permissionless(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+    ) -> EvmResult<()> {
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission_claim_permission {
+            pool_id,
+            permission: Some(pallet_nomination_pools::CommissionClaimPermission::Permissionless),
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setCommissionClaimPermissionAddress(uint32,address)")]
+    fn set_commission_claim_permission_address(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        account: Address,
+    ) -> EvmResult<()> {
+        let account = Runtime::AddressMapping::into_account_id(account.0);
+
+        let call = pallet_nomination_pools::Call::<Runtime>::set_commission_claim_permission {
+            pool_id,
+            permission: Some(pallet_nomination_pools::CommissionClaimPermission::Account(account)),
+        };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()
