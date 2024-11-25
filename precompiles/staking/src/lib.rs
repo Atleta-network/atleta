@@ -6,7 +6,10 @@ use frame_support::dispatch::{GetDispatchInfo, PostDispatchInfo};
 use pallet_evm::{AddressMapping, PrecompileFailure};
 use precompile_utils::prelude::*;
 use sp_core::{Decode, Get, H160, U256};
-use sp_runtime::traits::{Dispatchable, StaticLookup};
+use sp_runtime::{
+    traits::{Dispatchable, StaticLookup},
+    Perbill,
+};
 use sp_std::{marker::PhantomData, vec::Vec};
 
 pub struct StakingPrecompile<Runtime>(PhantomData<Runtime>);
@@ -104,6 +107,83 @@ where
         );
 
         let call = pallet_staking::Call::<Runtime>::bond { value, payee };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("chill()")]
+    fn chill(h: &mut impl PrecompileHandle) -> EvmResult<()> {
+        let call = pallet_staking::Call::<Runtime>::chill {};
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("kick(address[])")]
+    fn kick(h: &mut impl PrecompileHandle, who: Vec<Address>) -> EvmResult<()> {
+        let who = who
+            .into_iter()
+            .map(|addr| addr.0)
+            .map(Runtime::AddressMapping::into_account_id)
+            .map(|acc| {
+                Runtime::Lookup::lookup(acc)
+                    .map_err(|_| Self::custom_err("Unable to lookup account"))
+            })
+            .collect::<Result<Vec<_>, _>>()?;
+
+        let call = pallet_staking::Call::<Runtime>::kick { who };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setMinCommission(uint32)")]
+    fn set_min_commission(h: &mut impl PrecompileHandle, new: u32) -> EvmResult<()> {
+        let new = Perbill::from_percent(new);
+
+        let call = pallet_staking::Call::<Runtime>::set_min_commission { new };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("unbond(uint256)")]
+    fn unbond(h: &mut impl PrecompileHandle, value: U256) -> EvmResult<()> {
+        let value = Self::u256_to_amount(value)?;
+
+        let call = pallet_staking::Call::<Runtime>::unbond { value };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("withdrawUnbonded(uint32)")]
+    fn withdraw_unbonded(h: &mut impl PrecompileHandle, num_slashing_spans: u32) -> EvmResult<()> {
+        let call = pallet_staking::Call::<Runtime>::withdraw_unbonded { num_slashing_spans };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setPayee(uint8)")]
+    fn set_payee(h: &mut impl PrecompileHandle, payee: u8) -> EvmResult<()> {
+        let payee = pallet_staking::RewardDestination::decode(&mut &[payee][..])
+            .map_err(|_| Self::custom_err("Unable to decode RewardDestination variant"))?;
+
+        let call = pallet_staking::Call::<Runtime>::set_payee { payee };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("setPayee(address)")]
+    fn set_payee_address(h: &mut impl PrecompileHandle, address: Address) -> EvmResult<()> {
+        let payee = pallet_staking::RewardDestination::Account(
+            Runtime::AddressMapping::into_account_id(address.0),
+        );
+
+        let call = pallet_staking::Call::<Runtime>::set_payee { payee };
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
