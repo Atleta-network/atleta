@@ -92,11 +92,22 @@ impl pallet_faucet::Config for Test {
 }
 
 #[derive(Default)]
-pub struct ExtBuilder {}
+pub struct ExtBuilder {
+    initial_balance: Balance,
+}
 
 impl ExtBuilder {
+    pub fn with_initial_balance(mut self, balance: Balance) -> Self {
+        self.initial_balance = balance;
+        self
+    }
+
     pub fn build(self) -> sp_io::TestExternalities {
-        let storage = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
+        let mut storage = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
+
+        pallet_faucet::GenesisConfig::<Test> { initial_balance: self.initial_balance }
+            .assimilate_storage(&mut storage)
+            .unwrap();
 
         sp_io::TestExternalities::from(storage)
     }
