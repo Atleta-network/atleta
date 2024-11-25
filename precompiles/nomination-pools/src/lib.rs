@@ -381,6 +381,23 @@ where
         Ok(())
     }
 
+    #[precompile::public("nominate(uint32,address[])")]
+    fn nominate(
+        h: &mut impl PrecompileHandle,
+        pool_id: u32,
+        validators: Vec<Address>,
+    ) -> EvmResult<()> {
+        let validators = validators
+            .into_iter()
+            .map(|addr| Runtime::AddressMapping::into_account_id(addr.0))
+            .collect();
+
+        let call = pallet_nomination_pools::Call::<Runtime>::nominate { pool_id, validators };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()
