@@ -99,6 +99,16 @@ where
         Ok(())
     }
 
+    #[precompile::public("bondExtra(uint256)")]
+    fn bond_extra(h: &mut impl PrecompileHandle, max_additional: U256) -> EvmResult<()> {
+        let max_additional = Self::u256_to_amount(max_additional)?;
+
+        let call = pallet_staking::Call::<Runtime>::bond_extra { max_additional };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     #[precompile::public("bond(uint256,address)")]
     fn bond_into(h: &mut impl PrecompileHandle, value: U256, address: Address) -> EvmResult<()> {
         let value = Self::u256_to_amount(value)?;
