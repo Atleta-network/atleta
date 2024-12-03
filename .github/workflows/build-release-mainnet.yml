@@ -2,8 +2,6 @@ name: Build and Release Mainnet
 
 on:
   workflow_dispatch:
-  push:
-    branches: [ "stagenet" ]
 
 jobs:
   deploy_image:

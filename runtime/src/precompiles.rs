@@ -83,28 +83,38 @@ impl DispatchValidateT<AccountId, RuntimeCall> for DispatchCallFilter {
     ) -> Option<fp_evm::PrecompileFailure> {
         let info = call.get_dispatch_info();
 
-        if matches!(
-            call,
-            // we ALLOW dispatching these calls
-            RuntimeCall::Staking(..)
-                | RuntimeCall::Democracy(..)
-                | RuntimeCall::Elections(..)
-                | RuntimeCall::Preimage(..)
-                | RuntimeCall::NominationPools(..)
-                | RuntimeCall::Treasury(..)
-        ) {
-            None
-        } else if info.pays_fee == Pays::No || info.class == DispatchClass::Mandatory {
+        // we ALLOW dispatching these calls
+        const fn is_allowed(call: &RuntimeCall) -> bool {
+            matches!(
+                call,
+                RuntimeCall::Staking(..)
+                    | RuntimeCall::Democracy(..)
+                    | RuntimeCall::Elections(..)
+                    | RuntimeCall::Preimage(..)
+                    | RuntimeCall::NominationPools(..)
+                    | RuntimeCall::Treasury(..)
+            )
+        }
+
+        match call {
+            _ if is_allowed(call) => None,
+
+            RuntimeCall::Utility(
+                pallet_utility::Call::batch { calls } | pallet_utility::Call::batch_all { calls },
+            ) if calls.iter().all(is_allowed) => None,
+
             // forbid feeless and heavy calls to prevent spaming
-            Some(fp_evm::PrecompileFailure::Error {
-                exit_status: ExitError::Other("Permission denied calls".into()),
-            })
-        } else {
-            Some(fp_evm::PrecompileFailure::Error {
+            _ if info.pays_fee == Pays::No || info.class == DispatchClass::Mandatory => {
+                Some(fp_evm::PrecompileFailure::Error {
+                    exit_status: ExitError::Other("Permission denied calls".into()),
+                })
+            },
+
+            _ => Some(fp_evm::PrecompileFailure::Error {
                 exit_status: ExitError::Other(
                     "The call is not allowed to be dispatched via precompile.".into(),
                 ),
-            })
+            }),
         }
     }
 }
