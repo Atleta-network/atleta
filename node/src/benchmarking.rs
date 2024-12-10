@@ -168,7 +168,7 @@ pub fn create_benchmark_extrinsic(
 /// Note: Should only be used for benchmarking.
 pub fn benchmark_inherent_data(
     header: polkadot_core_primitives::Header,
-) -> std::result::Result<InherentData, sp_inherents::Error> {
+) -> Result<InherentData, sp_inherents::Error> {
     let mut inherent_data = InherentData::new();
     let d = Duration::from_millis(0);
     let timestamp = sp_timestamp::InherentDataProvider::new(d.into());

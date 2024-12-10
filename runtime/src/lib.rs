@@ -392,7 +392,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = pallet_balances::weights::SubstrateWeight<Self>;
+    type WeightInfo = ();
     type Balance = Balance;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
@@ -1795,11 +1795,12 @@ extern crate frame_benchmarking;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
     define_benchmarks!(
-        [frame_benchmarking, BaselineBench::<Runtime>]
-        [frame_system, SystemBench::<Runtime>]
+        // [frame_benchmarking, BaselineBench::<Runtime>]
+        // [frame_system, SystemBench::<Runtime>]
         [pallet_babe, Babe]
         [pallet_balances, Balances]
         [pallet_timestamp, Timestamp]
+        [pallet_multisig, Multisig]
         [pallet_sudo, Sudo]
         [pallet_evm, EVM]
     );
@@ -2602,6 +2603,7 @@ impl_runtime_apis! {
             let mut batches = Vec::<BenchmarkBatch>::new();
             let params = (&config, &whitelist);
 
+            add_benchmarks!(params, batches);
             add_benchmark!(params, batches, pallet_evm, PalletEvmBench::<Runtime>);
             add_benchmark!(params, batches, pallet_hotfix_sufficients, PalletHotfixSufficientsBench::<Runtime>);
 
@@ -2646,12 +2648,10 @@ pub mod benchmarks {
     impl<Parents: Get<u8>, ParaId: Get<u32>> TreasuryArgumentsFactory<(), AccountId>
         for TreasuryArguments<Parents, ParaId>
     {
-        fn create_asset_kind(seed: u32) -> () {
-            todo!()
-        }
+        fn create_asset_kind(_seed: u32) -> () {}
 
         fn create_beneficiary(seed: [u8; 32]) -> AccountId {
-            todo!()
+            AccountId::from(seed)
         }
     }
 }
