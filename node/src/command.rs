@@ -20,6 +20,7 @@ use polkadot_cli::NODE_VERSION;
 // Substrate
 use sc_cli::SubstrateCli;
 use sc_service::DatabaseSource;
+use sc_client_api::HeaderBackend;
 // Frontier
 pub use crate::error::Error;
 // use sc_cli::Error;
@@ -32,6 +33,7 @@ use crate::{
     cli::{Cli, Subcommand},
     eth::db_config_dir,
     service::{self},
+    benchmarking::*,
 };
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -267,9 +269,9 @@ pub fn run() -> Result<()> {
         },
         #[cfg(feature = "runtime-benchmarks")]
         Some(Subcommand::Benchmark(cmd)) => {
-            use crate::benchmarking::{
-                inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder,
-            };
+            // use crate::benchmarking::{
+            //     inherent_benchmark_data, RemarkBuilder, TransferKeepAliveBuilder,
+            // };
             use atleta_runtime::{Block, ExistentialDeposit};
             use frame_benchmarking_cli::{
                 BenchmarkCmd, ExtrinsicFactory, SUBSTRATE_REFERENCE_HARDWARE,
@@ -277,40 +279,65 @@ pub fn run() -> Result<()> {
 
             let runner = cli.create_runner(cmd)?;
             match cmd {
-                BenchmarkCmd::Pallet(cmd) => runner
-                    .sync_run(|config| cmd.run_with_spec::<Block, ()>(Some(config.chain_spec))),
+                BenchmarkCmd::Pallet(cmd) => runner.sync_run(|config| {
+                    cmd.run_with_spec::<sp_runtime::traits::HashingFor<Block>, ()>(Some(
+                        config.chain_spec,
+                    ))
+                    .map_err(|e| Error::SubstrateCli(e))
+                }),
                 BenchmarkCmd::Block(cmd) => runner.sync_run(|mut config| {
                     let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-                    cmd.run(client)
+                    cmd.run(client.clone()).map_err(Error::SubstrateCli)
                 }),
+                BenchmarkCmd::Extrinsic(_) | BenchmarkCmd::Overhead(_) => {
+                    runner.sync_run(|mut config| {
+                        let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
+                        let header = client.header(client.info().genesis_hash).unwrap().unwrap();
+                        let inherent_data = benchmark_inherent_data(header)
+                            .map_err(|e| format!("generating inherent data: {:?}", e))?;
+                        let remark_builder =
+                            RemarkBuilder::new(client.clone());
+
+                        match cmd {
+                            BenchmarkCmd::Extrinsic(cmd) => {
+                                let tka_builder = TransferKeepAliveBuilder::new(
+                                    client.clone(),
+                                    get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
+                                    ExistentialDeposit::get(),
+                                );
+
+                                let ext_factory = ExtrinsicFactory(vec![
+                                    Box::new(remark_builder),
+                                    Box::new(tka_builder),
+                                ]);
+
+                                cmd.run(client.clone(), inherent_data, Vec::new(), &ext_factory)
+                                   .map_err(Error::SubstrateCli)
+                            },
+                            BenchmarkCmd::Overhead(cmd) => cmd
+                                .run(
+                                    config,
+                                    client.clone(),
+                                    inherent_data,
+                                    Vec::new(),
+                                    &remark_builder,
+                                )
+                                .map_err(Error::SubstrateCli),
+                            _ => unreachable!("Ensured by the outside match; qed"),
+                        }
+                    })
+                },
                 BenchmarkCmd::Storage(cmd) => runner.sync_run(|mut config| {
                     let (client, backend, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
                     let db = backend.expose_db();
                     let storage = backend.expose_storage();
-                    cmd.run(config, client, db, storage)
-                }),
-                BenchmarkCmd::Overhead(cmd) => runner.sync_run(|mut config| {
-                    let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-                    let ext_builder = RemarkBuilder::new(client.clone());
-                    cmd.run(config, client, inherent_benchmark_data()?, Vec::new(), &ext_builder)
-                }),
-                BenchmarkCmd::Extrinsic(cmd) => runner.sync_run(|mut config| {
-                    let (client, _, _, _, _) = service::new_chain_ops(&mut config, &cli.eth)?;
-                    // Register the *Remark* and *TKA* builders.
-                    let ext_factory = ExtrinsicFactory(vec![
-                        Box::new(RemarkBuilder::new(client.clone())),
-                        Box::new(TransferKeepAliveBuilder::new(
-                            client.clone(),
-                            get_account_id_from_seed::<sp_core::ecdsa::Public>("Alice"),
-                            ExistentialDeposit::get(),
-                        )),
-                    ]);
 
-                    cmd.run(client, inherent_benchmark_data()?, Vec::new(), &ext_factory)
+                    cmd.run(config, client.clone(), db, storage).map_err(Error::SubstrateCli)
                 }),
-                BenchmarkCmd::Machine(cmd) => {
-                    runner.sync_run(|config| cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone()))
-                },
+                BenchmarkCmd::Machine(cmd) => runner.sync_run(|config| {
+                    cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
+                       .map_err(Error::SubstrateCli)
+                }),
             }
         },
         #[cfg(not(feature = "runtime-benchmarks"))]

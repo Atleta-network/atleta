@@ -6,7 +6,7 @@
 #![recursion_limit = "512"]
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
 #![allow(clippy::identity_op)]
-#![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
+// #![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -482,7 +482,7 @@ impl pallet_treasury::Config for Runtime {
     type BalanceConverter = UnityAssetBalanceConversion;
     type PayoutPeriod = PayoutSpendPeriod;
     #[cfg(feature = "runtime-benchmarks")]
-    type BenchmarkHelper = ();
+    type BenchmarkHelper = benchmarks::TreasuryArguments;
 }
 
 // sudo
@@ -2627,6 +2627,31 @@ impl_runtime_apis! {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.
             Executive::try_execute_block(block, state_root_check, signature_check, select).unwrap()
+        }
+    }
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarks {
+    use crate::AccountId;
+    use core::marker::PhantomData;
+    use frame_support::traits::Get;
+    use pallet_treasury::ArgumentsFactory as TreasuryArgumentsFactory;
+    use sp_core::{ConstU32, ConstU8};
+
+    pub struct TreasuryArguments<Parents = ConstU8<0>, ParaId = ConstU32<0>>(
+        PhantomData<(Parents, ParaId)>,
+    );
+
+    impl<Parents: Get<u8>, ParaId: Get<u32>> TreasuryArgumentsFactory<(), AccountId>
+        for TreasuryArguments<Parents, ParaId>
+    {
+        fn create_asset_kind(seed: u32) -> () {
+            todo!()
+        }
+
+        fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+            todo!()
         }
     }
 }

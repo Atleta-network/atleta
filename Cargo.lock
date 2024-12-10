@@ -7209,6 +7209,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-session",
  "parity-scale-codec",
+ "rand_chacha 0.2.2",
  "scale-info",
  "serde",
  "sp-application-crypto",
@@ -8644,6 +8645,7 @@ dependencies = [
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "staging-xcm",
  "staging-xcm-executor",
+ "static_assertions",
 ]
 
 [[package]]

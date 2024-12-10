@@ -13,7 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 log = { workspace = true }
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
-hex-literal = { workspace = true }
+hex-literal = { workspace = true, optional = true }
 static_assertions = "1.1"
 
 # Substrate
@@ -285,10 +285,16 @@ std = [
     "pallet-evm-precompile-preimage/std",
 ]
 runtime-benchmarks = [
+    "frame-benchmarking",
     "frame-benchmarking/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
+    "hex-literal",
+    "pallet-babe/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
+    "pallet-collective/runtime-benchmarks",
+    "pallet-staking/runtime-benchmarks",
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
     "pallet-grandpa/runtime-benchmarks",
@@ -296,9 +302,15 @@ runtime-benchmarks = [
     "pallet-message-queue/runtime-benchmarks",
     "pallet-hotfix-sufficients/runtime-benchmarks",
     "pallet-offences-benchmarking",
+    "pallet-preimage/runtime-benchmarks",
     "pallet-contracts/runtime-benchmarks",
+    "pallet-scheduler/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
+    "pallet-treasury/runtime-benchmarks",
+    "pallet-utility/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
+    "runtime-common/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
     "xcm-builder/runtime-benchmarks",
 ]
