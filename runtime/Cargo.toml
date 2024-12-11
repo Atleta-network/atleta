@@ -300,6 +300,7 @@ runtime-benchmarks = [
     "pallet-grandpa/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
+    "pallet-nomination-pools/runtime-benchmarks",
     "pallet-hotfix-sufficients/runtime-benchmarks",
     "pallet-offences-benchmarking",
     "pallet-preimage/runtime-benchmarks",
