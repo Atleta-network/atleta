@@ -20,10 +20,8 @@ use polkadot_cli::NODE_VERSION;
 // Substrate
 use sc_cli::SubstrateCli;
 use sc_service::DatabaseSource;
-use sc_client_api::HeaderBackend;
 // Frontier
 pub use crate::error::Error;
-// use sc_cli::Error;
 use fc_db::kv::frontier_database_dir;
 use polkadot_service::OverseerGen;
 use std::net::ToSocketAddrs;
@@ -33,7 +31,6 @@ use crate::{
     cli::{Cli, Subcommand},
     eth::db_config_dir,
     service::{self},
-    benchmarking::*,
 };
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -295,8 +292,7 @@ pub fn run() -> Result<()> {
                         let header = client.header(client.info().genesis_hash).unwrap().unwrap();
                         let inherent_data = benchmark_inherent_data(header)
                             .map_err(|e| format!("generating inherent data: {:?}", e))?;
-                        let remark_builder =
-                            RemarkBuilder::new(client.clone());
+                        let remark_builder = RemarkBuilder::new(client.clone());
 
                         match cmd {
                             BenchmarkCmd::Extrinsic(cmd) => {
@@ -312,7 +308,7 @@ pub fn run() -> Result<()> {
                                 ]);
 
                                 cmd.run(client.clone(), inherent_data, Vec::new(), &ext_factory)
-                                   .map_err(Error::SubstrateCli)
+                                    .map_err(Error::SubstrateCli)
                             },
                             BenchmarkCmd::Overhead(cmd) => cmd
                                 .run(
@@ -336,7 +332,7 @@ pub fn run() -> Result<()> {
                 }),
                 BenchmarkCmd::Machine(cmd) => runner.sync_run(|config| {
                     cmd.run(&config, SUBSTRATE_REFERENCE_HARDWARE.clone())
-                       .map_err(Error::SubstrateCli)
+                        .map_err(Error::SubstrateCli)
                 }),
             }
         },

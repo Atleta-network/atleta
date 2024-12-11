@@ -1800,9 +1800,9 @@ mod benches {
         [pallet_multisig, Multisig]
         [pallet_preimage, Preimage]
         [pallet_scheduler, Scheduler]
-		[pallet_sudo, Sudo]
-	    [pallet_timestamp, Timestamp]
-		[pallet_treasury, Treasury]
+        [pallet_sudo, Sudo]
+        [pallet_timestamp, Timestamp]
+        [pallet_treasury, Treasury]
         [pallet_utility, Utility]
         [pallet_evm, EVM]
     );
