@@ -193,6 +193,12 @@ fn mainnet_genesis(
         "babe": {
             "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
         },
+        "configuration": {
+            "config": default_parachains_host_configuration(),
+        },
+        "registrar": {
+            "nextFreeParaId": 2000
+        },
         "session": {
             "keys": validators_keys
                 .iter()
@@ -344,6 +350,12 @@ fn testnet_genesis(
         },
         "babe": {
             "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
+        },
+        "configuration": {
+            "config": default_parachains_host_configuration(),
+        },
+        "registrar": {
+            "nextFreeParaId": 2000
         },
         "session": {
             "keys": initial_authorities
@@ -811,4 +823,55 @@ fn properties() -> Properties {
     properties.insert("tokenDecimals".into(), 18.into());
     properties.insert("ss58Format".into(), SS58Prefix::get().into());
     properties
+}
+
+fn default_parachains_host_configuration(
+) -> runtime_parachains::configuration::HostConfiguration<polkadot_primitives::BlockNumber> {
+    use polkadot_primitives::{
+        vstaging::SchedulerParams,
+        {node_features::FeatureIndex, AsyncBackingParams, MAX_CODE_SIZE, MAX_POV_SIZE},
+    };
+
+    runtime_parachains::configuration::HostConfiguration {
+        validation_upgrade_cooldown: 2u32,
+        validation_upgrade_delay: 2,
+        code_retention_period: 1200,
+        max_code_size: MAX_CODE_SIZE,
+        max_pov_size: MAX_POV_SIZE,
+        max_head_data_size: 32 * 1024,
+        max_upward_queue_count: 8,
+        max_upward_queue_size: 1024 * 1024,
+        max_downward_message_size: 1024 * 1024,
+        max_upward_message_size: 50 * 1024,
+        max_upward_message_num_per_candidate: 5,
+        hrmp_sender_deposit: 0,
+        hrmp_recipient_deposit: 0,
+        hrmp_channel_max_capacity: 8,
+        hrmp_channel_max_total_size: 8 * 1024,
+        hrmp_max_parachain_inbound_channels: 4,
+        hrmp_channel_max_message_size: 1024 * 1024,
+        hrmp_max_parachain_outbound_channels: 4,
+        hrmp_max_message_num_per_candidate: 5,
+        dispute_period: 6,
+        no_show_slots: 2,
+        n_delay_tranches: 25,
+        needed_approvals: 2,
+        relay_vrf_modulo_samples: 2,
+        zeroth_delay_tranche_width: 0,
+        minimum_validation_upgrade_delay: 5,
+        async_backing_params: AsyncBackingParams {
+            max_candidate_depth: 0,
+            allowed_ancestry_len: 0,
+        },
+        node_features: bitvec::vec::BitVec::from_element(
+            1u8 << (FeatureIndex::ElasticScalingMVP as usize),
+        ),
+        scheduler_params: SchedulerParams {
+            lookahead: 2,
+            group_rotation_frequency: 20,
+            paras_availability_period: 4,
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }

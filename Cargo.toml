@@ -54,6 +54,7 @@ similar-asserts = "1.5.0"
 sqlx = { version = "0.7.3", default-features = false, features = ["macros"] }
 thiserror = "1.0"
 tokio = "1.36.0"
+bitvec = { version = "1.0.1", default-features = false, features = ["alloc"] }
 
 # Substrate Client
 sc-authority-discovery = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }

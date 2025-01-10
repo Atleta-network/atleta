@@ -94,7 +94,9 @@ use runtime_parachains::{
     inclusion::{AggregateMessageOrigin, UmpQueueId},
     initializer as parachains_initializer, origin as parachains_origin, paras as parachains_paras,
     paras_inherent as parachains_paras_inherent,
-    runtime_api_impl::v10 as parachains_runtime_api_impl,
+    runtime_api_impl::{
+        v10 as parachains_runtime_api_impl, vstaging as vstaging_parachains_runtime_api_impl,
+    },
     scheduler as parachains_scheduler, session_info as parachains_session_info,
     shared as parachains_shared,
 };
@@ -2447,6 +2449,7 @@ impl_runtime_apis! {
         }
     }
 
+    #[api_version(11)]
     impl runtime_api::ParachainHost<Block> for Runtime {
         fn validators() -> Vec<ValidatorId> {
             parachains_runtime_api_impl::validators::<Runtime>()
@@ -2577,6 +2580,38 @@ impl_runtime_apis! {
                 dispute_proof,
                 key_ownership_proof,
             )
+        }
+
+        fn minimum_backing_votes() -> u32 {
+            parachains_runtime_api_impl::minimum_backing_votes::<Runtime>()
+        }
+
+        fn para_backing_state(para_id: ParaId) -> Option<polkadot_primitives::async_backing::BackingState> {
+            parachains_runtime_api_impl::backing_state::<Runtime>(para_id)
+        }
+
+        fn async_backing_params() -> polkadot_primitives::AsyncBackingParams {
+            parachains_runtime_api_impl::async_backing_params::<Runtime>()
+        }
+
+        fn approval_voting_params() -> polkadot_primitives::ApprovalVotingParams {
+            parachains_runtime_api_impl::approval_voting_params::<Runtime>()
+        }
+
+        fn disabled_validators() -> Vec<ValidatorIndex> {
+            parachains_runtime_api_impl::disabled_validators::<Runtime>()
+        }
+
+        fn node_features() -> polkadot_primitives::NodeFeatures {
+            parachains_runtime_api_impl::node_features::<Runtime>()
+        }
+
+        fn claim_queue() -> BTreeMap<polkadot_primitives::CoreIndex, scale_info::prelude::collections::VecDeque<ParaId>> {
+            vstaging_parachains_runtime_api_impl::claim_queue::<Runtime>()
+        }
+
+        fn candidates_pending_availability(para_id: ParaId) -> Vec<CommittedCandidateReceipt<Hash>> {
+            vstaging_parachains_runtime_api_impl::candidates_pending_availability::<Runtime>(para_id)
         }
     }
 

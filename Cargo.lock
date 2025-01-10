@@ -673,6 +673,7 @@ version = "0.0.0"
 dependencies = [
  "async-trait",
  "atleta-runtime",
+ "bitvec",
  "clap",
  "fc-api",
  "fc-cli",
