@@ -93,6 +93,7 @@ impl DispatchValidateT<AccountId, RuntimeCall> for DispatchCallFilter {
                     | RuntimeCall::Preimage(..)
                     | RuntimeCall::NominationPools(..)
                     | RuntimeCall::Treasury(..)
+                    | RuntimeCall::Utility(..)
             )
         }
 
