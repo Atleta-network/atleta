@@ -143,6 +143,95 @@ pub fn testnet_config() -> ChainSpec {
         .build()
 }
 
+// TODO: add technical committee
+fn mainnet_genesis(
+    sudo_key: AccountId,
+    // initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, ValidatorId, AssignmentId, AuthorityDiscoveryId, BeefyId)>,
+    validators_keys: Vec<mainnet_keys::ValidatorKeys>,
+    initial_balances: impl IntoIterator<Item = (AccountId, Balance)>,
+    chain_id: u64,
+) -> serde_json::Value {
+    const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * DOLLARS;
+    const STASH_INITIAL_BALANCE: Balance = 25_000 * DOLLARS;
+
+    let mut initial_balances =
+        std::collections::BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
+
+    for keys in &validators_keys {
+        initial_balances.insert(keys.id, VALIDATOR_INITIAL_BALANCE);
+    }
+
+    let stakers = validators_keys
+        .iter()
+        .map(|keys| {
+            (keys.id, keys.stash, STASH_INITIAL_BALANCE, StakerStatus::<AccountId>::Validator)
+        })
+        .collect::<Vec<_>>();
+
+    serde_json::json!({
+        "sudo": {
+            "key": Some(sudo_key),
+        },
+        "balances": {
+            "balances": initial_balances.into_iter().collect::<Vec<_>>(),
+        },
+        "babe": {
+            "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
+        },
+        "configuration": {
+            "config": default_parachains_host_configuration(),
+        },
+        "registrar": {
+            "nextFreeParaId": 2000
+        },
+        "session": {
+            "keys": validators_keys
+                .iter()
+                .cloned()
+                .map(|keys| {
+                    let id = keys.id;
+                    let stash = keys.stash;
+                    let session_keys: SessionKeys = keys.into();
+                    (stash, id, session_keys)
+                })
+                .collect::<Vec<_>>(),
+        },
+        "staking": {
+            "validatorCount": validators_keys.len() as u32,
+            "minimumValidatorCount": validators_keys.len() as u32,
+            "invulnerables": validators_keys.iter().map(|x| x.id).collect::<Vec<_>>(),
+            "slashRewardFraction": Perbill::from_percent(5),
+            // TODO: verify
+            "stakers": stakers,
+            "minValidatorBond": 5_000 * DOLLARS,
+            "minNominatorBond": 1_000 * DOLLARS,
+        },
+        "nominationPools": {
+            "minCreateBond": 100 * DOLLARS,
+            "minJoinBond": 100 * DOLLARS,
+        },
+        "elections": {
+            "members": validators_keys
+                .iter()
+                .take((validators_keys.len() + 1) / 2)
+                .cloned()
+                .map(|member| (member.id, STASH_INITIAL_BALANCE))
+                .collect::<Vec<_>>(),
+        },
+        "technicalCommittee": {
+            "members": validators_keys
+                .iter()
+                .take((validators_keys.len() + 1) / 2)
+                .cloned()
+                .map(|keys| keys.id)
+                .collect::<Vec<_>>(),
+        },
+        "evmChainId": {
+            "chainId": chain_id,
+        },
+    })
+}
+
 /// Configure initial storage state for FRAME modules.
 fn testnet_genesis(
     sudo_key: AccountId,
@@ -232,6 +321,17 @@ fn testnet_genesis(
         balances: BalancesConfig {
             balances: endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
+        "babe": {
+            "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
+        },
+        "configuration": {
+            "config": default_parachains_host_configuration(),
+        },
+        "registrar": {
+            "nextFreeParaId": 2000
+        },
+        "session": {
+            "keys": initial_authorities
         sudo: SudoConfig { key: Some(sudo_key) },
         session: SessionConfig {
             keys: initial_authorities

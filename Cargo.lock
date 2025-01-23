@@ -673,6 +673,7 @@ version = "0.0.0"
 dependencies = [
  "async-trait",
  "atleta-runtime",
+ "bitvec",
  "clap",
  "fc-api",
  "fc-cli",
@@ -826,6 +827,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "log",
+ "num_enum",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -885,6 +887,7 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
+ "precompile-utils",
  "scale-info",
  "sp-api",
  "sp-authority-discovery",
@@ -6870,6 +6873,25 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
+name = "pallet-evm-precompile-utility"
+version = "0.0.1"
+dependencies = [
+ "environmental",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "pallet-utility",
+ "precompile-utils",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
 ]
 

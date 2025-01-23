@@ -22,14 +22,15 @@ use super::{
 };
 use frame_support::{
     parameter_types,
-    traits::{Contains, Everything, Nothing},
+    traits::{Contains, Everything, Get, Nothing, OriginTrait},
 };
 use frame_system::EnsureRoot;
 use runtime_common::xcm_sender::{ChildParachainRouter, ExponentialPrice};
 use sp_core::ConstU32;
-use xcm::latest::prelude::*;
+use sp_runtime::traits::TryConvert;
+use xcm::latest::{prelude::*, Asset, AssetId, Junction, Location, NetworkId};
 use xcm_builder::{
-    AccountId32Aliases, AllowUnpaidExecutionFrom, ChildParachainConvertsVia, DescribeAllTerminal,
+    AccountKey20Aliases, AllowUnpaidExecutionFrom, ChildParachainConvertsVia, DescribeAllTerminal,
     DescribeFamily, FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter,
     HashedDescription, IsConcrete, MintLocation, SignedAccountKey20AsNative, WithUniqueTopic,
 };
@@ -57,8 +58,8 @@ parameter_types! {
 pub type LocationConverter = (
     // We can convert a child parachain using the standard `AccountId` conversion.
     ChildParachainConvertsVia<ParaId, AccountId>,
-    // We can directly alias an `AccountId32` into a local account.
-    AccountId32Aliases<ThisNetwork, AccountId>,
+    // We can directly alias an `AccountId20` into a local account.
+    AccountKey20Aliases<ThisNetwork, AccountId>,
     // Foreign locations alias into accounts according to a hash of their standard description.
     HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
@@ -195,8 +196,28 @@ impl xcm_executor::Config for XcmConfig {
     type HrmpChannelClosingHandler = ();
 }
 
+pub struct SignedToAccountId20<Origin, AccountId, Network>(
+    sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
+);
+impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
+    TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
+where
+    Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
+        + TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
+{
+    fn try_convert(o: Origin) -> Result<Location, Origin> {
+        o.try_with_caller(|caller| match caller.try_into() {
+            Ok(frame_system::RawOrigin::Signed(who)) => {
+                Ok(Junction::AccountKey20 { key: who.into(), network: Some(Network::get()) }.into())
+            },
+            Ok(other) => Err(other.into()),
+            Err(other) => Err(other),
+        })
+    }
+}
+
 /// location of this chain.
-pub type LocalOriginToLocation = ();
+pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, ThisNetwork>;
 
 impl pallet_xcm::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
