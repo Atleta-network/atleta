@@ -1,8 +1,4 @@
 use frame_support::dispatch::{GetDispatchInfo, Pays};
-use pallet_evm::{
-    IsPrecompileResult, Precompile, PrecompileHandle, PrecompileResult, PrecompileSet,
-};
-use sp_core::H160;
 use sp_std::marker::PhantomData;
 
 use pallet_evm::ExitError;
@@ -12,15 +8,14 @@ use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
 use pallet_evm_precompile_babe::BabePrecompile;
-// use pallet_evm_precompile_faucet::FaucetPrecompile;
 use pallet_evm_precompile_governance::GovernancePrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_staking::StakingPrecompile;
 use pallet_evm_precompile_treasury::TreasuryPrecompile;
 
-use precompile_utils::precompile_set::*;
 use frame_support::traits::Contains;
+use precompile_utils::precompile_set::*;
 
 use crate::*;
 
@@ -36,8 +31,8 @@ impl Contains<RuntimeCall> for WhitelistedCalls {
         match t {
             RuntimeCall::Utility(pallet_utility::Call::batch { calls })
             | RuntimeCall::Utility(pallet_utility::Call::batch_all { calls }) => {
-                calls.iter().all(|call| WhitelistedCalls::contains(call))
-            }
+                calls.iter().all(WhitelistedCalls::contains)
+            },
             RuntimeCall::Democracy(..) => true,
             RuntimeCall::Staking(..) => true,
             RuntimeCall::Elections(..) => true,
@@ -57,7 +52,6 @@ type AtletaPrecompilesAt<R> = (
     PrecompileAt<AddressU64<3>, Ripemd160, EthereumPrecompilesChecks>,
     PrecompileAt<AddressU64<4>, Identity, EthereumPrecompilesChecks>,
     PrecompileAt<AddressU64<5>, Modexp, EthereumPrecompilesChecks>,
-
     // Non-Frontier specific nor Ethereum precompiles:
     PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
     PrecompileAt<AddressU64<1025>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
@@ -67,7 +61,6 @@ type AtletaPrecompilesAt<R> = (
         // Not callable from smart contract nor precompiles, only EOA accounts
         (),
     >,
-
     // Atleta Precompiles
     PrecompileAt<
         AddressU64<2001>,
@@ -94,11 +87,7 @@ type AtletaPrecompilesAt<R> = (
         NominationPoolsPrecompile<R>,
         (CallableByContract, CallableByPrecompile),
     >,
-    PrecompileAt<
-        AddressU64<2007>,
-        BabePrecompile<R>,
-        (CallableByContract, CallableByPrecompile),
-    >,
+    PrecompileAt<AddressU64<2007>, BabePrecompile<R>, (CallableByContract, CallableByPrecompile)>,
 );
 
 /// The PrecompileSet installed in the Atleta runtime.
@@ -116,7 +105,7 @@ pub struct DispatchFilterValidate<RuntimeCall, Filter: Contains<RuntimeCall>>(
 );
 
 impl<AccountId, RuntimeCall: GetDispatchInfo, Filter: Contains<RuntimeCall>>
-DispatchValidateT<AccountId, RuntimeCall> for DispatchFilterValidate<RuntimeCall, Filter>
+    DispatchValidateT<AccountId, RuntimeCall> for DispatchFilterValidate<RuntimeCall, Filter>
 {
     fn validate_before_dispatch(
         _origin: &AccountId,
