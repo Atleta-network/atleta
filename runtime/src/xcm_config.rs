@@ -147,7 +147,7 @@ impl TransactAsset for AtletaAssetTransactor {
         let beneficiary = LocationConverter::convert_location(who)
             .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
 
-        let new_amount = Balances::free_balance(beneficiary.clone())
+        let new_amount = Balances::free_balance(beneficiary)
             .checked_add(amount)
             .ok_or(XcmError::Overflow)?;
         let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
@@ -191,7 +191,7 @@ impl TransactAsset for AtletaAssetTransactor {
         let beneficiary = LocationConverter::convert_location(who)
             .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
 
-        let new_amount = Balances::free_balance(beneficiary.clone())
+        let new_amount = Balances::free_balance(beneficiary)
             .checked_sub(amount)
             .ok_or(XcmError::Overflow)?;
         let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
