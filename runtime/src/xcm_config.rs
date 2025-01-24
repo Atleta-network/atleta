@@ -35,7 +35,7 @@ use xcm_builder::{
     HashedDescription, IsConcrete, MintLocation, SignedAccountKey20AsNative, WithUniqueTopic,
 };
 use xcm_executor::{
-    traits::{TransactAsset, WeightTrader},
+    traits::{ConvertLocation, TransactAsset, WeightTrader},
     AssetsInHolding, XcmExecutor,
 };
 
@@ -113,32 +113,98 @@ impl Contains<Location> for LocalPlurality {
     }
 }
 
-pub struct DoNothingRouter;
-impl SendXcm for DoNothingRouter {
-    type Ticket = ();
-    fn validate(_dest: &mut Option<Location>, _msg: &mut Option<Xcm<()>>) -> SendResult<()> {
-        Ok(((), Assets::new()))
-    }
-    fn deliver(_: ()) -> Result<XcmHash, SendError> {
-        Ok([0; 32])
-    }
-}
-
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
-pub struct DummyAssetTransactor;
-impl TransactAsset for DummyAssetTransactor {
-    fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+pub struct AtletaAssetTransactor;
+impl TransactAsset for AtletaAssetTransactor {
+    fn deposit_asset(
+        what: &Asset,
+        who: &Location,
+        _maybe_context: Option<&XcmContext>,
+    ) -> XcmResult {
+        log::trace!(
+            target: "xcm:AtletaAssetTransactor",
+            "deposit_asset: what: {:?}, who: {:?}",
+            what.clone(), who.clone(),
+        );
+
+        if what.id.0 != Location::here() {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "deposit_asset: Asset is not supported what: {:?}, who: {:?}",
+                what.clone(), who.clone(),
+            );
+            return Err(XcmError::FailedToTransactAsset("Only ATLA token is supported"));
+        }
+
+        let Fungibility::Fungible(amount) = what.fun else {
+            return Err(XcmError::FailedToTransactAsset(
+                "Not Funglible Assets transfers are not supported",
+            ));
+        };
+
+        let beneficiary = LocationConverter::convert_location(who)
+            .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
+
+        let new_amount = Balances::free_balance(beneficiary)
+            .checked_add(amount)
+            .ok_or(XcmError::Overflow)?;
+        let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
+        else {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "deposit_asset: Balance Add Failed: amount: {:?}",
+                new_amount,
+            );
+            return Err(XcmError::FailedToTransactAsset("Balance Add Failed"));
+        };
         Ok(())
     }
 
     fn withdraw_asset(
-        _what: &Asset,
-        _who: &Location,
+        what: &Asset,
+        who: &Location,
         _maybe_context: Option<&XcmContext>,
     ) -> Result<AssetsInHolding, XcmError> {
-        let asset: Assets = (Parent, 100_000).into();
+        log::trace!(
+            target: "xcm:AtletaAssetTransactor",
+            "withdraw_asset: what: {:?}, who: {:?}",
+            what.clone(), who.clone(),
+        );
+
+        if what.id.0 != Location::here() {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "withdraw_asset: Asset is not supported what: {:?}, who: {:?}",
+                what.clone(), who.clone(),
+            );
+            return Err(XcmError::FailedToTransactAsset("Only ATLA token is supported"));
+        }
+
+        let Fungibility::Fungible(amount) = what.fun else {
+            return Err(XcmError::FailedToTransactAsset(
+                "Not Funglible Assets transfers are not supported",
+            ));
+        };
+
+        let beneficiary = LocationConverter::convert_location(who)
+            .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
+
+        let new_amount = Balances::free_balance(beneficiary)
+            .checked_sub(amount)
+            .ok_or(XcmError::Overflow)?;
+        let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
+        else {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "withdraw_asset: Balance Sub Failed: amount: {:?}",
+                new_amount,
+            );
+            return Err(XcmError::FailedToTransactAsset("Balance Sub Failed"));
+        };
+
+        let asset: Assets = (Parent, new_amount).into();
         Ok(asset.into())
     }
 }
@@ -167,8 +233,8 @@ type OriginConverter = (
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
     type RuntimeCall = RuntimeCall;
-    type XcmSender = DoNothingRouter;
-    type AssetTransactor = DummyAssetTransactor;
+    type XcmSender = XcmRouter;
+    type AssetTransactor = AtletaAssetTransactor;
     type OriginConverter = OriginConverter;
     type IsReserve = ();
     type IsTeleporter = ();
@@ -224,7 +290,7 @@ impl pallet_xcm::Config for Runtime {
     // Note that this configuration of `SendXcmOrigin` is different from the one present in
     // production.
     type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-    type XcmRouter = DoNothingRouter;
+    type XcmRouter = XcmRouter;
     // Anyone can execute XCM messages locally.
     type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
     type XcmExecuteFilter = Everything;
