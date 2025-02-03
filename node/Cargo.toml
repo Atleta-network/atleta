@@ -8,7 +8,7 @@ path = "src/bin/prepare-worker.rs"
 
 [package]
 name = "atleta-node"
-version = "0.0.0"
+version = "1.0.0"
 build = "build.rs"
 publish = false
 authors = { workspace = true }
