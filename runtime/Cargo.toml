@@ -118,6 +118,7 @@ pallet-evm-precompile-babe = { workspace = true }
 pallet-evm-precompile-governance = { workspace = true }
 pallet-evm-precompile-treasury = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
+pallet-evm-precompile-utility = { workspace = true }
 
 # Parachains
 runtime-parachains = { workspace = true }
@@ -286,6 +287,7 @@ std = [
     "pallet-evm-precompile-governance/std",
     "pallet-evm-precompile-treasury/std",
     "pallet-evm-precompile-preimage/std",
+    "pallet-evm-precompile-utility/std",
 ]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
