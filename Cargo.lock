@@ -856,6 +856,7 @@ dependencies = [
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-staking",
  "pallet-evm-precompile-treasury",
+ "pallet-evm-precompile-utility",
  "pallet-fast-unstake",
  "pallet-faucet",
  "pallet-grandpa",
