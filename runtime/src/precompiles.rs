@@ -89,7 +89,11 @@ type AtletaPrecompilesAt<R> = (
         (CallableByContract, CallableByPrecompile),
     >,
     PrecompileAt<AddressU64<2007>, BabePrecompile<R>, (CallableByContract, CallableByPrecompile)>,
-    PrecompileAt<AddressU64<2008>, UtilityPrecompile<R>, (CallableByContract, CallableByPrecompile)>,
+    PrecompileAt<
+        AddressU64<2008>,
+        UtilityPrecompile<R>,
+        (CallableByContract, CallableByPrecompile),
+    >,
 );
 
 /// The PrecompileSet installed in the Atleta runtime.

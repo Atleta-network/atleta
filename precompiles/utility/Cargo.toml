@@ -6,7 +6,6 @@ version = "0.0.1"
 
 [dependencies]
 precompile-utils = { workspace = true }
-pallet-utility = { workspace = true }
 
 evm = { workspace = true }
 fp-evm = { workspace = true }
@@ -28,7 +27,6 @@ environmental = { workspace = true }
 default = ["std"]
 std = [
     "precompile-utils/std",
-    "pallet-utility/std",
 
     "evm/std",
     "fp-evm/std",

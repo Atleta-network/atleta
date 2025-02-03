@@ -103,7 +103,6 @@ pallet-transaction-payment = { workspace = true }
 # Frontier
 fc-api = { workspace = true }
 fc-cli = { workspace = true }
-fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true }
 fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"] }

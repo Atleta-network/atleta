@@ -18,16 +18,20 @@ use sp_runtime::{
 };
 
 // Frontier
-use atleta_runtime::{constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig, Block, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations, NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY};
 #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
 use atleta_runtime::FaucetConfig;
+use atleta_runtime::{
+    constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
+    Block, ConfigurationConfig, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations,
+    NominationPoolsConfig, RegistrarConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig,
+    Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig,
+    BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
+};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 // Parachain
 use crate::chain_spec::mainnet_keys::ValidatorKeys;
 use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
-// The URL for the telemetry server.
-// const STAGING_TELEMETRY_URL: &str = "wss://telemetry.polkadot.io/submit/";
 
 /// Node `ChainSpec` extensions.
 ///
@@ -54,6 +58,7 @@ pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensio
 type AccountPublic = <Signature as Verify>::Signer;
 
 // Dev chain config
+#[cfg(feature = "devnet-runtime")]
 pub fn development_config() -> ChainSpec {
     use devnet_keys::*;
 
@@ -81,6 +86,7 @@ pub fn development_config() -> ChainSpec {
 }
 
 // Local testnet config
+#[cfg(feature = "testnet-runtime")]
 pub fn local_testnet_config() -> ChainSpec {
     use devnet_keys::*;
 
@@ -107,6 +113,7 @@ pub fn local_testnet_config() -> ChainSpec {
 }
 
 // Testnet config
+#[cfg(feature = "testnet-runtime")]
 pub fn testnet_config() -> ChainSpec {
     use testnet_keys::*;
 
@@ -143,96 +150,8 @@ pub fn testnet_config() -> ChainSpec {
         .build()
 }
 
-// TODO: add technical committee
-fn mainnet_genesis(
-    sudo_key: AccountId,
-    // initial_authorities: Vec<(AccountId, AccountId, BabeId, GrandpaId, ImOnlineId, ValidatorId, AssignmentId, AuthorityDiscoveryId, BeefyId)>,
-    validators_keys: Vec<mainnet_keys::ValidatorKeys>,
-    initial_balances: impl IntoIterator<Item = (AccountId, Balance)>,
-    chain_id: u64,
-) -> serde_json::Value {
-    const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * DOLLARS;
-    const STASH_INITIAL_BALANCE: Balance = 25_000 * DOLLARS;
-
-    let mut initial_balances =
-        std::collections::BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
-
-    for keys in &validators_keys {
-        initial_balances.insert(keys.id, VALIDATOR_INITIAL_BALANCE);
-    }
-
-    let stakers = validators_keys
-        .iter()
-        .map(|keys| {
-            (keys.id, keys.stash, STASH_INITIAL_BALANCE, StakerStatus::<AccountId>::Validator)
-        })
-        .collect::<Vec<_>>();
-
-    serde_json::json!({
-        "sudo": {
-            "key": Some(sudo_key),
-        },
-        "balances": {
-            "balances": initial_balances.into_iter().collect::<Vec<_>>(),
-        },
-        "babe": {
-            "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
-        },
-        "configuration": {
-            // "config": default_parachains_host_configuration(),
-        },
-        "registrar": {
-            "nextFreeParaId": 2000
-        },
-        "session": {
-            "keys": validators_keys
-                .iter()
-                .cloned()
-                .map(|keys| {
-                    let id = keys.id;
-                    let stash = keys.stash;
-                    let session_keys: SessionKeys = keys.into();
-                    (stash, id, session_keys)
-                })
-                .collect::<Vec<_>>(),
-        },
-        "staking": {
-            "validatorCount": validators_keys.len() as u32,
-            "minimumValidatorCount": validators_keys.len() as u32,
-            "invulnerables": validators_keys.iter().map(|x| x.id).collect::<Vec<_>>(),
-            "slashRewardFraction": Perbill::from_percent(5),
-            // TODO: verify
-            "stakers": stakers,
-            "minValidatorBond": 5_000 * DOLLARS,
-            "minNominatorBond": 1_000 * DOLLARS,
-        },
-        "nominationPools": {
-            "minCreateBond": 100 * DOLLARS,
-            "minJoinBond": 100 * DOLLARS,
-        },
-        "elections": {
-            "members": validators_keys
-                .iter()
-                .take((validators_keys.len() + 1) / 2)
-                .cloned()
-                .map(|member| (member.id, STASH_INITIAL_BALANCE))
-                .collect::<Vec<_>>(),
-        },
-        "technicalCommittee": {
-            "members": validators_keys
-                .iter()
-                .take((validators_keys.len() + 1) / 2)
-                .cloned()
-                .map(|keys| keys.id)
-                .collect::<Vec<_>>(),
-        },
-        "evmChainId": {
-            "chainId": chain_id,
-        },
-    })
-}
-
 /// Configure initial storage state for FRAME modules.
+#[cfg(feature = "testnet-runtime")]
 fn testnet_genesis(
     sudo_key: AccountId,
     mut endowed_accounts: Vec<AccountId>,
@@ -321,30 +240,20 @@ fn testnet_genesis(
         balances: BalancesConfig {
             balances: endowed_accounts.iter().cloned().map(|k| (k, ENDOWMENT)).collect::<Vec<_>>(),
         },
-        "babe": {
-            "epochConfig": Some(BABE_GENESIS_EPOCH_CONFIG),
-        },
-        "configuration": {
-            "config": default_parachains_host_configuration(),
-        },
-        "registrar": {
-            "nextFreeParaId": 2000
-        },
-        "session": {
-            "keys": initial_authorities
-        sudo: SudoConfig { key: Some(sudo_key) },
+        configuration: ConfigurationConfig { config: default_parachains_host_configuration() },
         session: SessionConfig {
             keys: initial_authorities
                 .iter()
                 .cloned()
                 .map(|keys| {
                     let id = keys.id;
-                    let stash = keys.id;
+                    let stash = keys.stash;
                     let session_keys: SessionKeys = keys.into();
                     (stash, id, session_keys)
                 })
                 .collect::<Vec<_>>(),
         },
+        sudo: SudoConfig { key: Some(sudo_key) },
         staking: StakingConfig {
             validator_count: initial_authorities.len() as u32,
             minimum_validator_count: initial_authorities.len() as u32,
@@ -379,13 +288,12 @@ fn testnet_genesis(
             ..Default::default()
         },
         #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
-        faucet: FaucetConfig {
-            initial_balance: 1_000_000 * DOLLARS,
-        },
+        faucet: FaucetConfig { initial_balance: 1_000_000 * DOLLARS },
         ..Default::default()
     }
 }
 
+#[cfg(feature = "mainnet-runtime")]
 pub fn mainnet_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
         .with_name("Atleta mainnet")
@@ -404,6 +312,8 @@ pub fn mainnet_config() -> ChainSpec {
         .build()
 }
 
+// TODO: add technical committee
+#[cfg(feature = "mainnet-runtime")]
 fn mainnet_genesis(
     sudo_key: AccountId,
     validators_keys: Vec<ValidatorKeys>,
@@ -429,6 +339,7 @@ fn mainnet_genesis(
     RuntimeGenesisConfig {
         babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
         balances: BalancesConfig { balances: initial_balances.into_iter().collect::<Vec<_>>() },
+        configuration: ConfigurationConfig { config: default_parachains_host_configuration() },
         sudo: SudoConfig { key: Some(sudo_key) },
         staking: StakingConfig {
             validator_count: validators_keys.len() as u32,
@@ -988,4 +899,55 @@ fn properties() -> Properties {
     properties.insert("tokenDecimals".into(), 18.into());
     properties.insert("ss58Format".into(), SS58Prefix::get().into());
     properties
+}
+
+fn default_parachains_host_configuration(
+) -> runtime_parachains::configuration::HostConfiguration<polkadot_primitives::BlockNumber> {
+    use polkadot_primitives::{
+        vstaging::SchedulerParams,
+        {node_features::FeatureIndex, AsyncBackingParams, MAX_CODE_SIZE, MAX_POV_SIZE},
+    };
+
+    runtime_parachains::configuration::HostConfiguration {
+        validation_upgrade_cooldown: 2u32,
+        validation_upgrade_delay: 2,
+        code_retention_period: 1200,
+        max_code_size: MAX_CODE_SIZE,
+        max_pov_size: MAX_POV_SIZE,
+        max_head_data_size: 32 * 1024,
+        max_upward_queue_count: 8,
+        max_upward_queue_size: 1024 * 1024,
+        max_downward_message_size: 1024 * 1024,
+        max_upward_message_size: 50 * 1024,
+        max_upward_message_num_per_candidate: 5,
+        hrmp_sender_deposit: 0,
+        hrmp_recipient_deposit: 0,
+        hrmp_channel_max_capacity: 8,
+        hrmp_channel_max_total_size: 8 * 1024,
+        hrmp_max_parachain_inbound_channels: 4,
+        hrmp_channel_max_message_size: 1024 * 1024,
+        hrmp_max_parachain_outbound_channels: 4,
+        hrmp_max_message_num_per_candidate: 5,
+        dispute_period: 6,
+        no_show_slots: 2,
+        n_delay_tranches: 25,
+        needed_approvals: 2,
+        relay_vrf_modulo_samples: 2,
+        zeroth_delay_tranche_width: 0,
+        minimum_validation_upgrade_delay: 5,
+        async_backing_params: AsyncBackingParams {
+            max_candidate_depth: 0,
+            allowed_ancestry_len: 0,
+        },
+        node_features: bitvec::vec::BitVec::from_element(
+            1u8 << (FeatureIndex::ElasticScalingMVP as usize),
+        ),
+        scheduler_params: SchedulerParams {
+            lookahead: 2,
+            group_rotation_frequency: 20,
+            paras_availability_period: 4,
+            ..Default::default()
+        },
+        ..Default::default()
+    }
 }
