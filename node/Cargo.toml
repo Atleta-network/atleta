@@ -8,6 +8,7 @@ path = "src/bin/prepare-worker.rs"
 
 [package]
 name = "atleta-node"
+description = "Atleta relay-chain client node"
 version = "1.0.0"
 build = "build.rs"
 publish = false

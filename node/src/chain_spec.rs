@@ -1,4 +1,4 @@
-use std::{collections::BTreeMap, str::FromStr};
+use std::collections::BTreeMap;
 
 // 3rd party imports
 use hex_literal::hex;
@@ -11,7 +11,7 @@ use sp_consensus_beefy::ecdsa_crypto::AuthorityId as BeefyId;
 use sp_consensus_grandpa::AuthorityId as GrandpaId;
 #[allow(unused_imports)]
 use sp_core::ecdsa;
-use sp_core::{Pair, Public, H160, U256};
+use sp_core::{Pair, Public};
 use sp_runtime::{
     traits::{IdentifyAccount, Verify},
     Perbill,
@@ -22,8 +22,8 @@ use sp_runtime::{
 use atleta_runtime::FaucetConfig;
 use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
-    Block, ConfigurationConfig, EVMChainIdConfig, EVMConfig, ElectionsConfig, MaxNominations,
-    NominationPoolsConfig, RegistrarConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig,
+    Block, ConfigurationConfig, EVMChainIdConfig, ElectionsConfig, MaxNominations,
+    NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig,
     Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig,
     BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
 };
@@ -57,9 +57,35 @@ pub type ChainSpec = sc_service::GenericChainSpec<RuntimeGenesisConfig, Extensio
 #[allow(dead_code)]
 type AccountPublic = <Signature as Verify>::Signer;
 
-// Dev chain config
-#[cfg(feature = "devnet-runtime")]
+// Development config
 pub fn development_config() -> ChainSpec {
+    use devnet_keys::*;
+
+    ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
+        .with_name("Development")
+        .with_id("dev")
+        .with_chain_type(ChainType::Development)
+        .with_properties(properties())
+        .with_genesis_config(
+            serde_json::to_value(testnet_genesis(
+                // Sudo account (Alith)
+                alith(),
+                // Pre-funded accounts
+                vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
+                // Initial Validators and PoA authorities
+                vec![authority_keys_from_seed("Alice")],
+                // Initial nominators
+                vec![],
+                // Ethereum chain ID
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
+        )
+        .build()
+}
+
+// Dev chain config
+pub fn devnet_config() -> ChainSpec {
     use devnet_keys::*;
 
     ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
@@ -80,13 +106,12 @@ pub fn development_config() -> ChainSpec {
                 // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
-            .expect("Invalid genesis config"),
+                .expect("Invalid genesis config"),
         )
         .build()
 }
 
 // Local testnet config
-#[cfg(feature = "testnet-runtime")]
 pub fn local_testnet_config() -> ChainSpec {
     use devnet_keys::*;
 
@@ -97,7 +122,6 @@ pub fn local_testnet_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(testnet_genesis(
-                // Initial PoA authorities
                 // Sudo account (Alith)
                 alith(),
                 // Pre-funded accounts
@@ -113,7 +137,6 @@ pub fn local_testnet_config() -> ChainSpec {
 }
 
 // Testnet config
-#[cfg(feature = "testnet-runtime")]
 pub fn testnet_config() -> ChainSpec {
     use testnet_keys::*;
 
@@ -124,7 +147,6 @@ pub fn testnet_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(testnet_genesis(
-                // Initial PoA authorities
                 // Sudo account (Alith)
                 lionel(),
                 // Pre-funded accounts
@@ -151,7 +173,6 @@ pub fn testnet_config() -> ChainSpec {
 }
 
 /// Configure initial storage state for FRAME modules.
-#[cfg(feature = "testnet-runtime")]
 fn testnet_genesis(
     sudo_key: AccountId,
     mut endowed_accounts: Vec<AccountId>,
@@ -162,23 +183,25 @@ fn testnet_genesis(
     // endow all authorities and nominators.
     initial_authorities
         .iter()
-        .map(|x| &x.id)
-        .chain(initial_nominators.iter())
+        .map(|x| [&x.id, &x.stash])
+        .chain(initial_nominators.iter().map(|x| [x, x]))
         .for_each(|x| {
-            if !endowed_accounts.contains(x) {
-                endowed_accounts.push(*x)
-            }
+           for i in x {
+               if !endowed_accounts.contains(&i) {
+                   endowed_accounts.push(*i)
+               }
+           }
         });
 
     let num_endowed_accounts = endowed_accounts.len();
 
     // stakers: all validators and nominators.
-    const ENDOWMENT: Balance = 75_000_000 * DOLLARS;
+    const ENDOWMENT: Balance = 1_000_000 * DOLLARS;
     const STASH: Balance = ENDOWMENT / 1000;
     let mut rng = rand::thread_rng();
     let stakers = initial_authorities
         .iter()
-        .map(|x| (x.id, x.id, STASH, StakerStatus::Validator))
+        .map(|x| (x.id, x.stash, STASH, StakerStatus::Validator))
         .chain(initial_nominators.iter().map(|x| {
             use rand::{seq::SliceRandom, Rng};
             let limit = (MaxNominations::get() as usize).min(initial_authorities.len());
@@ -191,49 +214,6 @@ fn testnet_genesis(
             (*x, *x, STASH, StakerStatus::Nominator(nominations))
         }))
         .collect::<Vec<_>>();
-    let evm_accounts = {
-        let mut map = BTreeMap::new();
-        map.insert(
-            // H160 address of Alice dev account
-            // Derived from SS58 (42 prefix) address
-            // SS58: 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
-            // hex: 0xd43593c715fdd31c61141abd04a99fd6822c8558854ccde39a5684e7a56da27d
-            // Using the full hex key, truncating to the first 20 bytes (the first 40 hex chars)
-            H160::from_str("d43593c715fdd31c61141abd04a99fd6822c8558")
-                .expect("internal H160 is valid; qed"),
-            fp_evm::GenesisAccount {
-                balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-                    .expect("internal U256 is valid; qed"),
-                code: Default::default(),
-                nonce: Default::default(),
-                storage: Default::default(),
-            },
-        );
-        map.insert(
-            // H160 address of CI test runner account
-            H160::from_str("6be02d1d3665660d22ff9624b7be0551ee1ac91b")
-                .expect("internal H160 is valid; qed"),
-            fp_evm::GenesisAccount {
-                balance: U256::from_str("0xffffffffffffffffffffffffffffffff")
-                    .expect("internal U256 is valid; qed"),
-                code: Default::default(),
-                nonce: Default::default(),
-                storage: Default::default(),
-            },
-        );
-        map.insert(
-            // H160 address for benchmark usage
-            H160::from_str("1000000000000000000000000000000000000001")
-                .expect("internal H160 is valid; qed"),
-            fp_evm::GenesisAccount {
-                nonce: U256::from(1),
-                balance: U256::from(1_000_000_000_000_000_000_000_000u128),
-                storage: Default::default(),
-                code: vec![0x00],
-            },
-        );
-        map
-    };
 
     RuntimeGenesisConfig {
         babe: BabeConfig { epoch_config: BABE_GENESIS_EPOCH_CONFIG, ..Default::default() },
@@ -261,7 +241,7 @@ fn testnet_genesis(
             slash_reward_fraction: Perbill::from_percent(10),
             stakers: stakers.clone(),
             min_nominator_bond: 10 * DOLLARS,
-            min_validator_bond: 75_000 * DOLLARS,
+            min_validator_bond: 1_000 * DOLLARS,
             ..Default::default()
         },
         elections: ElectionsConfig {
@@ -281,7 +261,6 @@ fn testnet_genesis(
             ..Default::default()
         },
         evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
-        evm: EVMConfig { accounts: evm_accounts, ..Default::default() },
         nomination_pools: NominationPoolsConfig {
             min_create_bond: 10 * DOLLARS,
             min_join_bond: DOLLARS,
@@ -293,7 +272,24 @@ fn testnet_genesis(
     }
 }
 
-#[cfg(feature = "mainnet-runtime")]
+pub fn stagenet_config() -> ChainSpec {
+    ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
+        .with_name("Atleta mainnet")
+        .with_id("mainnet")
+        .with_chain_type(ChainType::Live)
+        .with_properties(properties())
+        .with_genesis_config(
+            serde_json::to_value(mainnet_genesis(
+                mainnet_keys::sudo_account(),
+                mainnet_keys::validators(),
+                mainnet_keys::prefunded(),
+                SS58Prefix::get() as u64,
+            ))
+                .expect("Invalid genesis config"),
+        )
+        .build()
+}
+
 pub fn mainnet_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
         .with_name("Atleta mainnet")
@@ -313,7 +309,6 @@ pub fn mainnet_config() -> ChainSpec {
 }
 
 // TODO: add technical committee
-#[cfg(feature = "mainnet-runtime")]
 fn mainnet_genesis(
     sudo_key: AccountId,
     validators_keys: Vec<ValidatorKeys>,

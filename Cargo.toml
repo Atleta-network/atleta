@@ -8,7 +8,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-authors = []
+authors = ["Atleta team"]
 edition = "2021"
 repository = "https://github.com/Atleta-network/atleta"
 
