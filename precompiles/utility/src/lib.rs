@@ -8,16 +8,6 @@ use precompile_utils::{evm::costs::call_cost, prelude::*};
 use sp_core::{H160, U256};
 use sp_std::{iter::repeat, marker::PhantomData, vec, vec::Vec};
 
-pub struct UtilityPrecompile<Runtime>(PhantomData<Runtime>);
-
-pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
-    log1(address, LOG_SUBCALL_SUCCEEDED, solidity::encode_event_data(U256::from(index)))
-}
-
-pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
-    log1(address, LOG_SUBCALL_FAILED, solidity::encode_event_data(U256::from(index)))
-}
-
 #[derive(Copy, Clone, Debug, PartialEq)]
 pub enum Mode {
     BatchSome,             // = "batchSome(address[],uint256[],bytes[],uint64[])",
@@ -33,8 +23,30 @@ pub const ARRAY_LIMIT: u32 = 2u32.pow(9);
 type GetCallDataLimit = ConstU32<CALL_DATA_LIMIT>;
 type GetArrayLimit = ConstU32<ARRAY_LIMIT>;
 
+pub fn log_subcall_succeeded(address: impl Into<H160>, index: usize) -> Log {
+    log1(
+        address,
+        LOG_SUBCALL_SUCCEEDED,
+        solidity::encode_event_data(U256::from(index)),
+    )
+}
+
+pub fn log_subcall_failed(address: impl Into<H160>, index: usize) -> Log {
+    log1(
+        address,
+        LOG_SUBCALL_FAILED,
+        solidity::encode_event_data(U256::from(index)),
+    )
+}
+
+/// Batch precompile.
+#[derive(Debug, Clone)]
+pub struct BatchPrecompile<Runtime>(PhantomData<Runtime>);
+
+// No funds are transfered to the precompile address.
+// Transfers will directly be made on the behalf of the user by the precompile.
 #[precompile_utils::precompile]
-impl<Runtime> UtilityPrecompile<Runtime>
+impl<Runtime> BatchPrecompile<Runtime>
 where
     Runtime: pallet_evm::Config,
 {
@@ -49,6 +61,35 @@ where
         Self::inner_batch(Mode::BatchSome, handle, to, value, call_data, gas_limit)
     }
 
+    #[precompile::public("batchSomeUntilFailure(address[],uint256[],bytes[],uint64[])")]
+    fn batch_some_until_failure(
+        handle: &mut impl PrecompileHandle,
+        to: BoundedVec<Address, GetArrayLimit>,
+        value: BoundedVec<U256, GetArrayLimit>,
+        call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+        gas_limit: BoundedVec<u64, GetArrayLimit>,
+    ) -> EvmResult {
+        Self::inner_batch(
+            Mode::BatchSomeUntilFailure,
+            handle,
+            to,
+            value,
+            call_data,
+            gas_limit,
+        )
+    }
+
+    #[precompile::public("batchAll(address[],uint256[],bytes[],uint64[])")]
+    fn batch_all(
+        handle: &mut impl PrecompileHandle,
+        to: BoundedVec<Address, GetArrayLimit>,
+        value: BoundedVec<U256, GetArrayLimit>,
+        call_data: BoundedVec<BoundedBytes<GetCallDataLimit>, GetArrayLimit>,
+        gas_limit: BoundedVec<u64, GetArrayLimit>,
+    ) -> EvmResult {
+        Self::inner_batch(Mode::BatchAll, handle, to, value, call_data, gas_limit)
+    }
+
     fn inner_batch(
         mode: Mode,
         handle: &mut impl PrecompileHandle,
@@ -58,9 +99,14 @@ where
         gas_limit: BoundedVec<u64, GetArrayLimit>,
     ) -> EvmResult {
         let addresses = Vec::from(to).into_iter().enumerate();
-        let values = Vec::from(value).into_iter().map(Some).chain(repeat(None));
-        let calls_data =
-            Vec::from(call_data).into_iter().map(|x| Some(x.into())).chain(repeat(None));
+        let values = Vec::from(value)
+            .into_iter()
+            .map(|x| Some(x))
+            .chain(repeat(None));
+        let calls_data = Vec::from(call_data)
+            .into_iter()
+            .map(|x| Some(x.into()))
+            .chain(repeat(None));
         let gas_limits = Vec::from(gas_limit).into_iter().map(|x|
             // x = 0 => forward all remaining gas
             if x == 0 {
@@ -82,13 +128,20 @@ where
             let value = value.unwrap_or(U256::zero());
             let call_data = call_data.unwrap_or(vec![]);
 
-            let sub_context =
-                Context { caller: handle.context().caller, address, apparent_value: value };
+            let sub_context = Context {
+                caller: handle.context().caller,
+                address: address.clone(),
+                apparent_value: value,
+            };
 
             let transfer = if value.is_zero() {
                 None
             } else {
-                Some(Transfer { source: handle.context().caller, target: address, value })
+                Some(Transfer {
+                    source: handle.context().caller,
+                    target: address.clone(),
+                    value,
+                })
             };
 
             // We reserve enough gas to emit a final log and perform the subcall itself.
@@ -98,11 +151,13 @@ where
             let forwarded_gas = match (remaining_gas.checked_sub(log_cost), mode) {
                 (Some(remaining), _) => remaining,
                 (None, Mode::BatchAll) => {
-                    return Err(PrecompileFailure::Error { exit_status: ExitError::OutOfGas })
-                },
+                    return Err(PrecompileFailure::Error {
+                        exit_status: ExitError::OutOfGas,
+                    })
+                }
                 (None, _) => {
                     return Ok(());
-                },
+                }
             };
 
             // Cost of the call itself that the batch precompile must pay.
@@ -120,11 +175,11 @@ where
                             return Err(PrecompileFailure::Error {
                                 exit_status: ExitError::OutOfGas,
                             })
-                        },
+                        }
                         Mode::BatchSomeUntilFailure => return Ok(()),
                         Mode::BatchSome => continue,
                     }
-                },
+                }
             };
 
             // If there is a provided gas limit we ensure there is enough gas remaining.
@@ -141,17 +196,23 @@ where
                                 return Err(PrecompileFailure::Error {
                                     exit_status: ExitError::OutOfGas,
                                 })
-                            },
+                            }
                             Mode::BatchSomeUntilFailure => return Ok(()),
                             Mode::BatchSome => continue,
                         }
                     }
                     limit
-                },
+                }
             };
 
-            let (reason, output) =
-                handle.call(address, transfer, call_data, Some(forwarded_gas), false, &sub_context);
+            let (reason, output) = handle.call(
+                address,
+                transfer,
+                call_data,
+                Some(forwarded_gas),
+                false,
+                &sub_context,
+            );
 
             // Logs
             // We reserved enough gas so this should not OOG.
@@ -160,12 +221,12 @@ where
                     let log = log_subcall_failed(handle.code_address(), i);
                     handle.record_log_costs(&[&log])?;
                     log.record(handle)?
-                },
+                }
                 ExitReason::Succeed(_) => {
                     let log = log_subcall_succeeded(handle.code_address(), i);
                     handle.record_log_costs(&[&log])?;
                     log.record(handle)?
-                },
+                }
                 _ => (),
             }
 
@@ -174,21 +235,24 @@ where
                 // _: Fatal is always fatal
                 (_, ExitReason::Fatal(exit_status)) => {
                     return Err(PrecompileFailure::Fatal { exit_status })
-                },
+                }
 
                 // BatchAll : Reverts and errors are immediatly forwarded.
                 (Mode::BatchAll, ExitReason::Revert(exit_status)) => {
-                    return Err(PrecompileFailure::Revert { exit_status, output })
-                },
+                    return Err(PrecompileFailure::Revert {
+                        exit_status,
+                        output,
+                    })
+                }
                 (Mode::BatchAll, ExitReason::Error(exit_status)) => {
                     return Err(PrecompileFailure::Error { exit_status })
-                },
+                }
 
                 // BatchSomeUntilFailure : Reverts and errors prevent subsequent subcalls to
                 // be executed but the precompile still succeed.
                 (Mode::BatchSomeUntilFailure, ExitReason::Revert(_) | ExitReason::Error(_)) => {
                     return Ok(())
-                },
+                }
 
                 // Success or ignored revert/error.
                 (_, _) => (),

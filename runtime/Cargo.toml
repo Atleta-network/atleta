@@ -36,10 +36,8 @@ sp-session = { workspace = true }
 sp-staking = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
-sp-statement-store = { workspace = true }
 sp-version = { workspace = true }
 # Substrate FRAME
-frame-benchmarking = { workspace = true, optional = true }
 frame-election-provider-support = { workspace = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }
@@ -112,7 +110,6 @@ pallet-faucet = { workspace = true }
 
 # Atleta Precompile Pallets
 pallet-evm-precompile-staking = { workspace = true }
-pallet-evm-precompile-faucet = { workspace = true }
 pallet-evm-precompile-nomination-pools = { workspace = true }
 pallet-evm-precompile-babe = { workspace = true }
 pallet-evm-precompile-governance = { workspace = true }
@@ -206,11 +203,9 @@ std = [
     "sp-staking/std",
     "sp-std/std",
     "sp-transaction-pool/std",
-    "sp-statement-store/std",
     "sp-version/std",
     "substrate-wasm-builder",
     # Substrate FRAME
-    "frame-benchmarking/std",
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",
@@ -281,7 +276,6 @@ std = [
     "pallet-faucet/std",
     # Atleta Precompile Pallets
     "pallet-evm-precompile-staking/std",
-    "pallet-evm-precompile-faucet/std",
     "pallet-evm-precompile-nomination-pools/std",
     "pallet-evm-precompile-babe/std",
     "pallet-evm-precompile-governance/std",
@@ -290,7 +284,6 @@ std = [
     "pallet-evm-precompile-utility/std",
 ]
 runtime-benchmarks = [
-    "frame-benchmarking/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
