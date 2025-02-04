@@ -13,7 +13,7 @@ use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
 use pallet_evm_precompile_staking::StakingPrecompile;
 use pallet_evm_precompile_treasury::TreasuryPrecompile;
-use pallet_evm_precompile_utility::UtilityPrecompile;
+use pallet_evm_precompile_utility::BatchPrecompile;
 
 use frame_support::traits::Contains;
 use precompile_utils::precompile_set::*;
@@ -91,8 +91,8 @@ type AtletaPrecompilesAt<R> = (
     PrecompileAt<AddressU64<2007>, BabePrecompile<R>, (CallableByContract, CallableByPrecompile)>,
     PrecompileAt<
         AddressU64<2008>,
-        UtilityPrecompile<R>,
-        (CallableByContract, CallableByPrecompile),
+        BatchPrecompile<R>,
+        (SubcallWithMaxNesting<2>, CallableByPrecompile<OnlyFrom<AddressU64<2056>>>),
     >,
 );
 
