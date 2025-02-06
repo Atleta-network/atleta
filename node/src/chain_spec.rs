@@ -23,9 +23,9 @@ use atleta_runtime::FaucetConfig;
 use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
     Block, ConfigurationConfig, EVMChainIdConfig, ElectionsConfig, MaxNominations,
-    NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig,
-    Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig,
-    BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
+    NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature,
+    StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG,
+    WASM_BINARY,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
@@ -106,7 +106,7 @@ pub fn devnet_config() -> ChainSpec {
                 // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
-                .expect("Invalid genesis config"),
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -186,11 +186,11 @@ fn testnet_genesis(
         .map(|x| [&x.id, &x.stash])
         .chain(initial_nominators.iter().map(|x| [x, x]))
         .for_each(|x| {
-           for i in x {
-               if !endowed_accounts.contains(&i) {
-                   endowed_accounts.push(*i)
-               }
-           }
+            for i in x {
+                if !endowed_accounts.contains(i) {
+                    endowed_accounts.push(*i)
+                }
+            }
         });
 
     let num_endowed_accounts = endowed_accounts.len();
@@ -301,7 +301,7 @@ pub fn stagenet_config() -> ChainSpec {
                 // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
-                .expect("Invalid genesis config"),
+            .expect("Invalid genesis config"),
         )
         .build()
 }
