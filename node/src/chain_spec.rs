@@ -272,17 +272,33 @@ fn testnet_genesis(
     }
 }
 
+use crate::chain_spec::testnet_keys::*;
 pub fn stagenet_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
-        .with_name("Atleta mainnet")
-        .with_id("mainnet")
+        .with_name("Atleta stagenet")
+        .with_id("stagenet")
         .with_chain_type(ChainType::Live)
         .with_properties(properties())
         .with_genesis_config(
-            serde_json::to_value(mainnet_genesis(
-                mainnet_keys::sudo_account(),
-                mainnet_keys::validators(),
-                mainnet_keys::prefunded(),
+            serde_json::to_value(testnet_genesis(
+                // Sudo account (Alith)
+                lionel(),
+                // Pre-funded accounts
+                vec![
+                    lionel(),
+                    diego(),
+                    pele(),
+                    franz(),
+                    johan(),
+                    ronaldo(),
+                    zinedine(),
+                    cristiano(),
+                    michel(),
+                    roberto(),
+                ],
+                vec![diego_session_keys(), pele_session_keys()],
+                vec![],
+                // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
                 .expect("Invalid genesis config"),
