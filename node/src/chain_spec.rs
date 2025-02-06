@@ -296,7 +296,7 @@ pub fn stagenet_config() -> ChainSpec {
                     michel(),
                     roberto(),
                 ],
-                vec![diego_session_keys(), pele_session_keys()],
+                vec![diego_session_keys(), pele_session_keys(), franz_session_keys()],
                 vec![],
                 // Ethereum chain ID
                 SS58Prefix::get() as u64,

@@ -84,6 +84,10 @@
             [
               "0x55de108cb01acf946a0dde3c40d5ede3ae9201c1",
               1000000000000000000000000
+            ],
+            [
+              "0xf87efacd0e08cf7f6667b2a8bec9fc3a2db1572f",
+              1000000000000000000000000
             ]
           ]
         },
@@ -193,6 +197,10 @@
             [
               "0x30cefb3383dbdad376d2036cabeaa7d6bedd883f",
               1000000000000000000000
+            ],
+            [
+              "0x004d1b6abbf790d69a498531760e1219a67d009c",
+              1000000000000000000000
             ]
           ]
         },
@@ -253,6 +261,19 @@
                 "para_assignment": "5G7HZHzB9k4LHLkfRGCpqu2ugwoFBv4KaXyid2WdhD97ALQM",
                 "para_validator": "5ExgLDrjdUrrevkZ5KY97qymV7QbKW2xNftBmHws1mpkjUaS"
               }
+            ],
+            [
+              "0xf87efacd0e08cf7f6667b2a8bec9fc3a2db1572f",
+              "0x5124ed655cc596dbd17afdde990e46857b5421f2",
+              {
+                "authority_discovery": "5EFRuXNq1Qjh8JoWszp1152u9JBmhgq2YK1s1DNR9BwCbxoP",
+                "babe": "5CrGhWRhdYm7QLLQx26CwX2nwuXBPtMXvCgpQ5skEwt2gcG3",
+                "beefy": "KW2wqEfDbmJwAQzQm781SGY9bDuPQeVTN7jDNZG58WzrF5Nq7",
+                "grandpa": "5HHuGJKxy9VivTjACcCvp4LyZKwgryQGpXdbJyjff9YRFgSG",
+                "im_online": "5Dcqk1DBU18mXx3n6GAMZD5aDJn1yTyF1PFFq2SBBCnEqKSV",
+                "para_assignment": "5FXHxB7J3oDvrSRVmgRZkiayEwZiDHxWqVuKjUhmZmpTtvxT",
+                "para_validator": "5GF6RxTZZg4WPj3N5SJmcp2wrjUgZrXAfMotZMbXTPWgakvS"
+              }
             ]
           ]
         },
@@ -261,13 +282,14 @@
           "forceEra": "NotForcing",
           "invulnerables": [
             "0xffa4645462f429e8fb9a6534e22f9f4f75094ab4",
-            "0x8834dc7eb54957bf37cac825e93d9632dc42c3f2"
+            "0x8834dc7eb54957bf37cac825e93d9632dc42c3f2",
+            "0x5124ed655cc596dbd17afdde990e46857b5421f2"
           ],
           "maxNominatorCount": null,
           "maxValidatorCount": null,
           "minNominatorBond": 10000000000000000000,
           "minValidatorBond": 1000000000000000000000,
-          "minimumValidatorCount": 2,
+          "minimumValidatorCount": 3,
           "slashRewardFraction": 100000000,
           "stakers": [
             [
@@ -281,9 +303,15 @@
               "0x55de108cb01acf946a0dde3c40d5ede3ae9201c1",
               1000000000000000000000,
               "Validator"
+            ],
+            [
+              "0x5124ed655cc596dbd17afdde990e46857b5421f2",
+              "0xf87efacd0e08cf7f6667b2a8bec9fc3a2db1572f",
+              1000000000000000000000,
+              "Validator"
             ]
           ],
-          "validatorCount": 2
+          "validatorCount": 3
         },
         "sudo": {
           "key": "0x08e390762f64aba6f9f9269589e1a702623e90f1"
@@ -296,7 +324,8 @@
             "0x8834dc7eb54957bf37cac825e93d9632dc42c3f2",
             "0x5124ed655cc596dbd17afdde990e46857b5421f2",
             "0x3bc92e5c6637ac3a2f98c103967cdbb44586d1d4",
-            "0x30cefb3383dbdad376d2036cabeaa7d6bedd883f"
+            "0x30cefb3383dbdad376d2036cabeaa7d6bedd883f",
+            "0x004d1b6abbf790d69a498531760e1219a67d009c"
           ]
         },
         "technicalMembership": {
