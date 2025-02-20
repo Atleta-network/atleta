@@ -5,21 +5,13 @@ env:
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - devnet
-      - testnet
-      - stagenet
-      - mainnet
-    tags:
-      - 'release-v*'
 
 permissions:
   contents: write
 
 jobs:
   define_vars:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       release_name: ${{ steps.vars.outputs.release_name }}
       commit_sha: ${{ steps.vars.outputs.commit_sha }}
@@ -31,15 +23,15 @@ jobs:
           echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
   linux_build:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: define_vars
     outputs:
       artifact: ${{ steps.artifact.outputs.name }}
 
     steps:
       - run: |
-          sudo apt-get update
-          sudo apt-get install protobuf-compiler
+          sudo apt update -y
+          sudo apt install protobuf-compiler libclang-dev libssl-dev -y
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
@@ -103,7 +95,7 @@ jobs:
           if-no-files-found: error
 
   publish_release:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [define_vars, linux_build, macos_build]
 
     steps:

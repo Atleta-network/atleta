@@ -80,8 +80,8 @@ pub mod pallet {
     #[pallet::genesis_config]
     #[derive(frame_support::DefaultNoBound)]
     pub struct GenesisConfig<T: Config> {
-        #[serde(skip)]
-        _config: sp_std::marker::PhantomData<T>,
+        /// Initial balance of faucet account
+        pub initial_balance: BalanceOf<T>,
     }
 
     #[pallet::genesis_build]
@@ -91,8 +91,10 @@ pub mod pallet {
             let account_id = <Pallet<T>>::account_id();
             let min = T::Currency::minimum_balance();
 
-            if T::Currency::free_balance(&account_id) < min {
-                let _ = T::Currency::make_free_balance_be(&account_id, min);
+            let initial_balance = self.initial_balance.max(min);
+
+            if T::Currency::free_balance(&account_id) < initial_balance {
+                let _ = T::Currency::make_free_balance_be(&account_id, initial_balance);
             }
         }
     }
@@ -115,8 +117,8 @@ pub mod pallet {
         AmountTooHigh,
         /// More than allowed funds requested during `Config::AccumulationPeriod`.
         RequestLimitExceeded,
-        /// No account to send funds.
-        NoFaucetAccount,
+        /// No funds on faucet account.
+        NoAmountToTransfer,
     }
 
     #[pallet::call]
@@ -148,14 +150,32 @@ pub mod pallet {
             ensure!(total <= T::FaucetAmount::get(), Error::<T>::RequestLimitExceeded);
 
             let account_id = Self::account_id();
+            let faucet_balance = T::Currency::free_balance(&account_id);
 
-            let _ = T::Currency::make_free_balance_be(&account_id, amount);
-            let _ =
-                T::Currency::transfer(&account_id, &who, amount, ExistenceRequirement::AllowDeath);
+            // Ensure faucet has enough balance
+            ensure!(faucet_balance >= amount, Error::<T>::NoAmountToTransfer);
+
+            T::Currency::transfer(&account_id, &who, amount, ExistenceRequirement::AllowDeath)?;
 
             Requests::<T>::insert(&who, (total, now));
 
             Self::deposit_event(Event::FundsSent { who, amount });
+
+            Ok(())
+        }
+
+        /// Refill the faucet account.
+        #[pallet::call_index(1)]
+        #[pallet::weight(
+        (<T as Config>::WeightInfo::refill_faucet(), DispatchClass::Normal, Pays::No)
+        )]
+        pub fn refill_faucet(origin: OriginFor<T>, amount: BalanceOf<T>) -> DispatchResult {
+            let sender = ensure_signed(origin)?;
+
+            let account_id = Self::account_id();
+
+            // Transfer funds from the sender to the faucet account
+            T::Currency::transfer(&sender, &account_id, amount, ExistenceRequirement::KeepAlive)?;
 
             Ok(())
         }

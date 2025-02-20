@@ -11,6 +11,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
 log = { workspace = true }
+num_enum = { workspace = true}
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
 hex-literal = { workspace = true }
@@ -35,10 +36,8 @@ sp-session = { workspace = true }
 sp-staking = { workspace = true }
 sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
-sp-statement-store = { workspace = true }
 sp-version = { workspace = true }
 # Substrate FRAME
-frame-benchmarking = { workspace = true, optional = true }
 frame-election-provider-support = { workspace = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }
@@ -93,6 +92,7 @@ fp-account = { workspace = true, features = ["serde"] }
 fp-evm = { workspace = true, features = ["serde"] }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = ["serde"] }
+precompile-utils = { workspace = true }
 # Frontier FRAME
 pallet-base-fee = { workspace = true }
 pallet-dynamic-fee = { workspace = true }
@@ -110,12 +110,12 @@ pallet-faucet = { workspace = true }
 
 # Atleta Precompile Pallets
 pallet-evm-precompile-staking = { workspace = true }
-pallet-evm-precompile-faucet = { workspace = true }
 pallet-evm-precompile-nomination-pools = { workspace = true }
 pallet-evm-precompile-babe = { workspace = true }
 pallet-evm-precompile-governance = { workspace = true }
 pallet-evm-precompile-treasury = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
+pallet-evm-precompile-utility = { workspace = true }
 
 # Parachains
 runtime-parachains = { workspace = true }
@@ -139,9 +139,13 @@ try-runtime = [
     "frame-executive/try-runtime",
     "frame-system/try-runtime",
     "frame-try-runtime",
+    "runtime-parachains/try-runtime",
+    "pallet-authority-discovery/try-runtime",
     "pallet-authorship/try-runtime",
     "pallet-base-fee/try-runtime",
     "pallet-babe/try-runtime",
+    "pallet-beefy/try-runtime",
+    "pallet-beefy-mmr/try-runtime",
     "pallet-base-fee/try-runtime",
     "pallet-bags-list/try-runtime",
     "pallet-balances/try-runtime",
@@ -159,7 +163,9 @@ try-runtime = [
     "pallet-im-online/try-runtime",
     "pallet-insecure-randomness-collective-flip/try-runtime",
     "pallet-membership/try-runtime",
+    "pallet-message-queue/try-runtime",
     "pallet-multisig/try-runtime",
+    "pallet-mmr/try-runtime",
     "pallet-nomination-pools/try-runtime",
     "pallet-offences/try-runtime",
     "pallet-preimage/try-runtime",
@@ -171,7 +177,9 @@ try-runtime = [
     "pallet-transaction-payment/try-runtime",
     "pallet-treasury/try-runtime",
     "pallet-utility/try-runtime",
-    "pallet-fast-unstake/try-runtime"
+    "pallet-xcm/try-runtime",
+    "pallet-fast-unstake/try-runtime",
+    "runtime-common/try-runtime"
 ]
 std = [
     "log/std",
@@ -195,11 +203,9 @@ std = [
     "sp-staking/std",
     "sp-std/std",
     "sp-transaction-pool/std",
-    "sp-statement-store/std",
     "sp-version/std",
     "substrate-wasm-builder",
     # Substrate FRAME
-    "frame-benchmarking/std",
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",
@@ -244,6 +250,7 @@ std = [
     "fp-evm/std",
     "fp-rpc/std",
     "fp-self-contained/std",
+    "precompile-utils/std",
     # Frontier FRAME
     "pallet-base-fee/std",
     "pallet-dynamic-fee/std",
@@ -269,15 +276,14 @@ std = [
     "pallet-faucet/std",
     # Atleta Precompile Pallets
     "pallet-evm-precompile-staking/std",
-    "pallet-evm-precompile-faucet/std",
     "pallet-evm-precompile-nomination-pools/std",
     "pallet-evm-precompile-babe/std",
     "pallet-evm-precompile-governance/std",
     "pallet-evm-precompile-treasury/std",
     "pallet-evm-precompile-preimage/std",
+    "pallet-evm-precompile-utility/std",
 ]
 runtime-benchmarks = [
-    "frame-benchmarking/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",

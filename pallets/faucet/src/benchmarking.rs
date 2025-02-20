@@ -21,6 +21,16 @@ mod benchmarks {
         assert!(Requests::<T>::contains_key(&caller));
     }
 
+    #[benchmark]
+    fn refill_faucet() {
+        let amount = 100u32.into();
+        let caller: T::AccountId = whitelisted_caller();
+        #[extrinsic_call]
+        crate::benchmarking::benchmarks::refill_faucet(RawOrigin::Signed(caller.clone()), amount);
+
+        assert!(Requests::<T>::contains_key(&caller));
+    }
+
     impl_benchmark_test_suite!(
         Faucet,
         crate::mock::ExtBuilder::default().build(),
