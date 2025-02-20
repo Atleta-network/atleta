@@ -4,12 +4,16 @@
 pub mod currency {
     use crate::Balance;
 
-    pub const MILLICENTS: Balance = 10_000_000_000_000;
-    pub const CENTS: Balance = 1_000 * MILLICENTS; // assume this is worth about a cent.
-    pub const DOLLARS: Balance = 100 * CENTS; // TODO: rename it to ATLA
+    pub const UNITS: Balance = 1_000_000_000_000_000_000; // 1 ATLA (assuming it's the base unit)
+    pub const MILLI_ATLA: Balance = UNITS / 1_000;
+    pub const MICRO_ATLA: Balance = MILLI_ATLA / 1_000;
+    pub const NANO_ATLA: Balance = MICRO_ATLA / 1_000;
+    pub const PICO_ATLA: Balance = NANO_ATLA / 1_000;
+    pub const FEMTO_ATLA: Balance = PICO_ATLA / 1_000;
+    pub const ATTO_VTRS: Balance = FEMTO_ATLA / 1_000;
 
     pub const fn deposit(items: u32, bytes: u32) -> Balance {
-        items as Balance * 15 * CENTS + (bytes as Balance) * 6 * CENTS
+        items as Balance * 150 * MILLI_ATLA + (bytes as Balance) * 60 * MILLI_ATLA
     }
 }
 
