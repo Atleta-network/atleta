@@ -25,8 +25,8 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
-        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
+        IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -54,8 +54,7 @@ use frame_support::{
     parameter_types,
     traits::{
         ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
-        KeyOwnerProofSystem, OnFinalize, ProcessMessage,
-        ProcessMessageError,
+        KeyOwnerProofSystem, OnFinalize, ProcessMessage, ProcessMessageError,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
