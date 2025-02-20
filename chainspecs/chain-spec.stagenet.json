@@ -3,8 +3,8 @@
   "id": "stagenet",
   "chainType": "Live",
   "bootNodes": [
-    "/ip4/38.91.106.106/tcp/30333/p2p/12D3KooWNYp9mAeV5SeQafoXFvUBQmiWQ9wSYpUbcmaSY6yvDyQZ",
-    "/ip4/38.91.106.106/tcp/30333/ws/p2p/12D3KooWNYp9mAeV5SeQafoXFvUBQmiWQ9wSYpUbcmaSY6yvDyQZ"
+    "/ip4/38.91.106.106/tcp/30333/p2p/12D3KooWEHTQaxvxSGzBaaiKsnBcqEVRqfodVykRPEzvjm3LmpCr",
+    "/ip4/38.91.106.106/tcp/30333/ws/p2p/12D3KooWEHTQaxvxSGzBaaiKsnBcqEVRqfodVykRPEzvjm3LmpCr"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
