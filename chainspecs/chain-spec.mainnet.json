@@ -3,8 +3,10 @@
   "id": "mainnet",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/bootnode-0.atleta.network/tcp/30333/ws/p2p/12D3KooWKaJPoiKoXMunjuALpEj2xSViE2Q1MDZUuuPN9pc4T1VN",
-    "/dns/bootnode-1.atleta.network/tcp/30333/ws/p2p/12D3KooWSfdb4Fv5BRt3P6PuYUBm7F1tK65PTvWDU4FaLq55499c"
+    "/dns/bootnode-0.atleta.network/tcp/30333/p2p/12D3KooWKaJPoiKoXMunjuALpEj2xSViE2Q1MDZUuuPN9pc4T1VN",
+    "/dns/bootnode-0.atleta.network/tcp/30334/ws/p2p/12D3KooWKaJPoiKoXMunjuALpEj2xSViE2Q1MDZUuuPN9pc4T1VN",
+    "/dns/bootnode-1.atleta.network/tcp/30333/p2p/12D3KooWSfdb4Fv5BRt3P6PuYUBm7F1tK65PTvWDU4FaLq55499c",
+    "/dns/bootnode-1.atleta.network/tcp/30334/ws/p2p/12D3KooWSfdb4Fv5BRt3P6PuYUBm7F1tK65PTvWDU4FaLq55499c"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
