@@ -301,7 +301,7 @@ fn mainnet_genesis(
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
     const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * UNITS;
-    const STASH_INITIAL_BALANCE: Balance = 25_000 * UNITS;
+    const STASH_INITIAL_BALANCE: Balance = 75_000 * UNITS;
 
     let mut initial_balances = BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
 
