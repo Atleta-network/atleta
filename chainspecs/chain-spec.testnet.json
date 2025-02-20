@@ -12,6 +12,7 @@
   ],
   "protocolId": null,
   "properties": {
+    "isEthereum": true,
     "ss58Format": 2340,
     "tokenDecimals": 18,
     "tokenSymbol": "ATLA"

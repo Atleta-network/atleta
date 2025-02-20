@@ -3,13 +3,15 @@
   "id": "devnet",
   "chainType": "Development",
   "bootNodes": [
-    "/ip4/185.190.140.207/tcp/30333/p2p/12D3KooWHdiAxVd8uMQR1hGWXccidmfCwLqcMpGwR6QcTP6QRMuD"
+    "/ip4/172.99.188.91/tcp/30333/p2p/12D3KooWNYp9mAeV5SeQafoXFvUBQmiWQ9wSYpUbcmaSY6yvDyQZ",
+    "/ip4/172.99.188.91/tcp/30333/ws/p2p/12D3KooWNYp9mAeV5SeQafoXFvUBQmiWQ9wSYpUbcmaSY6yvDyQZ"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
   ],
   "protocolId": null,
   "properties": {
+    "isEthereum": true,
     "ss58Format": 2340,
     "tokenDecimals": 18,
     "tokenSymbol": "ATLA"
