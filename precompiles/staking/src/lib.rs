@@ -199,6 +199,36 @@ where
         Ok(())
     }
 
+    #[precompile::public("payoutStakers(address,uint32)")]
+    fn payout_stakers(
+        h: &mut impl PrecompileHandle,
+        validator_stash: Address,
+        era: u32,
+    ) -> EvmResult<()> {
+        let validator_stash = Runtime::AddressMapping::into_account_id(validator_stash.0);
+
+        let call = pallet_staking::Call::<Runtime>::payout_stakers { validator_stash, era };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("payoutStakersByPage(address,uint32,uint32)")]
+    fn payout_stakers_by_page(
+        h: &mut impl PrecompileHandle,
+        validator_stash: Address,
+        era: u32,
+        page: u32,
+    ) -> EvmResult<()> {
+        let validator_stash = Runtime::AddressMapping::into_account_id(validator_stash.0);
+
+        let call =
+            pallet_staking::Call::<Runtime>::payout_stakers_by_page { validator_stash, era, page };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()

@@ -669,14 +669,14 @@ dependencies = [
 
 [[package]]
 name = "atleta-node"
-version = "0.0.0"
+version = "1.0.0"
 dependencies = [
  "async-trait",
  "atleta-runtime",
+ "bitvec",
  "clap",
  "fc-api",
  "fc-cli",
- "fc-consensus",
  "fc-db",
  "fc-mapping-sync",
  "fc-rpc",
@@ -816,7 +816,6 @@ dependencies = [
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
- "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
  "frame-support",
@@ -826,6 +825,7 @@ dependencies = [
  "frame-try-runtime",
  "hex-literal",
  "log",
+ "num_enum",
  "pallet-authority-discovery",
  "pallet-authorship",
  "pallet-babe",
@@ -845,7 +845,6 @@ dependencies = [
  "pallet-evm-chain-id",
  "pallet-evm-precompile-babe",
  "pallet-evm-precompile-dispatch",
- "pallet-evm-precompile-faucet",
  "pallet-evm-precompile-governance",
  "pallet-evm-precompile-modexp",
  "pallet-evm-precompile-nomination-pools",
@@ -854,6 +853,7 @@ dependencies = [
  "pallet-evm-precompile-simple",
  "pallet-evm-precompile-staking",
  "pallet-evm-precompile-treasury",
+ "pallet-evm-precompile-utility",
  "pallet-fast-unstake",
  "pallet-faucet",
  "pallet-grandpa",
@@ -885,6 +885,7 @@ dependencies = [
  "polkadot-primitives",
  "polkadot-runtime-common",
  "polkadot-runtime-parachains",
+ "precompile-utils",
  "scale-info",
  "sp-api",
  "sp-authority-discovery",
@@ -901,7 +902,6 @@ dependencies = [
  "sp-runtime",
  "sp-session",
  "sp-staking",
- "sp-statement-store",
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "sp-transaction-pool",
  "sp-version",
@@ -2745,22 +2745,6 @@ dependencies = [
  "sp-api",
  "sp-blockchain",
  "sp-runtime",
-]
-
-[[package]]
-name = "fc-consensus"
-version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#34b47ba2c9c64e51faa73847e53408f507887f67"
-dependencies = [
- "async-trait",
- "fp-consensus",
- "fp-rpc",
- "sc-consensus",
- "sp-api",
- "sp-block-builder",
- "sp-consensus",
- "sp-runtime",
- "thiserror",
 ]
 
 [[package]]
@@ -6870,6 +6854,24 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
+name = "pallet-evm-precompile-utility"
+version = "0.0.1"
+dependencies = [
+ "environmental",
+ "evm",
+ "fp-evm",
+ "frame-support",
+ "frame-system",
+ "pallet-evm",
+ "precompile-utils",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "sp-staking",
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
 ]
 
