@@ -18,23 +18,25 @@
 
 use super::{
     AccountId, Balances, Dmp, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-    TransactionByteFee, Treasury, XcmPallet, CENTS,
+    TransactionByteFee, Treasury, XcmPallet,
 };
+use crate::constants::currency::MILLI_ATLA;
 use frame_support::{
     parameter_types,
-    traits::{Contains, Everything, Nothing},
+    traits::{Contains, Everything, Get, Nothing, OriginTrait},
 };
 use frame_system::EnsureRoot;
 use runtime_common::xcm_sender::{ChildParachainRouter, ExponentialPrice};
 use sp_core::ConstU32;
-use xcm::latest::prelude::*;
+use sp_runtime::traits::TryConvert;
+use xcm::latest::{prelude::*, Asset, AssetId, Junction, Location, NetworkId};
 use xcm_builder::{
-    AccountId32Aliases, AllowUnpaidExecutionFrom, ChildParachainConvertsVia, DescribeAllTerminal,
+    AccountKey20Aliases, AllowUnpaidExecutionFrom, ChildParachainConvertsVia, DescribeAllTerminal,
     DescribeFamily, FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter,
     HashedDescription, IsConcrete, MintLocation, SignedAccountKey20AsNative, WithUniqueTopic,
 };
 use xcm_executor::{
-    traits::{TransactAsset, WeightTrader},
+    traits::{ConvertLocation, TransactAsset, WeightTrader},
     AssetsInHolding, XcmExecutor,
 };
 
@@ -51,14 +53,14 @@ parameter_types! {
     /// The asset ID for the asset that we use to pay for message delivery fees.
     pub FeeAssetId: AssetId = AssetId(TokenLocation::get());
     /// The base fee for the message delivery fees.
-    pub const BaseDeliveryFee: u128 = CENTS.saturating_mul(3);
+    pub const BaseDeliveryFee: u128 = (10 * MILLI_ATLA).saturating_mul(3);
 }
 
 pub type LocationConverter = (
     // We can convert a child parachain using the standard `AccountId` conversion.
     ChildParachainConvertsVia<ParaId, AccountId>,
-    // We can directly alias an `AccountId32` into a local account.
-    AccountId32Aliases<ThisNetwork, AccountId>,
+    // We can directly alias an `AccountId20` into a local account.
+    AccountKey20Aliases<ThisNetwork, AccountId>,
     // Foreign locations alias into accounts according to a hash of their standard description.
     HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
@@ -112,32 +114,98 @@ impl Contains<Location> for LocalPlurality {
     }
 }
 
-pub struct DoNothingRouter;
-impl SendXcm for DoNothingRouter {
-    type Ticket = ();
-    fn validate(_dest: &mut Option<Location>, _msg: &mut Option<Xcm<()>>) -> SendResult<()> {
-        Ok(((), Assets::new()))
-    }
-    fn deliver(_: ()) -> Result<XcmHash, SendError> {
-        Ok([0; 32])
-    }
-}
-
 /// The barriers one of which must be passed for an XCM message to be executed.
 pub type Barrier = AllowUnpaidExecutionFrom<Everything>;
 
-pub struct DummyAssetTransactor;
-impl TransactAsset for DummyAssetTransactor {
-    fn deposit_asset(_what: &Asset, _who: &Location, _context: Option<&XcmContext>) -> XcmResult {
+pub struct AtletaAssetTransactor;
+impl TransactAsset for AtletaAssetTransactor {
+    fn deposit_asset(
+        what: &Asset,
+        who: &Location,
+        _maybe_context: Option<&XcmContext>,
+    ) -> XcmResult {
+        log::trace!(
+            target: "xcm:AtletaAssetTransactor",
+            "deposit_asset: what: {:?}, who: {:?}",
+            what.clone(), who.clone(),
+        );
+
+        if what.id.0 != Location::here() {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "deposit_asset: Asset is not supported what: {:?}, who: {:?}",
+                what.clone(), who.clone(),
+            );
+            return Err(XcmError::FailedToTransactAsset("Only ATLA token is supported"));
+        }
+
+        let Fungibility::Fungible(amount) = what.fun else {
+            return Err(XcmError::FailedToTransactAsset(
+                "Not Funglible Assets transfers are not supported",
+            ));
+        };
+
+        let beneficiary = LocationConverter::convert_location(who)
+            .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
+
+        let new_amount = Balances::free_balance(beneficiary)
+            .checked_add(amount)
+            .ok_or(XcmError::Overflow)?;
+        let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
+        else {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "deposit_asset: Balance Add Failed: amount: {:?}",
+                new_amount,
+            );
+            return Err(XcmError::FailedToTransactAsset("Balance Add Failed"));
+        };
         Ok(())
     }
 
     fn withdraw_asset(
-        _what: &Asset,
-        _who: &Location,
+        what: &Asset,
+        who: &Location,
         _maybe_context: Option<&XcmContext>,
     ) -> Result<AssetsInHolding, XcmError> {
-        let asset: Assets = (Parent, 100_000).into();
+        log::trace!(
+            target: "xcm:AtletaAssetTransactor",
+            "withdraw_asset: what: {:?}, who: {:?}",
+            what.clone(), who.clone(),
+        );
+
+        if what.id.0 != Location::here() {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "withdraw_asset: Asset is not supported what: {:?}, who: {:?}",
+                what.clone(), who.clone(),
+            );
+            return Err(XcmError::FailedToTransactAsset("Only ATLA token is supported"));
+        }
+
+        let Fungibility::Fungible(amount) = what.fun else {
+            return Err(XcmError::FailedToTransactAsset(
+                "Not Funglible Assets transfers are not supported",
+            ));
+        };
+
+        let beneficiary = LocationConverter::convert_location(who)
+            .ok_or(XcmError::FailedToTransactAsset("Cannot convert parachain id to account id"))?;
+
+        let new_amount = Balances::free_balance(beneficiary)
+            .checked_sub(amount)
+            .ok_or(XcmError::Overflow)?;
+        let Ok(_) = Balances::force_set_balance(RuntimeOrigin::root(), beneficiary, new_amount)
+        else {
+            log::error!(
+                target: "xcm:AtletaAssetTransactor",
+                "withdraw_asset: Balance Sub Failed: amount: {:?}",
+                new_amount,
+            );
+            return Err(XcmError::FailedToTransactAsset("Balance Sub Failed"));
+        };
+
+        let asset: Assets = (Parent, new_amount).into();
         Ok(asset.into())
     }
 }
@@ -166,8 +234,8 @@ type OriginConverter = (
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
     type RuntimeCall = RuntimeCall;
-    type XcmSender = DoNothingRouter;
-    type AssetTransactor = DummyAssetTransactor;
+    type XcmSender = XcmRouter;
+    type AssetTransactor = AtletaAssetTransactor;
     type OriginConverter = OriginConverter;
     type IsReserve = ();
     type IsTeleporter = ();
@@ -195,15 +263,35 @@ impl xcm_executor::Config for XcmConfig {
     type HrmpChannelClosingHandler = ();
 }
 
+pub struct SignedToAccountId20<Origin, AccountId, Network>(
+    sp_std::marker::PhantomData<(Origin, AccountId, Network)>,
+);
+impl<Origin: OriginTrait + Clone, AccountId: Into<[u8; 20]>, Network: Get<NetworkId>>
+    TryConvert<Origin, Location> for SignedToAccountId20<Origin, AccountId, Network>
+where
+    Origin::PalletsOrigin: From<frame_system::RawOrigin<AccountId>>
+        + TryInto<frame_system::RawOrigin<AccountId>, Error = Origin::PalletsOrigin>,
+{
+    fn try_convert(o: Origin) -> Result<Location, Origin> {
+        o.try_with_caller(|caller| match caller.try_into() {
+            Ok(frame_system::RawOrigin::Signed(who)) => {
+                Ok(Junction::AccountKey20 { key: who.into(), network: Some(Network::get()) }.into())
+            },
+            Ok(other) => Err(other.into()),
+            Err(other) => Err(other),
+        })
+    }
+}
+
 /// location of this chain.
-pub type LocalOriginToLocation = ();
+pub type LocalOriginToLocation = SignedToAccountId20<RuntimeOrigin, AccountId, ThisNetwork>;
 
 impl pallet_xcm::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
     // Note that this configuration of `SendXcmOrigin` is different from the one present in
     // production.
     type SendXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
-    type XcmRouter = DoNothingRouter;
+    type XcmRouter = XcmRouter;
     // Anyone can execute XCM messages locally.
     type ExecuteXcmOrigin = xcm_builder::EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
     type XcmExecuteFilter = Everything;

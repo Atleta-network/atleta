@@ -36,6 +36,9 @@ use core::marker::PhantomData;
 pub trait WeightInfo {
     #[allow(missing_docs)]
     fn request_funds() -> Weight;
+
+    #[allow(missing_docs)]
+    fn refill_faucet() -> Weight;
 }
 
 /// Weights for pallet_faucet using the Substrate node and recommended hardware.
@@ -44,11 +47,19 @@ impl<T: frame_system::Config> WeightInfo for FaucetWeight<T> {
     fn request_funds() -> Weight {
         Weight::zero()
     }
+
+    fn refill_faucet() -> Weight {
+        Weight::zero()
+    }
 }
 
 // For backwards compatibility and tests
 impl WeightInfo for () {
     fn request_funds() -> Weight {
+        Weight::zero()
+    }
+
+    fn refill_faucet() -> Weight {
         Weight::zero()
     }
 }

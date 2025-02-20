@@ -8,7 +8,8 @@ path = "src/bin/prepare-worker.rs"
 
 [package]
 name = "atleta-node"
-version = "0.0.0"
+description = "Atleta relay-chain client node"
+version = "1.0.0"
 build = "build.rs"
 publish = false
 authors = { workspace = true }
@@ -31,6 +32,7 @@ serde = { workspace = true }
 serde_json = { workspace = true }
 is_executable = "1.0.1"
 thiserror = { workspace = true }
+bitvec = { workspace = true }
 
 # Substrate
 pallet-im-online = { workspace = true, features = ["std"] }
@@ -102,7 +104,6 @@ pallet-transaction-payment = { workspace = true }
 # Frontier
 fc-api = { workspace = true }
 fc-cli = { workspace = true }
-fc-consensus = { workspace = true }
 fc-db = { workspace = true }
 fc-mapping-sync = { workspace = true }
 fc-rpc = { workspace = true, features = ["rpc-binary-search-estimate"] }

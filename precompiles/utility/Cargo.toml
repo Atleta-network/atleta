@@ -1,12 +1,11 @@
 [package]
-name = "pallet-evm-precompile-nomination-pools"
+name = "pallet-evm-precompile-utility"
 authors = { workspace = true }
 edition = "2021"
 version = "0.0.1"
 
 [dependencies]
 precompile-utils = { workspace = true }
-pallet-nomination-pools = { workspace = true }
 
 evm = { workspace = true }
 fp-evm = { workspace = true }
@@ -19,7 +18,7 @@ sp-std = { workspace = true }
 sp-core = { workspace = true }
 sp-io = { workspace = true }
 sp-runtime = { workspace = true }
-parity-scale-codec = { workspace = true }
+sp-staking = { workspace = true }
 
 
 environmental = { workspace = true }
@@ -28,7 +27,6 @@ environmental = { workspace = true }
 default = ["std"]
 std = [
     "precompile-utils/std",
-    "pallet-nomination-pools/std",
 
     "evm/std",
     "fp-evm/std",
@@ -40,7 +38,5 @@ std = [
     "sp-std/std",
     "sp-core/std",
     "sp-io/std",
-    "parity-scale-codec/std",
 ]
-
 
