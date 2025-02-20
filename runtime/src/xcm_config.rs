@@ -18,8 +18,9 @@
 
 use super::{
     AccountId, Balances, Dmp, ParaId, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-    TransactionByteFee, Treasury, XcmPallet, CENTS,
+    TransactionByteFee, Treasury, XcmPallet,
 };
+use crate::constants::currency::MILLI_ATLA;
 use frame_support::{
     parameter_types,
     traits::{Contains, Everything, Get, Nothing, OriginTrait},
@@ -52,7 +53,7 @@ parameter_types! {
     /// The asset ID for the asset that we use to pay for message delivery fees.
     pub FeeAssetId: AssetId = AssetId(TokenLocation::get());
     /// The base fee for the message delivery fees.
-    pub const BaseDeliveryFee: u128 = CENTS.saturating_mul(3);
+    pub const BaseDeliveryFee: u128 = (10 * MILLI_ATLA).saturating_mul(3);
 }
 
 pub type LocationConverter = (
