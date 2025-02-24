@@ -25,8 +25,8 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
-        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
+        IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -54,8 +54,7 @@ use frame_support::{
     parameter_types,
     traits::{
         ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, EqualPrivilegeOnly, FindAuthor,
-        KeyOwnerProofSystem, OnFinalize, ProcessMessage,
-        ProcessMessageError,
+        KeyOwnerProofSystem, OnFinalize, ProcessMessage, ProcessMessageError,
     },
     weights::{
         constants::{BlockExecutionWeight, ExtrinsicBaseWeight, WEIGHT_REF_TIME_PER_MILLIS},
@@ -805,11 +804,11 @@ parameter_types! {
 
 pallet_staking_reward_curve::build! {
     const REWARD_CURVE: PiecewiseLinear<'static> = curve!(
-        min_inflation: 0_025_000,
-        max_inflation: 0_100_000,
-        ideal_stake: 0_500_000,
-        falloff: 0_050_000,
-        max_piece_count: 40,
+        min_inflation: 0_030_000,
+        max_inflation: 0_040_000,
+        ideal_stake: 0_600_000,
+        falloff: 0_015_000,
+        max_piece_count: 50,
         test_precision: 0_005_000,
     );
 }
