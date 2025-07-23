@@ -28,8 +28,9 @@ def main():
     if args.envfile:
         write_dotenv(accounts, session_keys, args.envfile)
     
-    # Always generate keys.env with session keys
-    write_session_keys_env(session_keys, "keys.env")
+    # Always generate keys.env with session keys and root account
+    root_account = next((acc for acc in accounts if acc["name"] == "root"), None)
+    write_session_keys_env(session_keys, "keys.env", root_account)
 
 
 def parse_args():
@@ -164,11 +165,17 @@ def seed_to_hex(seed):
     return "0x" + binascii.hexlify(seed).decode('utf-8')
 
 
-def write_session_keys_env(session_keys, filepath):
+def write_session_keys_env(session_keys, filepath, root_account=None):
     """Write session keys in the requested format to keys.env"""
     with open(filepath, 'w') as file:
-        file.write("# Session keys for validators\n")
+        file.write("# Session keys for validators and root account\n")
         file.write("# Generated automatically - do not edit manually\n\n")
+        
+        # Add root account if provided
+        if root_account:
+            file.write("# root\n")
+            file.write(f'ROOT_PRIVATE="{root_account["seed"]}"\n')
+            file.write(f'ROOT_PUBLIC="{root_account["public"]}"\n\n')
         
         for keys in session_keys:
             validator_name = keys['name'].upper()
