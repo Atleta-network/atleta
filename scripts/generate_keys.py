@@ -12,31 +12,24 @@ import nacl.encoding
 def main():
     args = parse_args()
     mnemonic = args.mnemonic
-    names = [
-        "lionel", # root
-        "diego",
-        "diego//stash",
-        "pele",
-        "pele//stash",
-        "franz",
-        "franz//stash",
-        "johan",
-        "ronaldo",
-        "zinedine",
-        "cristiano",
-        "michel",
-        "roberto",
-    ]
+    
+    # Root and validator accounts
+    validator_names = [f"validator{i}" for i in range(1, 16)]  # validator1 to validator15
+    names = ["root"] + validator_names
+    
     accounts = generate_accounts(mnemonic, names)
     if not args.quiet:
         print_accounts(accounts)
     
-    session_keys = generate_session_keys(mnemonic, ["diego", "pele", "franz"])
+    session_keys = generate_session_keys(mnemonic, validator_names)
     if not args.quiet:
         print_session_keys(session_keys)
 
     if args.envfile:
         write_dotenv(accounts, session_keys, args.envfile)
+    
+    # Always generate keys.env with session keys
+    write_session_keys_env(session_keys, "keys.env")
 
 
 def parse_args():
@@ -130,8 +123,7 @@ def generate_session_key(mnemonic, name, code, scheme):
 
     pair = {}
     pair["seed"] = get_from_subkey_out("Secret seed", output)
-    pair["public"] = get_from_subkey_out("Public key \(hex\)", output)
-
+    pair["public"] = get_from_subkey_out("Public key \\(hex\\)", output)
 
     return pair
 
@@ -170,6 +162,25 @@ def seed_to_eth_address(seed):
 
 def seed_to_hex(seed):
     return "0x" + binascii.hexlify(seed).decode('utf-8')
+
+
+def write_session_keys_env(session_keys, filepath):
+    """Write session keys in the requested format to keys.env"""
+    with open(filepath, 'w') as file:
+        file.write("# Session keys for validators\n")
+        file.write("# Generated automatically - do not edit manually\n\n")
+        
+        for keys in session_keys:
+            validator_name = keys['name'].upper()
+            file.write(f"# {keys['name']}\n")
+            
+            # Write keys in specific order: BABE, GRAN, IMON, PARA, ASGN, AUDI, BEEF
+            for code in ["babe", "gran", "imon", "para", "asgn", "audi", "beef"]:
+                code_upper = code.upper()
+                file.write(f'{validator_name}_{code_upper}_PRIVATE="{keys[code]["seed"]}"\n')
+                file.write(f'{validator_name}_{code_upper}_PUBLIC="{keys[code]["public"]}"\n')
+            
+            file.write("\n")
 
 
 def write_dotenv(accounts, session_keys, filepath):
