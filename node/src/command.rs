@@ -95,17 +95,7 @@ where
     // By default, enable BEEFY on all networks, unless explicitly disabled through CLI.
     let enable_beefy = !cli.run.no_beefy;
 
-    let jaeger_agent = if let Some(ref jaeger_agent) = cli.run.jaeger_agent {
-        Some(
-            jaeger_agent
-                .to_socket_addrs()
-                .map_err(Error::AddressResolutionFailure)?
-                .next()
-                .ok_or_else(|| Error::AddressResolutionMissing)?,
-        )
-    } else {
-        None
-    };
+
 
     let node_version =
         if cli.run.disable_worker_version_check { None } else { Some(NODE_VERSION.to_string()) };
@@ -128,7 +118,7 @@ where
                 is_parachain_node: polkadot_service::IsParachainNode::No,
                 enable_beefy,
                 force_authoring_backoff: cli.run.force_authoring_backoff,
-                jaeger_agent,
+
                 telemetry_worker_handle: None,
                 node_version,
                 secure_validator_mode,

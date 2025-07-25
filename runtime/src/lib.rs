@@ -110,7 +110,7 @@ use xcm::{
     opaque::v4::Junction, IntoVersion, VersionedAssetId, VersionedAssets, VersionedLocation,
     VersionedXcm,
 };
-use xcm_fee_payment_runtime_api::Error as XcmPaymentApiError;
+
 
 // Local imports
 use constants::{currency::*, time::*};
@@ -212,7 +212,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("atleta"),
     impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
-    spec_version: 100,
+    spec_version: 105,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 3,
@@ -1077,7 +1077,7 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+const MAX_POV_SIZE: u64 = 15 * 1024 * 1024;
 
 parameter_types! {
     pub BlockGasLimit: U256 = U256::from(BLOCK_GAS_LIMIT);
@@ -2362,36 +2362,7 @@ impl_runtime_apis! {
         }
     }
 
-    impl xcm_fee_payment_runtime_api::XcmPaymentApi<Block> for Runtime {
-        fn query_acceptable_payment_assets(xcm_version: xcm::Version) -> Result<Vec<VersionedAssetId>, XcmPaymentApiError> {
-            if !matches!(xcm_version, 3 | 4) {
-                return Err(XcmPaymentApiError::UnhandledXcmVersion);
-            }
-            Ok([VersionedAssetId::V4(xcm_config::TokenLocation::get().into())]
-                .into_iter()
-                .filter_map(|asset| asset.into_version(xcm_version).ok())
-                .collect())
-        }
 
-        fn query_weight_to_asset_fee(weight: Weight, asset: VersionedAssetId) -> Result<u128, XcmPaymentApiError> {
-            let local_asset = VersionedAssetId::V4(xcm_config::TokenLocation::get().into());
-            let asset = asset
-                .into_version(4)
-                .map_err(|_| XcmPaymentApiError::VersionedConversionFailed)?;
-
-            if  asset != local_asset { return Err(XcmPaymentApiError::AssetNotFound); }
-
-            Ok(<IdentityFee<Balance> as WeightToFee>::weight_to_fee(&weight))
-        }
-
-        fn query_xcm_weight(message: VersionedXcm<()>) -> Result<Weight, XcmPaymentApiError> {
-            XcmPallet::query_xcm_weight(message)
-        }
-
-        fn query_delivery_fees(destination: VersionedLocation, message: VersionedXcm<()>) -> Result<VersionedAssets, XcmPaymentApiError> {
-            XcmPallet::query_delivery_fees(destination, message)
-        }
-    }
 
     #[cfg(feature = "runtime-benchmarks")]
     impl frame_benchmarking::Benchmark<Block> for Runtime {

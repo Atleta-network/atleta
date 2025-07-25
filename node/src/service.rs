@@ -89,21 +89,7 @@ pub fn open_database(db_source: &DatabaseSource) -> Result<Arc<dyn Database>, Er
 /// Initialize the `Jeager` collector. The destination must listen
 /// on the given address and port for `UDP` packets.
 #[cfg(any(test, feature = "full-node"))]
-fn jaeger_launch_collector_with_agent(
-    spawner: impl SpawnNamed,
-    config: &Configuration,
-    agent: Option<std::net::SocketAddr>,
-) -> Result<(), Error> {
-    if let Some(agent) = agent {
-        let cfg = jaeger::JaegerConfig::builder()
-            .agent(agent)
-            .named(&config.network.node_name)
-            .build();
 
-        jaeger::Jaeger::new(cfg).launch(spawner)?;
-    }
-    Ok(())
-}
 
 pub const AVAILABILITY_CONFIG: AvailabilityConfig = AvailabilityConfig {
     col_data: crate::parachains_db::REAL_COLUMNS.col_availability_data,
@@ -357,7 +343,7 @@ pub async fn new_full<
     polkadot_service::NewFullParams {
         is_parachain_node,
         enable_beefy,
-        jaeger_agent,
+
         overseer_gen,
         overseer_message_channel_capacity_override,
         malus_finality_delay: _malus_finality_delay,
@@ -418,7 +404,7 @@ pub async fn new_full<
             ),
     } = new_partial(&config, &eth_config, build_import_queue)?;
 
-    jaeger_launch_collector_with_agent(task_manager.spawn_handle(), &config, jaeger_agent)?;
+
 
     let select_chain = if auth_or_collator {
         let metrics =

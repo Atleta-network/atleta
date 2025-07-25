@@ -41,8 +41,7 @@ pub enum Error {
     #[error(transparent)]
     Telemetry(#[from] sc_telemetry::Error),
 
-    #[error(transparent)]
-    Jaeger(#[from] polkadot_node_jaeger::JaegerError),
+
 
     #[cfg(feature = "full-node")]
     #[error(transparent)]
@@ -138,11 +137,7 @@ pub struct RunCmd {
     #[arg(long)]
     pub force_authoring_backoff: bool,
 
-    /// Add the destination address to the 'Jaeger' agent.
-    ///
-    /// Must be valid socket address, of format `IP:Port` (commonly `127.0.0.1:6831`).
-    #[arg(long)]
-    pub jaeger_agent: Option<String>,
+
 
     /// Add the destination address to the `pyroscope` agent.
     ///
