@@ -22,15 +22,11 @@ use sp_runtime::{
 use atleta_runtime::FaucetConfig;
 use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
-    Block, ConfigurationConfig, EVMChainIdConfig, ElectionsConfig, MaxNominations,
-    NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig,
-    Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig,
-    BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
+    Block, ConfigurationConfig, EVMChainIdConfig, MaxNominations, NominationPoolsConfig,
+    RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig,
+    SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
-
-// Parachain
-use crate::chain_spec::mainnet_keys::ValidatorKeys;
 use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
 
 /// Node `ChainSpec` extensions.
@@ -106,7 +102,7 @@ pub fn devnet_config() -> ChainSpec {
                 // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
-                .expect("Invalid genesis config"),
+            .expect("Invalid genesis config"),
         )
         .build()
 }
@@ -180,23 +176,21 @@ fn testnet_genesis(
     initial_nominators: Vec<AccountId>,
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
-    // endow all authorities and nominators.
     initial_authorities
         .iter()
         .map(|x| [&x.id, &x.stash])
         .chain(initial_nominators.iter().map(|x| [x, x]))
         .for_each(|x| {
-           for i in x {
-               if !endowed_accounts.contains(&i) {
-                   endowed_accounts.push(*i)
-               }
-           }
+            for i in x {
+                if !endowed_accounts.contains(i) {
+                    endowed_accounts.push(*i)
+                }
+            }
         });
 
     let num_endowed_accounts = endowed_accounts.len();
 
-    // stakers: all validators and nominators.
-    const ENDOWMENT: Balance = 1_000_000 * DOLLARS;
+    const ENDOWMENT: Balance = 1_000_000 * UNITS;
     const STASH: Balance = ENDOWMENT / 1000;
     let mut rng = rand::thread_rng();
     let stakers = initial_authorities
@@ -240,17 +234,9 @@ fn testnet_genesis(
             invulnerables: initial_authorities.iter().map(|x| x.id).collect::<Vec<_>>(),
             slash_reward_fraction: Perbill::from_percent(10),
             stakers: stakers.clone(),
-            min_nominator_bond: 10 * DOLLARS,
-            min_validator_bond: 1_000 * DOLLARS,
+            min_nominator_bond: 10 * UNITS,
+            min_validator_bond: 1_000 * UNITS,
             ..Default::default()
-        },
-        elections: ElectionsConfig {
-            members: endowed_accounts
-                .iter()
-                .take((num_endowed_accounts + 1) / 2)
-                .cloned()
-                .map(|member| (member, STASH))
-                .collect::<Vec<_>>(),
         },
         technical_committee: TechnicalCommitteeConfig {
             members: endowed_accounts
@@ -262,45 +248,27 @@ fn testnet_genesis(
         },
         evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
         nomination_pools: NominationPoolsConfig {
-            min_create_bond: 10 * DOLLARS,
-            min_join_bond: DOLLARS,
+            min_create_bond: 10 * UNITS,
+            min_join_bond: UNITS,
             ..Default::default()
         },
         #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
-        faucet: FaucetConfig { initial_balance: 1_000_000 * DOLLARS },
+        faucet: FaucetConfig { initial_balance: 1_000_000 * UNITS },
         ..Default::default()
     }
 }
 
 pub fn stagenet_config() -> ChainSpec {
     ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
-        .with_name("Atleta mainnet")
-        .with_id("mainnet")
+        .with_name("Stagenet")
+        .with_id("stagenet")
         .with_chain_type(ChainType::Live)
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(mainnet_genesis(
-                mainnet_keys::sudo_account(),
-                mainnet_keys::validators(),
-                mainnet_keys::prefunded(),
-                SS58Prefix::get() as u64,
-            ))
-                .expect("Invalid genesis config"),
-        )
-        .build()
-}
-
-pub fn mainnet_config() -> ChainSpec {
-    ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
-        .with_name("Atleta mainnet")
-        .with_id("mainnet")
-        .with_chain_type(ChainType::Live)
-        .with_properties(properties())
-        .with_genesis_config(
-            serde_json::to_value(mainnet_genesis(
-                mainnet_keys::sudo_account(),
-                mainnet_keys::validators(),
-                mainnet_keys::prefunded(),
+                stagenet_keys::sudo_account(),
+                stagenet_keys::validators(),
+                stagenet_keys::prefunded(),
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -308,15 +276,32 @@ pub fn mainnet_config() -> ChainSpec {
         .build()
 }
 
-// TODO: add technical committee
+pub fn mainnet_config() -> ChainSpec {
+    ChainSpec::builder(WASM_BINARY.expect("WASM not found"), Default::default())
+        .with_name("Atleta")
+        .with_id("mainnet")
+        .with_chain_type(ChainType::Live)
+        .with_properties(properties())
+        .with_genesis_config(
+            serde_json::to_value(mainnet_genesis(
+                mainnet_genesis::sudo_account(),
+                mainnet_genesis::validators(),
+                mainnet_genesis::technical_allocation(),
+                SS58Prefix::get() as u64,
+            ))
+            .expect("Invalid genesis config"),
+        )
+        .build()
+}
+
 fn mainnet_genesis(
     sudo_key: AccountId,
     validators_keys: Vec<ValidatorKeys>,
     initial_balances: impl IntoIterator<Item = (AccountId, Balance)>,
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
-    const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * DOLLARS;
-    const STASH_INITIAL_BALANCE: Balance = 25_000 * DOLLARS;
+    const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * UNITS;
+    const STASH_INITIAL_BALANCE: Balance = 75_000 * UNITS;
 
     let mut initial_balances = BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
 
@@ -342,8 +327,8 @@ fn mainnet_genesis(
             invulnerables: validators_keys.iter().map(|x| x.id).collect::<Vec<_>>(),
             slash_reward_fraction: Perbill::from_percent(5),
             stakers,
-            min_nominator_bond: 1_000 * DOLLARS,
-            min_validator_bond: 5_000 * DOLLARS,
+            min_nominator_bond: 1_000 * UNITS,
+            min_validator_bond: 75_000 * UNITS,
             ..Default::default()
         },
         session: SessionConfig {
@@ -358,21 +343,13 @@ fn mainnet_genesis(
                 })
                 .collect::<Vec<_>>(),
         },
-        technical_committee: mainnet_keys::technical_committee_config(),
-        elections: ElectionsConfig {
-            members: validators_keys
-                .iter()
-                .take((validators_keys.len() + 1) / 2)
-                .cloned()
-                .map(|member| (member.id, STASH_INITIAL_BALANCE))
-                .collect::<Vec<_>>(),
-        },
+        technical_committee: mainnet_genesis::technical_committee_config(),
         nomination_pools: NominationPoolsConfig {
-            min_join_bond: 100 * DOLLARS,
-            min_create_bond: 100 * DOLLARS,
+            min_join_bond: 100 * UNITS,
+            min_create_bond: 1_000 * UNITS,
             ..Default::default()
         },
-        council: mainnet_keys::council_config(),
+        council: mainnet_genesis::council_config(),
         evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
         ..Default::default()
     }
@@ -412,7 +389,6 @@ mod devnet_keys {
 
 mod testnet_keys {
     use super::*;
-    use crate::chain_spec::mainnet_keys::ValidatorKeys;
 
     pub(super) fn lionel() -> AccountId {
         AccountId::from(hex!("08e390762f64ABA6F9F9269589e1A702623e90F1"))
@@ -561,280 +537,72 @@ mod testnet_keys {
 }
 
 #[rustfmt::skip]
-mod mainnet_keys {
-    use atleta_runtime::CouncilConfig;
+mod stagenet_keys {
     use super::*;
 
     pub fn sudo_account() -> AccountId {
-        AccountId::from(hex!("a9a55e9de3c8d70c9f1107b58e33070fa816335c"))
+        AccountId::from(hex!("937FecD86668311a03d3CbC6fEeeD5262d77D112"))
     }
 
     pub fn prefunded() -> Vec<(AccountId, Balance)> {
+        const INITIAL_TREASURY_ALLOCATION: Balance = 290_770_000 * UNITS;
+        const INITIAL_LIQUIDITY_ALLOCATION: Balance = 933_000_000 * UNITS;
+        const INITIAL_STAKING_ALLOCATION: Balance = 670_800_000 * UNITS;
+        const INITIAL_LIQUIDITY_RESERVES_ALLOCATION: Balance = 1_105_200_000 * UNITS;
+        const INITIAL_SUDO_ACCOUNT_ALLOCATION: Balance = 5_000 * UNITS;
+
         vec![
-            (sudo_account(), 3_000_000_000_000 * DOLLARS),
+            (sudo_account(), INITIAL_SUDO_ACCOUNT_ALLOCATION),
+            (technical_addresses::treasury(), INITIAL_TREASURY_ALLOCATION),
+            (technical_addresses::liquidity_reserves(), INITIAL_LIQUIDITY_RESERVES_ALLOCATION),
+            (technical_addresses::liquidity(), INITIAL_LIQUIDITY_ALLOCATION),
+            (technical_addresses::staking_rewards(), INITIAL_STAKING_ALLOCATION),
         ]
     }
 
-    pub fn council_config() -> CouncilConfig {
-         CouncilConfig {
-            members: vec![
-                AccountId::from(hex!("85fc1309AcD66a3a6109487980D3e186B5718D51")),
-                AccountId::from(hex!("881fe63dfEE7611CC005e2b0e4577B8c3BF0D478")),
-                AccountId::from(hex!("7c7e63c46e4E1cC71a759f591197A26A98a6146b")),
-                AccountId::from(hex!("ccfe5bb109F0abCdAF88Ecf3e6C8ac22Fa66b389")),
-            ],
-            ..Default::default()
-        }
-    }
-
-    pub fn technical_committee_config() -> TechnicalCommitteeConfig {
-        TechnicalCommitteeConfig {
-            members: vec![
-                AccountId::from(hex!("79A65ccb3daA8389Ea4669406f2439acBAeAC5d4")),
-                AccountId::from(hex!("9dc4DaaBEB464Ca48e1f0Be5497DFc395a8FE1Fb")),
-            ],
-            ..Default::default()
-        }
-    }
-
-    #[derive(Clone)]
-    pub struct ValidatorKeys {
-        pub id: AccountId,
-        pub stash: AccountId,
-        pub babe: BabeId,
-        pub grandpa: GrandpaId,
-        pub im_online: ImOnlineId,
-        pub para_validator: ValidatorId,
-        pub para_assignment: AssignmentId,
-        pub authority_discovery: AuthorityDiscoveryId,
-        pub beefy: BeefyId,
-    }
-
-    impl From<ValidatorKeys> for SessionKeys {
-        fn from(val: ValidatorKeys) -> SessionKeys {
-            SessionKeys {
-                babe: val.babe,
-                grandpa: val.grandpa,
-                im_online: val.im_online,
-                para_validator: val.para_validator,
-                para_assignment: val.para_assignment,
-                authority_discovery: val.authority_discovery,
-                beefy: val.beefy,
-            }
-        }
-    }
-
     pub fn validators() -> Vec<ValidatorKeys> {
-        vec![validator_1(), validator_2(), validator_3(), validator_4(), validator_5(), validator_6(), validator_7(), validator_8(), validator_9(), validator_10(), validator_11(), validator_12(), validator_13(), validator_14(), validator_15(),]
+        vec![validator_1(), validator_2(), validator_3()]
     }
 
     pub fn validator_1() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("85fc1309AcD66a3a6109487980D3e186B5718D51")),
-            stash: AccountId::from(hex!("7c7e63c46e4E1cC71a759f591197A26A98a6146b")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("5cafb59804791ef43e5f9f896b11a9d708b15d5e244ff2395f6ae4434546642f")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("e3ae18d25daca40e780b86058c035b9ae2d49375d82ac731c7943149eb05b39e")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("7e5a67c3c9aa779818315147c12611a21f93c4f73a775d9f8086ba0674fa3378")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("807e850968725bf7357b4304f9c5bad06210b91d075c25049265ae6e6688bd7a")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("e658bcfd3c0fa580fdce24d4eb4160e259e9598c703c07796f794240a478e276")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("080a82e2e94248255fe064ed4c1e613467b938fffe2aa943d2f5e2e3fa912b79")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0377c4adfc1777059fa2c5d18ef1e3d70eddc4247a42c34de1d736434636e95512")).into(),
+            id:    AccountId::from(hex!("04d1191600fa259ddD2b5bED9F81015b4b68c014")),
+            stash: AccountId::from(hex!("05564c8dF908539a2e496C7ddb2F41B8b2beFCaa")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("24e7fb09be5c771d5817efc33b0fe1196b4c252c71d558cf17a91d6a61f09d49")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("24914446bad39a3f95253adca2eab197ec34394526d022a363786d064f0e908b")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("9e9ae326252709d58daa5b9f19f6212fdd052b0c30d96f7cdabc116cf31dc648")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("523604ab6c9ef09e44b92cdf06397b8bbe9698daca1c364e41adc5c81fa63221")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("94d563b742e04c56e503c98d72c876f60cffdbd8ed980154197c79260da6b00c")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("aee3875f768b33a0a868ae7c6e6b09a7cd89435111162fd5d902a62ac9ac9b3f")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("024e7f30da63df3b319aecfe4356e1c7c32f1f70c15b6420825572aeab2d555696")).into(),
         }
     }
 
     pub fn validator_2() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("881fe63dfEE7611CC005e2b0e4577B8c3BF0D478")),
-            stash: AccountId::from(hex!("ccfe5bb109F0abCdAF88Ecf3e6C8ac22Fa66b389")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("42ff20efa85dd4fab0bbf5646199abdc8343e39de7f379c13fba234d1479ad21")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("434df421db06739df7d7df50ce433590f2b0a813c83a1883fb3669208fdf71cc")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("f6c4cd45e5fde3187a4946de21c5da413a7065534640e62e9919f8beb41df82d")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("40311d2d9855b0ca10af89cc42936d4b22795b79ff638a2853cefe829b14d407")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("4e7901e11e009918c7e0b359b3b39a3ff628ea4e925cd699c5831f4dfc602319")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("d42b8f99b172d493f9a1a4c3a233fe6083ec1cfb6b3431d865037f77bc543238")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0364b8445825d88c0429db6217e6032f77afa22292acec927fa69cd3abce86888f")).into(),
+            id:    AccountId::from(hex!("3619acB32a35eb4cb2604FB5F5fFfcee1A690734")),
+            stash: AccountId::from(hex!("A5Fbd0509079e75c70815A050dC4c0e5F27E3c9b")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("3885bf307307e04ec3554c8840dc7dae749172072897037bf176c897e97b6837")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("6f83d51bad7cd39ef9601c385750cf4e722059f5dfb492614c0fd353a0eb5862")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("20f894e171e4dc99b2eb85a3b1f9a443de6ea450ffbadd2cd2f302604246503f")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("52734cc800decf712ab42aa51cd2ee6764f59ba295d584c915690b6d80594440")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("3485f1a3601a0c3767b9180fd7d84389235f54587254be542f69b021dd5b6151")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("fabb5cdaec93e96dd0b7b7673d8e79a0af9d60abc1d2e4ec9d143dc8a15dcc5b")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("037ad4ca3ebf0c55e9a47ca49cc43a110d2fe1f24ac5d72db288ab5788560093ab")).into(),
         }
     }
 
     pub fn validator_3() -> ValidatorKeys {
         ValidatorKeys {
-            id:    AccountId::from(hex!("2e174dF22216994733837135D477E43D9176157a")),
-            stash: AccountId::from(hex!("b7Ceed556A295F3b6eDad9084ba075888C1cCf5A")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("107b419f99f2bf1c2731a4c31aaecdad4b59f2389699f331df8c41ace255191f")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("2f32c7cbcd3c665c8b0283a9b33509b71b1d2ee318c65eb8d4e4721cfa1bf353")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("ba4fa81bae920bb75f47a483603fddfddcce66b3efff3ede4aaa78c0fbf5e864")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("d257ab4efd39866f4f35ea523963335141295a4c2dfd6e7e4ccea381e7ac1101")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("02a4e4ad0375491b61551a0a12ad91bc20870def930f1f0ead8c48476fac8c5d")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("669622b3918179bda9c7656500ed81bedfe02afb98d8050ae15ee02c6fdaa74d")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("03e9dd7c1021e1518fc9e149456f8958cc4c0fb81059a87712e4931b188c67ae6d")).into(),
-        }
-    }
-
-    pub fn validator_4() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("D65393Ec3293dcFDA18F479A150423a9e55f404C")),
-            stash: AccountId::from(hex!("879c617Bb9017a9B796341172619d7d078543a55")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("fe3a0bd3299212cccd9d05789ffc7fabd31fb9e213b91aa338104fb859cd841a")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("a1a18c53addecb5694ccdaecc8c0dc048da3a1b571a7ecd652b19203e8de8665")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("64154a027538831e5fa405980639857a108540a06ddac783d641a249031c685d")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("ba3df39921c430f97c3ace3aef2ae09e185654dd81d370adc6983232a6e09043")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("52440315c82dfe44f48cc75a9b3ee61f3b4837a4c2bd129bf65304e366211635")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("46c924fb6758d229300834682dd8e15378a0fe05db9a20f3d75ea9e79d02ca79")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("03e4a6649ce9875c0bcd3fa8800fcabac3c8b3b47128c22124155b855da0dba83b")).into(),
-        }
-    }
-
-    pub fn validator_5() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("8AB443430fa99B3fd8d5FD6EF295185c5d8b8935")),
-            stash: AccountId::from(hex!("dd3357c6f8753AB3906CECc7F54aA6e852F39763")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("bed6a5baf8afe333b740f387cb457e8befebbe6512d8cd4f8288998ad802ac09")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("1235d22b3f3c1a40709ff3217fbc735d1d360ed28a3ce4cdd47565fa92604a52")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("7e0aaf255400f30177f658a7a9837fd3ad7cf46396c27feaee648f3fe865727a")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("8a7c33acd91697a7d7ed68a0330f519fdde235e8dbf18b7544168e1b26da8a0e")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("d0204ced862f962035f6a644851c0b67fb50edcf41202f3639a4a76749b9e232")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("ccdb2092922257e6c2f3ec85a45d0640bad236008bdbc7a6ebf4dd8a0df0e579")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("035a75bc67bef1e4787e5bbf1defa382126d5ebce2ada94c56fc97a7aba707d2d2")).into(),
-        }
-    }
-
-    pub fn validator_6() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("6ad59e267AaD56F3Afba683183a50CF7d23F84b7")),
-            stash: AccountId::from(hex!("4B79B51a894Af77831D28d94a3704CA03c624bD7")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("66accdac232812089280c4fb37798e773706d51ef25db5b4fe6057d60b816f1b")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("63c026f71a62279ba405e0338e13976ff17b46ac71995f9d51fb1bc21eb3c289")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("7682c1ab5ec0869acf2b0e338bda0f7b7c47c98165aff9220c43135d0ad8884a")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("12c5ce15aec11625c73a17be7fa586bc698b80e391b17da0a447cf7db6b8aa04")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("ae90e9bc5b558339a191c92843d541117ed08af9d21bb8a295c91bec53a68511")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("50b28446c1e8145883b34c91f8dd72c0d29c355b5624bed1ea57e6388132c701")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("03da57fabfbcb95ec77163509d59572ddc11c1f7da4afe74926a3dbb86f251ba9a")).into(),
-        }
-    }
-
-    pub fn validator_7() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("8fd60f3aA39eA47b7975556991D20Ca2ee0Ec093")),
-            stash: AccountId::from(hex!("f656C659eF034795DDBFb2A2e6D2B2ac33136B73")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("505945405ab860d9713286b85f9a963e031289246984550c1d5ea9c550f98977")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("843a3944616109213a8ee6988ad5709a0893ae5a7f1a28a939d3df3d63f1d828")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("4085bc1ef3e46f86908ac8504c1d0b709cc5779087254a0593d6c22bf496c011")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("72f579443a54fbf246f2aa865c6f87c72e722f408096ea87c06eccdfeff30e09")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("d65ac005e8f4f539030748338552ec7b63246df9bf2b762b4315052d25c6af05")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("aa15fa02de7b51a92d69e0dc30e82016c3768898978edcca2cfb356df3078326")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("02e8bc1cffd3d5cf4216c47b6be40399a97dd5e276a392e642d5003a75993477fa")).into(),
-        }
-    }
-
-    pub fn validator_8() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("b77bb935Eb52d827ad60730C68BB9553f588a41a")),
-            stash: AccountId::from(hex!("9f7200a5bA24608f52fd66d90E6ae1EDead5165A")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("6a6348af0c69ff5b23ca73b993656cc9337e679d9ef4380d1d31d5bcf7deec78")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("6617813a31e91507211dfbedf82f1ddb73327e06ba060c3e90f24895c82831b8")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("4204171d356dab2baee09175684f78f05f88a5d85f2f838f50acae2b307f8f27")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("34e966d72111c6aedcd9a7cdb7239c422ba522be6f11116d94bf776ba6e46575")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("d4bd278426b0acc51a12383e4999a5fff63cc9b9a2d29bd61d984401e7a57713")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("64c94dbc6b5ba2c8968032f501bb6b4c29b1b4152e64f5640b642c3b2a54fe4b")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("038280402193436973a34b73466955ee3f539f8bd8d3654bc619c9de8ccd307a25")).into(),
-        }
-    }
-
-    pub fn validator_9() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("3D5FD02d9CCD7dfd3cF647F766836B6eeaBe8756")),
-            stash: AccountId::from(hex!("2aac7fd8461728Abd28a1979eD1f5d896901237D")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("48d5689e3ed5bc0410416a96d72f1931d28afb828dabcebc6a036fdeab915c5e")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("5209cefd931f47de71ee7c74b5982052b9bdd021a7846a3914586417515a2d05")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("3c50af70d043a87421fb7006fa8253889f4e3bdbd5aef1f485f00cd05981b72a")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("660f9741985e1c1e63fb4c03b03f78b96e872616a6f7929980be82314756962f")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("2c39422d43378f34d516d90221e4ea9c6a61b2b39fbe3edcf273c2b7668ac61a")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("52d2890bbecd3d02f377a0a9e187fa437185dae485cb04019be8f0b79422f605")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("032d2d5f0813ae81587bd09e738ab715b2d4c0d719369ea4dc81e8623fd3691415")).into(),
-        }
-    }
-
-    pub fn validator_10() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("E24200FBad898Caf3775eE45051A30bB561b68E8")),
-            stash: AccountId::from(hex!("b79A65AEBAc46050Fb77f541f2673c58E1D7D618")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("1e2a2d029753aaca7c0ba169ef20e502eaa532750371327b2f2352c9f2475924")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("3cf39355b9679ec48a79fcdc9ffed1594dbb4f198988c8a797005a6c7efa0c6a")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("6473a1203d0b0fcf568b36ba1f9f5665dad01fc9e9be57fa42d5f572233c840e")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("aa03037c4db1605c902f6ad170f1a0d722bacde506a3330b537a99490696704f")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("94a744182bc09712438abb1c6bc5e4ae8d4950e768acfa7da4b103b2fdd3512d")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("3e32284750e78cf0abc0e108a7cbf6d31d81991b335592e12b5e0c652f41981a")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("020ea94f1675ea92f9efaf3cce8d45cb52e93b5bf98e3ffd2d0e87e4781860e483")).into(),
-        }
-    }
-
-    pub fn validator_11() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("A7e631085f3c0E49002A29F366db133E50595068")),
-            stash: AccountId::from(hex!("f015862613dB2340b0c983d295D8c969A5e5E9dA")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("c823d3e5c8ac2b9074099699d46367332535498fd0d4408643673e2786556a57")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("b9842fa608dc56c7dbd091bda22d42cc776bdb33ec24987964a52894da0738bc")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("6095d9a2c6fbba29a5ffa0826f65aed6415c68b99b5f06344b4937ea24e5e37b")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("82e481a14899933f6b8384f7486e8e0592355506821dda912ea1bd9076dc887e")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("a685cd88bd30d372f4b02b082450bf879daef02c0cad39ea74bb5609a139757c")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("cc44d7412063a4e22a53a7c875401f5299bdc7c033b64a4763a14f0a96cdbd47")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("032ecf253d7d976c3e61d54ad8b9441b7f9db13a0b6ae9a6d6118bd2b58f78a046")).into(),
-        }
-    }
-
-    pub fn validator_12() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("D41c0Db25c1B85B12c64Ae6e706C691e867f432F")),
-            stash: AccountId::from(hex!("5feF6c771F0b1132C42cB32ddd7aEA38af1f4548")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("72f96c90a981039bc1954ad6d9eac4cd689ab828d46d4e4f6e93a9e55b668f3e")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("5421399c8054c6a7c3109f1c6eca4cf08925b81d947c12c18466c9d992c149b5")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("a02a5d34ecf550cce15b33d1cb4882598f3475fbb919ca8f8143c165a7e7e93f")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("462b62b35e5c1729825dfd6be4950f12d4509aaf252d74a3bfc4dcf340a64250")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("7c8ede8308f32559e1eb84a1dc66d80a7e081248a5b0e9629e58d8c4f3ea2416")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("c46857ac2f9fe256a3e208ddc4cb69aff029546b47694dc89e7dcd53f58a1d27")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("03d714d001a3f28da04ab341f69213d0f923c8a18a7227130ab909fb02c8f73796")).into(),
-        }
-    }
-
-    pub fn validator_13() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("937Fc6E28689570e1851e2388FB2B3B286D22b88")),
-            stash: AccountId::from(hex!("9a136DAd9CA9f895411aA5AdBD4bA0d6a0F145B8")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("eed39615624af5596a033333a63321dfeb688a2bd4390a1dfe1d4b09cef04357")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("54fc0918b2f86f74c6de8220d5f133cc2b536c211fe6d6a16defb8b30902baf2")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("ea5e5e43b73b120de6216ad524b0b86e30b5329c2817f0494ec8a9738de36626")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("c47da15b3424db9d94629260c364cfd938e4a6b961eca250d82c401735df5509")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("064605209e359b400548cb6ae8b5e7b83376f5da9d99c901f9f04b88babdf632")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("36e561cf7ccb2ba2e463ddf27f37a8ae7ef98a16dbf2501f9a46e8316ed9ea2c")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("02ec5c45c1b7ea5e72e5ace360d470ab0630f34be9f3377ab026a3ef4f157fce5b")).into(),
-        }
-    }
-
-    pub fn validator_14() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("79A65ccb3daA8389Ea4669406f2439acBAeAC5d4")),
-            stash: AccountId::from(hex!("348c4bB70F10200C7AfF6A2712987c82Bf25E7C3")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("68ee4d167ad36a319fba5282ee64c5494092c661451131071bc20399e159a239")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("5afd0ffa37489fc4da7fda3db87bc4f5ba2d2bd467a82ad6642257832c7ee8de")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("de19f7029d12083a677a563cb643f8d56c3114474d8a8d1892ef8f179612d738")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("6c2674686c2270901620e9b3ae36a2ea835afa53d065a87baa6d060573b3171e")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("cabd04f55fb158c227241b9921f58c522d3869c47f3929589692fde6c98ff338")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("5606a70929def2f52e1d73167c8d8d9cf2fc85587f7b3f01b04b09259b076e6a")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0341a742d08d3c6d98a5b4ef44a88247215c07c4e645f94da4dc9146e730eab7af")).into(),
-        }
-    }
-
-    pub fn validator_15() -> ValidatorKeys {
-        ValidatorKeys {
-            id:    AccountId::from(hex!("37E1Bd705893ba4f38181Ff73E848cCe71d99771")),
-            stash: AccountId::from(hex!("9dc4DaaBEB464Ca48e1f0Be5497DFc395a8FE1Fb")),
-            babe:                     sp_core::sr25519::Public::from_raw(hex!("8cf9c2419210f70ebc2b3a1a84a1c5745e01c5da56b70426ecbe7df25ce14e07")).into(),
-            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("c8a53393fc899e353bd508554605a629ed85173990aa82f698eb6d4098c16e17")).into(),
-            im_online:                sp_core::sr25519::Public::from_raw(hex!("5090031b6feddc697ced0f8f342a6845f31c68f9a7c91e95cf60fa80c8ad815d")).into(),
-            para_validator:           sp_core::sr25519::Public::from_raw(hex!("b044567faacc8acd783f41a4e523209f0793aac5862f827a13b73d097b438f3e")).into(),
-            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("eec7c3734e310ee0a899b186e1fca30b098060026f0776f6903d037d9301c72c")).into(),
-            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("7ce777124936df39053866b446721ae4a240d80580e2e1863e40b24e4c6cdb43")).into(),
-            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("0396b4e92806cc80fe3fb6aca145a20c2a774c11bd643ddaf917da6c2a6fcdd267")).into(),
+            id:    AccountId::from(hex!("a485363Fffc08BB2B17286c3c32B33294A28AF6A")),
+            stash: AccountId::from(hex!("C14E277a3c032AA11324B3F44f36B2f8CB04A61E")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("5e5b26fb481a6bb8e8e3f76bc42cac8f8e37a2d7b33cbadafc962aee4638b16e")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("b628d661eef1efe640daff977e484e7c865d8ecd6f54dd0c5bf5345b2925b49f")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("38e248ccf2011d84f5725eaf231c67bae7fc7c7c3fedc94ea7a5dbf05e741806")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("8a624320841b8260bd83597344cc49405142113624447dd0fc3c8ba07724b37d")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("d69573b81008d6ad64869f1209150774f4919fb308365cb33071d30a712aa277")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("90f9bc30714c32a880c610aaa632758b00d6e6e24761495bc41287a0bd9f3b5f")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("02675b062ca4fbe50ce0294f766c7166c2eda7a7cc6af0ddf18e76b029287d18a3")).into(),
         }
     }
 
@@ -853,6 +621,332 @@ mod mainnet_keys {
         }
     }
     */
+}
+
+#[rustfmt::skip]
+mod mainnet_genesis {
+    use atleta_runtime::CouncilConfig;
+    use super::*;
+
+    pub fn sudo_account() -> AccountId {
+        AccountId::from(hex!("226e562Ca44a997894d4eAe15e147b145387DC12"))
+    }
+
+    pub fn technical_allocation() -> Vec<(AccountId, Balance)> {
+        const INITIAL_TREASURY_ALLOCATION: Balance = 289_870_000 * UNITS;
+        const INITIAL_LIQUIDITY_ALLOCATION: Balance = 933_000_000 * UNITS;
+        const INITIAL_STAKING_ALLOCATION: Balance = 670_800_000 * UNITS;
+        const INITIAL_LIQUIDITY_RESERVES_ALLOCATION: Balance = 1_105_200_000 * UNITS;
+        const INITIAL_SUDO_ACCOUNT_ALLOCATION: Balance = 5_000 * UNITS;
+
+        vec![
+            (sudo_account(), INITIAL_SUDO_ACCOUNT_ALLOCATION),
+            (technical_addresses::treasury(), INITIAL_TREASURY_ALLOCATION),
+            (technical_addresses::liquidity_reserves(), INITIAL_LIQUIDITY_RESERVES_ALLOCATION),
+            (technical_addresses::liquidity(), INITIAL_LIQUIDITY_ALLOCATION),
+            (technical_addresses::staking_rewards(), INITIAL_STAKING_ALLOCATION),
+        ]
+    }
+
+    pub fn council_config() -> CouncilConfig {
+         CouncilConfig {
+            members: vec![
+                AccountId::from(hex!("85fc1309AcD66a3a6109487980D3e186B5718D51")),
+                AccountId::from(hex!("881fe63dfEE7611CC005e2b0e4577B8c3BF0D478")),
+                AccountId::from(hex!("7c7e63c46e4E1cC71a759f591197A26A98a6146b")),
+                AccountId::from(hex!("226e562Ca44a997894d4eAe15e147b145387DC12")),
+            ],
+            ..Default::default()
+        }
+    }
+
+    pub fn technical_committee_config() -> TechnicalCommitteeConfig {
+        TechnicalCommitteeConfig {
+            members: vec![
+                AccountId::from(hex!("d6001f04c993B7962d771E06cADA75Aea7101aA2")),
+                AccountId::from(hex!("6cE795C6029404695E76f873fa2f846335B562aD")),
+            ],
+            ..Default::default()
+        }
+    }
+
+    pub fn validators() -> Vec<ValidatorKeys> {
+        vec![validator_1(), validator_2(), validator_3(), validator_4(), validator_5(), validator_6(), validator_7(), validator_8(), validator_9(), validator_10(), validator_11(), validator_12(), validator_13(), validator_14(), validator_15(),]
+    }
+
+    pub fn validator_1() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("f4585fF1A4DBaa05A5c13807C301feb30fF982D0")),
+            stash: AccountId::from(hex!("629b2b2003FE9762bBdDf4BcCBc58727687B5f69")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("1687155208fbb09cc5f3012e4e5ba21bd3c22d08141eae1f0bb693e47a6ced7f")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("d4b42db4a721bcf06a4aec0ecfb97fa48f71522db4d5d676fc05e92e56b786cf")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("5e8ef71cafca582ea996a71780d14224126cbc6f22e8b933311ad51b52f4c76f")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("c627e51cf39bf07ecf84404fb8d1c0b78d1e268054bd20b0a64b47f5a8328733")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("fc9be628151f1638cf3eaead1b5223dda466a9a1534d04cf75999221cb581c41")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("9aba447aeccc10f2ae14bd3cceb0c16093069c43b6e40eba15c081fb116ee955")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("02d6a6e49d0c71f9dd8f1f7492040926030a5d2f6f2d355060088d54e5b5484dd0")).into(),
+        }
+    }
+
+    pub fn validator_2() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("72E2812EBB8fCA781286e09B42Eb9EC5fF2E6576")),
+            stash: AccountId::from(hex!("Ef20c48CAd2c3e1A877aBB212504fca96414C4B9")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("1e9fe343dd78478b3c4b75d2e68588974f9bea74099694129fc1f6c1d36dd32d")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("f0faac54dc11d7af98631e18466196c5890c6e0ead401421e64d55151ff88443")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("765f94addb4c0b6fd7b798699cd0e2e1ba1d47d69f1ffd1f42ed7a588cfad578")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("be0909c1dbf166bccf5b384dad45b44f6e54906027d6dd0a7f0f91e96a8bd906")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("2ab932c0dc72e11506101ed16ef3bb100d75b271c48813fd771c851deedca157")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("2273fa1c5bea76286811df3324c4a1ecb7feb42b4f9c92990c51e6442b087b4f")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("03404903e27d5a93fc1c02c03c47a881c1f7c69ef7cc34a2fe225d1293007967e0")).into(),
+        }
+    }
+
+    pub fn validator_3() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("5753aEe0cE28478e1C76d39f762144aECF7B2635")),
+            stash: AccountId::from(hex!("3a15e55f51D7683FA7A74c4Af5e796a3198c738b")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("bcdceb876e049ad92bb08ebc739fd6da8598ce7d4436b219932e4696c9c2226b")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("5ef7edadd51e1b1dcbf3aaf94606be8587ae203d2746a0388a00eeeae6620776")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("e67a9b71a3a6716c7bcfa797afbc4842752f113488b0ebf7092f8ef5955ce531")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("a0224e71a848a82dcc31e76957cdba48eceb15964066b8ad541407f1a1d80907")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("de6c8545eb59c4dd880d2d8f4ddb39da91082c61ef944c3bbac233b59555626a")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("487a039388f076cece25c3597f49421dcbf55f8b21d920baf6d5cbaf2ae72323")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("0319c7e221a18e5d9999307884e0693f2020541a33e9a45a423352d64cb34de946")).into(),
+        }
+    }
+
+    pub fn validator_4() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("C3755A655e9408C263830b1637279703CA3AAE0d")),
+            stash: AccountId::from(hex!("4c81ab855E1b742D8f77644fC99FcfB198177743")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("dec0eea0b8d5a502bc26e8a50a1a9741a3589e96ab0450d1b59e3ffc3cbcd612")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("b70b0911314113ff9e146bca64b0b493048e6a1cdbd98c3a57ce7441da818c66")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("ca6852fa578d555ef52fb174b83f3b01cf719c012f05bd34e3922a928287464a")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("8692c6817b149f56472b8a49cb1486fdbbc77bf6b517ce6fb4fb63315201c26a")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("c0a158e5cb7d19bf15faa50edae6fbbff6e40e0e0badfd7e9d0b305d2a1a493b")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("56aeabc93d6031e59fde3eaed61e4f56c2ba42662caa81cc9996a6dc6a95a372")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("0342496ab7769f7129ee6ee1eef1248f338cee2c7bc86bb72b359351132fc7d823")).into(),
+        }
+    }
+
+    pub fn validator_5() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("b4f509853781dAB0000312A0E44A30EcF6c69Ce6")),
+            stash: AccountId::from(hex!("E1E1098d7B37e217c24cFF33f0CD12F570069491")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("a0dcb3be997f7119e20357eebb0912abae7c446993295d9f4d1847fec575394d")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("94826edab8a9eda2c46fe89f46fb4236bf86ff3e71b092dc914592ead984d89f")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("e61d383ffba35d05d0b4deb3c22705abd9f576187c36d296698e87de8a58f214")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("eecec470b6c6999cb37d47649e8fefb7897e9b714c76602c80d5df81c6432b1b")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("26745165b685cfdaf92559f59478b16fc1db20785bf50a025abac64ed4bd1b68")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("a68473b9b7ad0e45dc240fd04952efff3acb2294914ab0a42a7f051bf6775434")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("021604dbb42fc7f8d5920f50c86f054cd3f7eb45610146fd2b605e208d5f21230b")).into(),
+        }
+    }
+
+    pub fn validator_6() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("6056f158410Daaf9Da13b3999b033018E1f92CA2")),
+            stash: AccountId::from(hex!("7F3F3222bf0AB9db116FBFbB3cC140a28e8A22b9")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("d6c5909fb50ef0bed4bbd9d24fbf99660d7f9c2793652dfb45aca12dad254036")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("400cf2a5208fa590620db1d71df0aa95ec89e83cb9d3c1bd44100f25c073bce5")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("44c4a07276132ba12879d9f20fb0e797a123677433cd09cb4de630d9b7eae85a")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("a46eb16cd66cbec566f0f0e7c64d2953e51b77d97cc61566747a3db312f91d66")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("52aeeadfe983702284d5ececb1222a5b426c10c7971dce7bb0efb5a59a7edf5a")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("ce1e75566b14efc70b0a549c696569064a83b6c833193f2dac6356eb2c28a67a")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("0259e460b35f58b65125f77f2f440cb4d47ea5a16e25a0b3a79c762bc6e2e406a5")).into(),
+        }
+    }
+
+    pub fn validator_7() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("81b303f80EF2B326480533CeB3fF632A9EeaA08c")),
+            stash: AccountId::from(hex!("18B802e55e5Fa859416Fe1A307aFd843a9939688")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("be06dd12a46b9218db5a93edd53599aa8e1293afb64b79a2da58c30b79e58b50")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("e2d89bf1bbae47fa132f92f378c62f4be906a11b37d9eb7485f0bf3ea3ff6575")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("3ac33c30b40e5fe88e17bdf7c2adf3b9036dd6b58c422f54cecde580c262c765")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("a06f10ebe88f16dce5b9268d2bc7451d987688a24e00012a4f2fd25922159310")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("22285bbb06aaae2d2eb9e6a8836a7a52c5ce9e7eafc2382a12c1ea90d2eb4232")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("4839e7319212443344dfb623a66ad22e71cfceeabf2cd897b2ff5399ffa4a535")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("037240af63cd110bdadc6a4bbf1a50772282955f2fae82a82550782b560d216945")).into(),
+        }
+    }
+
+    pub fn validator_8() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("f6b6EE195405CbA3B2561c10A77d7C2A05833566")),
+            stash: AccountId::from(hex!("402e7930b88872347005Bb04ee6F3ECE26c2d2f5")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("98d8cc0db3dbf8060bcdd00843fbf407f4558ce088425f53dc64468a78563349")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("fe2a073a6625e89983e345353b9db461c63cfced8e540d49207ba55acf55ea35")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("d6ccdea8531f0b8dfe476fff9a7a32c1d1af6a61315c3760e7ffe178b2020962")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("4ef3aac61a56644e45d2314c7436ccccb2751f3845dbb30fec5cd364a53a4760")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("400d756a07a2b0df362e544630702f22bfd21b54e5726ced101b4f5aa714813c")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("1c775415dce33c068968b84a1d89cddeac6adf5107bc0d64cbe6485d81677707")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("032bd29f5f43d69c8c8ab1ec49faef71ceea057cdeaa53b28d9702a188968f83dc")).into(),
+        }
+    }
+
+    pub fn validator_9() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("19118738Bad99b84168059A85d37FEb0845A374f")),
+            stash: AccountId::from(hex!("ecd7b020AF9b13773A8feB3A08B031e6f7831C18")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("f883ca47e7fe17d8dbcd487401adba7166600cef548cafd3561f7e91c84d6739")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("e9cc536b2a242e392d5a09590cbc4c12c9ec4f7e22cf465ae8b576d6a8551291")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("9615cf77eb7ba8eae5dc3edb57ba2e5c58cd8266376be88eaaad950e0e812059")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("04f350f1d97225b8ef3c241982a632702cbf2a274faf4455904f2f041836757f")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("34c785aa5457d576215c7dac0c8920e4c1852401e812c9fe655bbe7ba0c39766")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("a288f8cf3f8d19af59007fac12e230c7b49e222024c4e7616455f2347d24d451")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("0258e0f8ef5b82b8597772c666bbf8782120d94257d6f7a283327eddd698906046")).into(),
+        }
+    }
+
+    pub fn validator_10() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("8b4838C2F9b0589F339B582509cE23FEE2A3A342")),
+            stash: AccountId::from(hex!("B23Fa8b8050D213204991b9723ac57E8667b2a9a")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("fc6f260a24209c32df10930605b4caff389544303cd04959f61f8d2d39c8662b")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("ed374f6393238751c2b5110a87500a1773f6f06d9f89160525d9be7caf486914")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("960effa74c02dc73b9edff7bc4f57ad03feb174d0c185f21a567fa74d108bc30")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("7c25aaea337e6da04174b27cc8699859e23587d3aa9741b0ee58a65c3b8fdd62")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("0ec583908980633ee9ff7adf408dda49dfa86a6fac2fb4aac00863548092d653")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("3ec050f14147d894ec9bcb01b6cd22bdf5ad836298e7f7122759a9edcbad6204")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("036212a40eebc11e49fc45dd067029107dba9a2e12520eb47d0b5292d9aad066a7")).into(),
+        }
+    }
+
+    pub fn validator_11() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("75BE8Bc4F649040abf0384fD28517f7D23BAeCBe")),
+            stash: AccountId::from(hex!("50035d01BdD01dbA568fff42F20332aA5D4D4129")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("fc4a2c2926c3348623804d0b63d5cf7acb75d0b3820fc9a777e4d057254c4011")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("0c6749dd8a1b42bdb2949368ad579100d8708fa3e6c42118356effcd87c5281e")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("e490ab333cc3643b247895a5ae39c58309a86b6b284535657f5169d9ff1d7b5e")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("ea63011fe41dbba9f68753ece04f938a53814b2d22b010a9af6836d0c825f837")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("2675dfdcaaa1d10b36a0906d91a0741bbd65b1e6435147f5542762b8974e881b")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("c8ecd75c1ae54981dcd9029588716d0f83efa6707c48c1a79e49b902ee40fa7f")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("0293edc97d44230de58427b08c4d4b84e3d20a71542e7f849a9efdddd4e27714e1")).into(),
+        }
+    }
+
+    pub fn validator_12() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("558665a3a35DC6ca649B02a7259DE9a5b78CB058")),
+            stash: AccountId::from(hex!("bEa9A57046110E7Cbb4e34c6053eCb4cb7494f87")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("5824d6510207e3f6e289fb3dbbcad037126089e7919bee054a26320514e55737")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("9ca96de1e1f8efda9327f2a3c99ea88dbeb2be10d4aa9f88086ec0fc4bd97c46")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("2ce4e129fffda719f26103a28150bd4be436ab7017d0fdccd2bfe4e6a4070029")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("14c2ecfbd9be5ab5cf57fc808b1bac4f3dfea6b79fd97d73f44d2b86ec9c192e")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("f659474dc24540dc162bc25a3cd6c2f0ccb65b4dde800b7e9617b039ffcace51")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("d63080438956af78fa40b005470da0ab7b6f795fb36a8a917b2544ce93fa1871")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("03a832315580d34671615ec05ca3285dfa80748bf0fc3d236e6eea054f1e9dd156")).into(),
+        }
+    }
+
+    pub fn validator_13() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("265E0660f3C2279E156f266Ce83cE76133e312F3")),
+            stash: AccountId::from(hex!("B08322a32CFef1A3210663177D85C79aB3C5A746")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("126f7e63a547895330c3952f4588f250ec31f45b47237551964e7309d4a20b37")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("6638d6978d3d819988e8bb55bdf79c8e47cd0ecf49f993044cc00dff8a593182")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("eada0c1cdea4a328b1fb927084d763f80866701af4a8014f317d4fe57499811c")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("7a432fe786c3b62e0483ed74986b7b0433e86bc0606bf0ff9eeedc81780b1316")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("c6559aaad167f438309718241453c6ce0c6f40fd0d756bdfaaea7686e2f55a0a")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("089d4c0fb2991865eec57eeea174c5e8b56a226ac3ac387767d930df3fb1bf1a")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("021161f421cad730e39c2d5845718e16925280af9da17466e18bea5d2205f238e2")).into(),
+        }
+    }
+
+    pub fn validator_14() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("f6D98AA3D28F85403C24280C4d558D8AD19EEb74")),
+            stash: AccountId::from(hex!("c21f897C6bCbBe29D5547bd6e42eFe986353b339")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("56cffedd3cbac6b1ce77593ee92b02354dde1e6607ad5ce278338bae4fc2677f")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("ef62b04a781d6be0434527ec0817596d72a4eab3da8fdb5862ccb64a10d47447")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("d2d3ce47535502e50c4c67c7f299e4c15362b1ad76bdcc1bb1ee8624fff26e0f")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("f6464d3aeccfb96f1c969a598fd61587130f74e66e166c2d6d72528145ea4f60")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("8c7186e2157e362d5c8877a448258aef4c36a3608d128cafe24a155492a17014")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("724d50c7f207f4eea3f6f4a2ae7ac4d0c6269e61438d48df1a80935e4c825258")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("03aea98267a55b78b148207cae0e3ac5bf683a590dc0e25cf0b7f14bea3f708ac7")).into(),
+        }
+    }
+
+    pub fn validator_15() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("8A9224cF588D7c4754CB265228FF050815Da29F3")),
+            stash: AccountId::from(hex!("cBC48Ac780166901fa1e0435C990A7a91b439Ef1")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("9ef99d4a46edef266a9d6e0ef9c065e6bbfb384b9985a30646bbece5e89e8539")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("6d5cd8f278a1544e46759acae56efd7ac9c8a69e788ee8818384b23fb4feacdc")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("76e7e69a3ca1da2760f7776361407c01a6b9891336fe0c00dcb2e627b0e6227e")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("18fa09afb23f555d787dbd5b49c97bfafb7902e46bde2fda6da1ca659abb744f")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("78b51464d5fdd529b82d66e23c97a8d836be7a326ce6eb272d8afd5c3a79017f")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("4c81e0ca3f78120fb9bbb5326e85d34028dc0f43d827816c9aa31f9619a5c419")).into(),
+            beefy:                    ecdsa::Public::from_raw(hex!("03c8aa12c7724c13da51825cd2fd42cde883121d37e427287d909c9bf8657a249f")).into(),
+        }
+    }
+
+    /*
+    pub fn validator_*() -> ValidatorKeys {
+        ValidatorKeys {
+            id:    AccountId::from(hex!("")),
+            stash: AccountId::from(hex!("")),
+            babe:                     sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            grandpa:                  sp_core::ed25519::Public::from_raw(hex!("")).into(),
+            im_online:                sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            para_validator:           sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            para_assignment:          sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            authority_discovery:      sp_core::sr25519::Public::from_raw(hex!("")).into(),
+            beefy:                    sp_core::ecdsa::Public::from_raw(hex!("")).into(),
+        }
+    }
+    */
+}
+
+mod technical_addresses {
+    use atleta_runtime::AccountId;
+    use sp_runtime::traits::AccountIdConversion;
+
+    pub fn treasury() -> AccountId {
+        atleta_runtime::areas::TreasuryPalletId::get().into_account_truncating()
+    }
+
+    pub fn staking_rewards() -> AccountId {
+        atleta_runtime::areas::StakingRewardsPalletId::get().into_account_truncating()
+    }
+
+    pub fn liquidity() -> AccountId {
+        atleta_runtime::areas::LiquidityPalletId::get().into_account_truncating()
+    }
+
+    pub fn liquidity_reserves() -> AccountId {
+        atleta_runtime::areas::LiquidityReservesPalletId::get().into_account_truncating()
+    }
+}
+
+#[derive(Clone)]
+pub struct ValidatorKeys {
+    pub id: AccountId,
+    pub stash: AccountId,
+    pub babe: BabeId,
+    pub grandpa: GrandpaId,
+    pub im_online: ImOnlineId,
+    pub para_validator: ValidatorId,
+    pub para_assignment: AssignmentId,
+    pub authority_discovery: AuthorityDiscoveryId,
+    pub beefy: BeefyId,
+}
+
+impl From<ValidatorKeys> for SessionKeys {
+    fn from(val: ValidatorKeys) -> SessionKeys {
+        SessionKeys {
+            babe: val.babe,
+            grandpa: val.grandpa,
+            im_online: val.im_online,
+            para_validator: val.para_validator,
+            para_assignment: val.para_assignment,
+            authority_discovery: val.authority_discovery,
+            beefy: val.beefy,
+        }
+    }
 }
 
 /// Generate a crypto pair from seed.
@@ -887,9 +981,10 @@ pub fn authority_keys_from_seed(s: &str) -> ValidatorKeys {
     }
 }
 
-// Chain properties
+/// Properties for Atleta network.
 fn properties() -> Properties {
     let mut properties = Properties::new();
+    properties.insert("isEthereum".into(), true.into());
     properties.insert("tokenSymbol".into(), "ATLA".into());
     properties.insert("tokenDecimals".into(), 18.into());
     properties.insert("ss58Format".into(), SS58Prefix::get().into());
