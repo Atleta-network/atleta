@@ -3,14 +3,14 @@
   "id": "mainnet",
   "chainType": "Live",
   "bootNodes": [
-    "/dns/bootnode-01.mainnet.atleta.network/tcp/30333/p2p/12D3KooWQy749UJEDnz97FGJZTf4wtLgM9EkiCPeaQMfnBXdVoz2",
-    "/dns/bootnode-01.mainnet.atleta.network/tcp/30334/ws/p2p/12D3KooWQy749UJEDnz97FGJZTf4wtLgM9EkiCPeaQMfnBXdVoz2",
-    "/dns/bootnode-02.mainnet.atleta.network/tcp/30333/p2p/12D3KooWPrWzQdM5kaepHkhJvuRuLApHndNJXDKy8HqU77y1aFYF",
-    "/dns/bootnode-02.mainnet.atleta.network/tcp/30334/ws/p2p/12D3KooWPrWzQdM5kaepHkhJvuRuLApHndNJXDKy8HqU77y1aFYF",
-    "/dns/bootnode-03.mainnet.atleta.network/tcp/30333/p2p/12D3KooWAnHDwErkDWfPSZqquoW1s6A5cv6KosL42z9FrfL5G7i5",
-    "/dns/bootnode-03.mainnet.atleta.network/tcp/30334/ws/p2p/12D3KooWAnHDwErkDWfPSZqquoW1s6A5cv6KosL42z9FrfL5G7i5",
-    "/dns/bootnode-04.mainnet.atleta.network/tcp/30333/p2p/12D3KooWLJ3JLBu2njsG4vcevCnUF4ewzvJJ7j4xKEHCxmXFpTJ8",
-    "/dns/bootnode-04.mainnet.atleta.network/tcp/30334/ws/p2p/12D3KooWLJ3JLBu2njsG4vcevCnUF4ewzvJJ7j4xKEHCxmXFpTJ8"
+    "/dns/149.7.16.136/tcp/30333/p2p/12D3KooWQy749UJEDnz97FGJZTf4wtLgM9EkiCPeaQMfnBXdVoz2",
+    "/dns/149.7.16.136/tcp/30334/ws/p2p/12D3KooWQy749UJEDnz97FGJZTf4wtLgM9EkiCPeaQMfnBXdVoz2",
+    "/dns/38.68.135.24/tcp/30333/p2p/12D3KooWPrWzQdM5kaepHkhJvuRuLApHndNJXDKy8HqU77y1aFYF",
+    "/dns/38.68.135.24/tcp/30334/ws/p2p/12D3KooWPrWzQdM5kaepHkhJvuRuLApHndNJXDKy8HqU77y1aFYF",
+    "/dns/23.157.40.79/tcp/30333/p2p/12D3KooWAnHDwErkDWfPSZqquoW1s6A5cv6KosL42z9FrfL5G7i5",
+    "/dns/23.157.40.79/tcp/30334/ws/p2p/12D3KooWAnHDwErkDWfPSZqquoW1s6A5cv6KosL42z9FrfL5G7i5",
+    "/dns/134.195.199.82/tcp/30333/p2p/12D3KooWLJ3JLBu2njsG4vcevCnUF4ewzvJJ7j4xKEHCxmXFpTJ8",
+    "/dns/134.195.199.82/tcp/30334/ws/p2p/12D3KooWLJ3JLBu2njsG4vcevCnUF4ewzvJJ7j4xKEHCxmXFpTJ8"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
