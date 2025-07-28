@@ -23,7 +23,6 @@ use std::{sync::Arc, time::Duration};
 
 use parity_scale_codec::Encode;
 // Substrate
-use sc_cli::Result;
 use sc_client_api::BlockBackend;
 use sp_core::{ecdsa, Pair};
 use sp_inherents::{InherentData, InherentDataProvider};
@@ -32,18 +31,17 @@ use sp_runtime::{generic::Era, OpaqueExtrinsic, SaturatedConversion};
 use atleta_runtime::{self as runtime, AccountId, Balance, BalancesCall, SystemCall};
 use fp_account::AccountId20;
 
-use crate::client::Client;
+use crate::service::FullClient;
 
-/// Generates extrinsics for the `benchmark overhead` command.
+/// Generates `System::Remark` extrinsics for the benchmarks.
 ///
 /// Note: Should only be used for benchmarking.
 pub struct RemarkBuilder {
-    client: Arc<Client>,
+    client: Arc<FullClient>,
 }
-
 impl RemarkBuilder {
     /// Creates a new [`Self`] from the given client.
-    pub fn new(client: Arc<Client>) -> Self {
+    pub fn new(client: Arc<FullClient>) -> Self {
         Self { client }
     }
 }
@@ -75,14 +73,14 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for RemarkBuilder {
 ///
 /// Note: Should only be used for benchmarking.
 pub struct TransferKeepAliveBuilder {
-    client: Arc<Client>,
+    client: Arc<FullClient>,
     dest: AccountId,
     value: Balance,
 }
 
 impl TransferKeepAliveBuilder {
     /// Creates a new [`Self`] from the given client.
-    pub fn new(client: Arc<Client>, dest: AccountId, value: Balance) -> Self {
+    pub fn new(client: Arc<FullClient>, dest: AccountId, value: Balance) -> Self {
         Self { client, dest, value }
     }
 }
@@ -114,7 +112,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for TransferKeepAliveBuilder {
 ///
 /// Note: Should only be used for benchmarking.
 pub fn create_benchmark_extrinsic(
-    client: &Client,
+    client: &FullClient,
     sender: ecdsa::Pair,
     call: runtime::RuntimeCall,
     nonce: u32,
@@ -168,13 +166,14 @@ pub fn create_benchmark_extrinsic(
 /// Generates inherent data for the `benchmark overhead` command.
 ///
 /// Note: Should only be used for benchmarking.
-pub fn inherent_benchmark_data() -> Result<InherentData> {
+pub fn benchmark_inherent_data(
+    header: polkadot_core_primitives::Header,
+) -> Result<InherentData, sp_inherents::Error> {
     let mut inherent_data = InherentData::new();
     let d = Duration::from_millis(0);
     let timestamp = sp_timestamp::InherentDataProvider::new(d.into());
 
-    futures::executor::block_on(timestamp.provide_inherent_data(&mut inherent_data))
-        .map_err(|e| format!("creating inherent data: {:?}", e))?;
+    futures::executor::block_on(timestamp.provide_inherent_data(&mut inherent_data))?;
 
     let para_data = polkadot_primitives::InherentData {
         bitfields: Vec::new(),

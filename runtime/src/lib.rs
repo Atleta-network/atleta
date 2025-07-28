@@ -6,7 +6,7 @@
 #![recursion_limit = "512"]
 #![allow(clippy::new_without_default, clippy::or_fun_call)]
 #![allow(clippy::identity_op)]
-#![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
+// #![cfg_attr(feature = "runtime-benchmarks", deny(unused_crate_dependencies))]
 
 // Make the WASM binary available.
 #[cfg(feature = "std")]
@@ -25,8 +25,8 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
-        IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
+        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -43,6 +43,7 @@ use frame_election_provider_support::{
     bounds::ElectionBoundsBuilder, onchain, BalancingConfig, ElectionDataProvider,
     SequentialPhragmen, VoteWeight,
 };
+
 #[cfg(feature = "with-paritydb-weights")]
 use frame_support::weights::constants::ParityDbWeight as RuntimeDbWeight;
 #[cfg(feature = "with-rocksdb-weights")]
@@ -395,7 +396,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
     type RuntimeEvent = RuntimeEvent;
-    type WeightInfo = pallet_balances::weights::SubstrateWeight<Self>;
+    type WeightInfo = ();
     type Balance = Balance;
     type DustRemoval = ();
     type ExistentialDeposit = ExistentialDeposit;
@@ -423,6 +424,36 @@ impl pallet_transaction_payment::Config for Runtime {
     type LengthToFee = IdentityFee<Balance>;
     type FeeMultiplierUpdate = ConstFeeMultiplier<FeeMultiplier>;
     type OperationalFeeMultiplier = ConstU8<5>;
+}
+
+// treasury
+parameter_types! {
+    pub const TreasuryPalletId: PalletId = PalletId(*b"ATTREASU");
+    pub const ProposalBond: Permill = Permill::from_percent(5);
+    pub ProposalBondMinimum: Balance = 10 * UNITS;
+    pub ProposalBondMaximum: Balance = 50 * UNITS;
+    pub const SpendPeriod: BlockNumber = 30 * DAYS;
+    pub const Burn: Permill = Permill::from_percent(1);
+
+    pub const TipCountdown: BlockNumber = 2 * DAYS;
+    pub const TipFindersFee: Percent = Percent::from_percent(5);
+    pub TipReportDepositBase: Balance = deposit(1, 0);
+    pub BountyDepositBase: Balance = deposit(1, 0);
+    pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS, devnet: 1 * DAYS);
+    pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 45 * DAYS, testnet: 35 * DAYS, devnet: 15 * DAYS);
+    pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
+    pub CuratorDepositMin: Balance = UNITS;
+    pub CuratorDepositMax: Balance = 100 * UNITS;
+    pub BountyValueMinimum: Balance = 5 * UNITS;
+    pub DataDepositPerByte: Balance = deposit(0, 1);
+    pub const MaximumReasonLength: u32 = 8192;
+    pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+
+    pub const SevenDays: BlockNumber = 7 * DAYS;
+    pub const OneDay: BlockNumber = DAYS;
+
+    pub TreasuryAccount: AccountId =
+    TreasuryPalletId::get().try_into_account().expect("Can't create treasury account");
 }
 
 // sudo
@@ -1077,7 +1108,7 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+const MAX_POV_SIZE: u64 = 15 * 1024 * 1024;
 
 parameter_types! {
     pub BlockGasLimit: U256 = U256::from(BLOCK_GAS_LIMIT);
@@ -1591,12 +1622,15 @@ extern crate frame_benchmarking;
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
     define_benchmarks!(
-        [frame_benchmarking, BaselineBench::<Runtime>]
-        [frame_system, SystemBench::<Runtime>]
-        [pallet_babe, Babe]
         [pallet_balances, Balances]
         [pallet_timestamp, Timestamp]
+        [pallet_multisig, Multisig]
+        [pallet_preimage, Preimage]
+        [pallet_scheduler, Scheduler]
         [pallet_sudo, Sudo]
+        [pallet_timestamp, Timestamp]
+        [pallet_treasury, Treasury]
+        [pallet_utility, Utility]
         [pallet_evm, EVM]
     );
 }
@@ -2431,6 +2465,7 @@ impl_runtime_apis! {
             let mut batches = Vec::<BenchmarkBatch>::new();
             let params = (&config, &whitelist);
 
+            add_benchmarks!(params, batches);
             add_benchmark!(params, batches, pallet_evm, PalletEvmBench::<Runtime>);
             add_benchmark!(params, batches, pallet_hotfix_sufficients, PalletHotfixSufficientsBench::<Runtime>);
 
@@ -2456,6 +2491,29 @@ impl_runtime_apis! {
             // NOTE: intentional unwrap: we don't want to propagate the error backwards, and want to
             // have a backtrace here.
             Executive::try_execute_block(block, state_root_check, signature_check, select).unwrap()
+        }
+    }
+}
+
+#[cfg(feature = "runtime-benchmarks")]
+pub mod benchmarks {
+    use crate::AccountId;
+    use core::marker::PhantomData;
+    use frame_support::traits::Get;
+    use pallet_treasury::ArgumentsFactory as TreasuryArgumentsFactory;
+    use sp_core::{ConstU32, ConstU8};
+
+    pub struct TreasuryArguments<Parents = ConstU8<0>, ParaId = ConstU32<0>>(
+        PhantomData<(Parents, ParaId)>,
+    );
+
+    impl<Parents: Get<u8>, ParaId: Get<u32>> TreasuryArgumentsFactory<(), AccountId>
+        for TreasuryArguments<Parents, ParaId>
+    {
+        fn create_asset_kind(_seed: u32) -> () {}
+
+        fn create_beneficiary(seed: [u8; 32]) -> AccountId {
+            AccountId::from(seed)
         }
     }
 }
