@@ -35,7 +35,7 @@ evm = { version = "0.41.1", default-features = false }
 futures = "0.3.30"
 hash-db = { version = "0.16.0", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
-hex-literal = "0.4.1"
+hex-literal = { version = "0.4.1", default-features = false }
 impl-serde = { version = "0.4.0", default-features = false }
 impl-trait-for-tuples = "0.2.1"
 jsonrpsee = "0.22.5"
