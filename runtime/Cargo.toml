@@ -14,7 +14,7 @@ log = { workspace = true }
 num_enum = { workspace = true}
 parity-scale-codec = { workspace = true }
 scale-info = { workspace = true }
-hex-literal = { workspace = true }
+hex-literal = { workspace = true, optional = true }
 static_assertions = "1.1"
 
 # Substrate
@@ -38,6 +38,7 @@ sp-std = { workspace = true }
 sp-transaction-pool = { workspace = true }
 sp-version = { workspace = true }
 # Substrate FRAME
+frame-benchmarking = { workspace = true, optional = true }
 frame-election-provider-support = { workspace = true }
 frame-executive = { workspace = true }
 frame-support = { workspace = true }
@@ -111,7 +112,6 @@ pallet-faucet = { workspace = true }
 # Atleta Precompile Pallets
 pallet-evm-precompile-staking = { workspace = true }
 pallet-evm-precompile-nomination-pools = { workspace = true }
-pallet-evm-precompile-babe = { workspace = true }
 pallet-evm-precompile-governance = { workspace = true }
 pallet-evm-precompile-treasury = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
@@ -206,6 +206,7 @@ std = [
     "sp-version/std",
     "substrate-wasm-builder",
     # Substrate FRAME
+    "frame-benchmarking?/std",
     "frame-executive/std",
     "frame-support/std",
     "frame-system/std",
@@ -277,26 +278,39 @@ std = [
     # Atleta Precompile Pallets
     "pallet-evm-precompile-staking/std",
     "pallet-evm-precompile-nomination-pools/std",
-    "pallet-evm-precompile-babe/std",
     "pallet-evm-precompile-governance/std",
     "pallet-evm-precompile-treasury/std",
     "pallet-evm-precompile-preimage/std",
     "pallet-evm-precompile-utility/std",
 ]
 runtime-benchmarks = [
+    "frame-benchmarking",
+    "frame-benchmarking/runtime-benchmarks",
+    "frame-support/runtime-benchmarks",
     "frame-system-benchmarking/runtime-benchmarks",
     "frame-system/runtime-benchmarks",
+    "hex-literal",
+    "pallet-babe/runtime-benchmarks",
     "pallet-balances/runtime-benchmarks",
+    "pallet-collective/runtime-benchmarks",
+    "pallet-staking/runtime-benchmarks",
     "pallet-ethereum/runtime-benchmarks",
     "pallet-evm/runtime-benchmarks",
     "pallet-grandpa/runtime-benchmarks",
     "pallet-multisig/runtime-benchmarks",
     "pallet-message-queue/runtime-benchmarks",
+    "pallet-nomination-pools/runtime-benchmarks",
     "pallet-hotfix-sufficients/runtime-benchmarks",
     "pallet-offences-benchmarking",
+    "pallet-preimage/runtime-benchmarks",
     "pallet-contracts/runtime-benchmarks",
+    "pallet-scheduler/runtime-benchmarks",
     "pallet-sudo/runtime-benchmarks",
     "pallet-timestamp/runtime-benchmarks",
+    "pallet-treasury/runtime-benchmarks",
+    "pallet-utility/runtime-benchmarks",
     "pallet-xcm/runtime-benchmarks",
+    "runtime-common/runtime-benchmarks",
+    "sp-runtime/runtime-benchmarks",
     "xcm-builder/runtime-benchmarks",
 ]
