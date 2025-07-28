@@ -25,8 +25,8 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
-        IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
+        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -43,6 +43,7 @@ use frame_election_provider_support::{
     bounds::ElectionBoundsBuilder, onchain, BalancingConfig, ElectionDataProvider,
     SequentialPhragmen, VoteWeight,
 };
+
 #[cfg(feature = "with-paritydb-weights")]
 use frame_support::weights::constants::ParityDbWeight as RuntimeDbWeight;
 #[cfg(feature = "with-rocksdb-weights")]
@@ -429,8 +430,8 @@ impl pallet_transaction_payment::Config for Runtime {
 parameter_types! {
     pub const TreasuryPalletId: PalletId = PalletId(*b"ATTREASU");
     pub const ProposalBond: Permill = Permill::from_percent(5);
-    pub ProposalBondMinimum: Balance = 10 * DOLLARS;
-    pub ProposalBondMaximum: Balance = 50 * DOLLARS;
+    pub ProposalBondMinimum: Balance = 10 * UNITS;
+    pub ProposalBondMaximum: Balance = 50 * UNITS;
     pub const SpendPeriod: BlockNumber = 30 * DAYS;
     pub const Burn: Permill = Permill::from_percent(1);
 
@@ -441,9 +442,9 @@ parameter_types! {
     pub const BountyDepositPayoutDelay: BlockNumber = conf!(mainnet: 9 * DAYS, testnet: 6 * DAYS, devnet: 1 * DAYS);
     pub const BountyUpdatePeriod: BlockNumber = conf!(mainnet: 45 * DAYS, testnet: 35 * DAYS, devnet: 15 * DAYS);
     pub const CuratorDepositMultiplier: Permill = Permill::from_percent(50);
-    pub CuratorDepositMin: Balance = DOLLARS;
-    pub CuratorDepositMax: Balance = 100 * DOLLARS;
-    pub BountyValueMinimum: Balance = 5 * DOLLARS;
+    pub CuratorDepositMin: Balance = UNITS;
+    pub CuratorDepositMax: Balance = 100 * UNITS;
+    pub BountyValueMinimum: Balance = 5 * UNITS;
     pub DataDepositPerByte: Balance = deposit(0, 1);
     pub const MaximumReasonLength: u32 = 8192;
     pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
@@ -453,39 +454,6 @@ parameter_types! {
 
     pub TreasuryAccount: AccountId =
     TreasuryPalletId::get().try_into_account().expect("Can't create treasury account");
-}
-
-impl pallet_treasury::Config for Runtime {
-    type PalletId = TreasuryPalletId;
-    type Currency = Balances;
-    type ApproveOrigin = EitherOfDiverse<
-        EnsureRoot<AccountId>,
-        pallet_collective::EnsureProportionAtLeast<AccountId, CouncilCollective, 3, 5>,
-    >;
-    type RejectOrigin = EitherOfDiverse<
-        EnsureRoot<AccountId>,
-        pallet_collective::EnsureProportionMoreThan<AccountId, CouncilCollective, 1, 2>,
-    >;
-    type SpendOrigin = frame_support::traits::NeverEnsureOrigin<Balance>;
-    type RuntimeEvent = RuntimeEvent;
-    type OnSlash = Treasury;
-    type ProposalBond = ProposalBond;
-    type ProposalBondMinimum = ProposalBondMinimum;
-    type ProposalBondMaximum = ProposalBondMaximum;
-    type SpendPeriod = SpendPeriod;
-    type Burn = Burn;
-    type BurnDestination = ();
-    type SpendFunds = ();
-    type WeightInfo = ();
-    type MaxApprovals = ConstU32<30>;
-    type AssetKind = ();
-    type Beneficiary = AccountId;
-    type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-    type Paymaster = PayFromAccount<Balances, TreasuryAccount>;
-    type BalanceConverter = UnityAssetBalanceConversion;
-    type PayoutPeriod = PayoutSpendPeriod;
-    #[cfg(feature = "runtime-benchmarks")]
-    type BenchmarkHelper = benchmarks::TreasuryArguments;
 }
 
 // sudo
@@ -1140,7 +1108,7 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+const MAX_POV_SIZE: u64 = 15 * 1024 * 1024;
 
 parameter_types! {
     pub BlockGasLimit: U256 = U256::from(BLOCK_GAS_LIMIT);
