@@ -339,14 +339,7 @@ fn mainnet_genesis(
                 .collect::<Vec<_>>(),
         },
         technical_committee: mainnet_genesis::technical_committee_config(),
-        elections: ElectionsConfig {
-            members: validators_keys
-                .iter()
-                .take(validators_keys.len().div_ceil(2))
-                .cloned()
-                .map(|member| (member.id, STASH_INITIAL_BALANCE))
-                .collect::<Vec<_>>(),
-        },
+
         nomination_pools: NominationPoolsConfig {
             min_join_bond: 100 * UNITS,
             min_create_bond: 100 * UNITS,
