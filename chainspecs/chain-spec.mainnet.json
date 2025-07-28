@@ -1,10 +1,12 @@
 {
-  "name": "Stagenet",
-  "id": "stagenet",
+  "name": "Atleta",
+  "id": "mainnet",
   "chainType": "Live",
   "bootNodes": [
-    "/ip4/38.91.106.106/tcp/30333/p2p/12D3KooWEHTQaxvxSGzBaaiKsnBcqEVRqfodVykRPEzvjm3LmpCr",
-    "/ip4/38.91.106.106/tcp/30333/ws/p2p/12D3KooWEHTQaxvxSGzBaaiKsnBcqEVRqfodVykRPEzvjm3LmpCr"
+    "/dns/bootnode-0.atleta.network/tcp/30333/p2p/12D3KooWKaJPoiKoXMunjuALpEj2xSViE2Q1MDZUuuPN9pc4T1VN",
+    "/dns/bootnode-0.atleta.network/tcp/30334/ws/p2p/12D3KooWKaJPoiKoXMunjuALpEj2xSViE2Q1MDZUuuPN9pc4T1VN",
+    "/dns/bootnode-1.atleta.network/tcp/30333/p2p/12D3KooWSfdb4Fv5BRt3P6PuYUBm7F1tK65PTvWDU4FaLq55499c",
+    "/dns/bootnode-1.atleta.network/tcp/30334/ws/p2p/12D3KooWSfdb4Fv5BRt3P6PuYUBm7F1tK65PTvWDU4FaLq55499c"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
@@ -40,16 +42,32 @@
         "balances": {
           "balances": [
             [
-              "0x04d1191600fa259ddd2b5bed9f81015b4b68c014",
+              "0x19118738bad99b84168059a85d37feb0845a374f",
               75000000000000000000000
             ],
             [
-              "0x3619acb32a35eb4cb2604fb5f5fffcee1a690734",
+              "0x226e562ca44a997894d4eae15e147b145387dc12",
+              5000000000000000000000
+            ],
+            [
+              "0x265e0660f3c2279e156f266ce83ce76133e312f3",
+              75000000000000000000000
+            ],
+            [
+              "0x558665a3a35dc6ca649b02a7259de9a5b78cb058",
+              75000000000000000000000
+            ],
+            [
+              "0x5753aee0ce28478e1c76d39f762144aecf7b2635",
+              75000000000000000000000
+            ],
+            [
+              "0x6056f158410daaf9da13b3999b033018e1f92ca2",
               75000000000000000000000
             ],
             [
               "0x6d6f646c41545452454153550000000000000000",
-              290770000000000000000000000
+              289870000000000000000000000
             ],
             [
               "0x6d6f646c4c495144554954590000000000000000",
@@ -64,11 +82,43 @@
               670800000000000000000000000
             ],
             [
-              "0x937fecd86668311a03d3cbc6feeed5262d77d112",
-              5000000000000000000000
+              "0x72e2812ebb8fca781286e09b42eb9ec5ff2e6576",
+              75000000000000000000000
             ],
             [
-              "0xa485363fffc08bb2b17286c3c32b33294a28af6a",
+              "0x75be8bc4f649040abf0384fd28517f7d23baecbe",
+              75000000000000000000000
+            ],
+            [
+              "0x81b303f80ef2b326480533ceb3ff632a9eeaa08c",
+              75000000000000000000000
+            ],
+            [
+              "0x8a9224cf588d7c4754cb265228ff050815da29f3",
+              75000000000000000000000
+            ],
+            [
+              "0x8b4838c2f9b0589f339b582509ce23fee2a3a342",
+              75000000000000000000000
+            ],
+            [
+              "0xb4f509853781dab0000312a0e44a30ecf6c69ce6",
+              75000000000000000000000
+            ],
+            [
+              "0xc3755a655e9408c263830b1637279703ca3aae0d",
+              75000000000000000000000
+            ],
+            [
+              "0xf4585ff1a4dbaa05a5c13807c301feb30ff982d0",
+              75000000000000000000000
+            ],
+            [
+              "0xf6b6ee195405cba3b2561c10a77d7c2a05833566",
+              75000000000000000000000
+            ],
+            [
+              "0xf6d98aa3d28f85403c24280c4d558d8ad19eeb74",
               75000000000000000000000
             ]
           ]
@@ -195,42 +245,198 @@
         "session": {
           "keys": [
             [
-              "0x05564c8df908539a2e496c7ddb2f41b8b2befcaa",
-              "0x04d1191600fa259ddd2b5bed9f81015b4b68c014",
+              "0x629b2b2003fe9762bbddf4bccbc58727687b5f69",
+              "0xf4585ff1a4dbaa05a5c13807c301feb30ff982d0",
               {
-                "authority_discovery": "5G21n9ijjK2LRjrpvsxn7vXqEr95hQQXDH2Xs3dQxHcugmYC",
-                "babe": "5Cu6VatCK6e8fVsnMLQtKc2GyXXE9TsM9naigpv9ovM4oGR5",
-                "beefy": "KW4haG45EqrUrrVYun7DZ9qsNSV4ort4PccsXb3pr7fkHzRYY",
-                "grandpa": "5CtejYDee1EiWoAzBEWrZTrrzqkN4p8xBE7MWQ7tDGsftpVk",
-                "im_online": "5FefS8WQjUHSsXKcYkKch4hFi5TY1zXpXnzYSU3jcgBmEUYe",
-                "para_assignment": "5FRrLKudPmoyKfWVRrLdyK9gAcV1fP6UqEhFHjyAypZnGDLx",
-                "para_validator": "5DvVq7yPPpxyXgLof1jWWjjoZLxD8ccVj5vc2VZWaib2TcVi"
+                "authority_discovery": "5FZaZgvuP4ATZDho7x6r4iKrAf2S935eKPmG6GF37oVNaDAr",
+                "babe": "5CaF3CaTFXjZtt5WZcTgJKiLYwReTyxc2PTYpihuiAMJAzGQ",
+                "beefy": "KW7n6ZpaaFvNR5BrrSb571GkcS9J5awQWiR4WKDj2ZVEhDdrB",
+                "grandpa": "5GsbXs1Renhq3e2JB97DtAjnsxuTJVHXxNN4JnAbbESkjKMo",
+                "im_online": "5ECgpyFQBehMaVaJfYMKEk6bvrWuBLd8XLGRg4AvKvBunANv",
+                "para_assignment": "5HmvEdUUvwvoLWoVoeRHHaL4BfPWLi6iFruYzZHjPTaJXc3b",
+                "para_validator": "5GYXBx7h5GcDfEbDm8v45TYch5w7b728dSMLBac7nDrxsu4g"
               }
             ],
             [
-              "0xa5fbd0509079e75c70815a050dc4c0e5f27e3c9b",
-              "0x3619acb32a35eb4cb2604fb5f5fffcee1a690734",
+              "0xef20c48cad2c3e1a877abb212504fca96414c4b9",
+              "0x72e2812ebb8fca781286e09b42eb9ec5ff2e6576",
               {
-                "authority_discovery": "5HjTVBUVEbpjzDujPy8LyEmtQw73NKJ9wqiRAmBkMZWFvNVo",
-                "babe": "5DLpGbuFfo3qoye3bMRRoSas16vDA1h7SwHreA4wUHbPmHhR",
-                "beefy": "KWBVN46228kcMKugCMaR78oFnvzpKT8o1nXkU9vv1dpt8LWRo",
-                "grandpa": "5EavLNTY9BzfP2fPBpF1HguFPAhtZaGsvLVb8XUEvgVqUR9q",
-                "im_online": "5CowEW9kQ1t83mHM5twnJEzDDjGEgAwxHjXvcsTecZi3m9j9",
-                "para_assignment": "5DFa8tVkumBr8qPutn11hWw8puP1CUgChs67JjR94ztAFnjx",
-                "para_validator": "5Dvp2yndCPXXkvBZ6DUq8ALKYkegQCXdApRezpiixL4mVbuy"
+                "authority_discovery": "5CqswLMVqm5ZqpNf1HGnJuEKQdUE8eEDp54FVQ6NiSnPgRm1",
+                "babe": "5Ckrnnmr2MphQ8ev6CK2Qxsu5DfASAdEjQwCeJrpVYc4mhYi",
+                "beefy": "KWAAbkjo7rNRKvBAAbD9Y2fTjDHjQHYMjCysK8mDv8WCQXjwB",
+                "grandpa": "5HWfpDq5e6rRWKcyTheTG69KpWw9Vxd5TDLFYhHZyLPq9UEc",
+                "im_online": "5EjuuD993o3xHhFvZfz4H1w4cuMpyVMDAasHmeSrQEANnq1x",
+                "para_assignment": "5D2itCzS3wC7DqRGM3tBYpKB4HkJWXq8yWicHC5S9SghoxHP",
+                "para_validator": "5GMse5fgRyX2tReG7v6JF8z7bPcxCsRe6qVtksCmXjRp5QBE"
               }
             ],
             [
-              "0xc14e277a3c032aa11324b3f44f36b2f8cb04a61e",
-              "0xa485363fffc08bb2b17286c3c32b33294a28af6a",
+              "0x3a15e55f51d7683fa7a74c4af5e796a3198c738b",
+              "0x5753aee0ce28478e1c76d39f762144aecf7b2635",
               {
-                "authority_discovery": "5FLnwSLVwGf2zCCN2a2RzWgdwN29JE3uu8HtAiWroBgRqr9x",
-                "babe": "5ECRSFe9spC4Nbr9Jw8VYk6a9KqyGjQMz9dH9ZiMVoGEzrtk",
-                "beefy": "KW5GAiMB89hiNrcYfuSL9qhjPtY2XWApqiFiVCMhLGvLDj7Nw",
-                "grandpa": "5GBYhkasEyUL3u6ibypnycDN6P96MENohAURWfCq4KFCmJU7",
-                "im_online": "5DMHkzDcSVKDRayroY7qxmPSpyjviLZHA3KTDtGV6oZ8WoaL",
-                "para_assignment": "5Gv4W1fFZSQ5p35cYFkVgyxoxkXW2AMecdTjNrwXmwNbGP2N",
-                "para_validator": "5FC9exRqPysrzLzFV9PGFizBi3GuRwe8yUkduWdnvzN4ADSJ"
+                "authority_discovery": "5DhjYtQFQN8iiwzrDEFXdWiEQhyyx67EpEsRHjg8ZCi5cPsX",
+                "babe": "5GLLVAeaxvLKkYrpbvd4wUcGLjFb85C63ZrrWNtgMCZJLxRX",
+                "beefy": "KW9J7aJyq8ZzgH77YdPLakVCmF4rjVApNRUJDguNSW1c71kwZ",
+                "grandpa": "5EDE1SgcAS2EyUAXpwQi4WpZymrxxPu3u4gCMWSxMWasMwqL",
+                "im_online": "5HGuHvXMhfFDXHq219VEVeDoNKaaHKub6ypnApVm7aTTHoDk",
+                "para_assignment": "5H6LizsVMPTCBSncq6hxTjAsE5mtoiZNFtfTLyokkzYFFZyH",
+                "para_validator": "5Fgfi8BjRFh7kvNFkcqpCPTbEQooqoJ2AJJFgJ4ygdESyq4f"
+              }
+            ],
+            [
+              "0x4c81ab855e1b742d8f77644fc99fcfb198177743",
+              "0xc3755a655e9408c263830b1637279703ca3aae0d",
+              {
+                "authority_discovery": "5E2Ms2fqb3aaqWzrzfxCkBCLg4ujLKY6DDu59NFfajAzbD4b",
+                "babe": "5H6moNjjhBy3wzuB4XqKGektqwsX6HBsxa6f2GxCAQAr9h56",
+                "beefy": "KWADDyDNpX5B1CtJZ6cdZq7o2gpfxaaMG6viNRyJo1Rho5mBR",
+                "grandpa": "5GChu421jtyQnSRsxp4btf2ALqpVVU4jqbkV4F134iUBZXEm",
+                "im_online": "5Ge6X9bAudriUPaVbtJAWhqqhgnTWmvBSELw53hhCaBKDAM2",
+                "para_assignment": "5GRGyrumRePg7zprJAXsewV6DKyKMQKyKHemQcWckovbf2wx",
+                "para_validator": "5F79si9GVWgmGUSkA5qLrzBeoPKEVcdrmBofDehCYXXKaacS"
+              }
+            ],
+            [
+              "0xe1e1098d7b37e217c24cff33f0cd12f570069491",
+              "0xb4f509853781dab0000312a0e44a30ecf6c69ce6",
+              {
+                "authority_discovery": "5Fq39oG9kP3cF57wkLrsegg9Fb1DEdS9TsxM5KXbWxQssigt",
+                "babe": "5Fhd5eXtpqT7JQKHiPwzDZmVdh8uG6s9zLCmystacFvHm1PL",
+                "beefy": "KW3RXEnLGsJib7QQXrA4nyKsuGsHTXwEPG31ipeEjAf6X2NCx",
+                "grandpa": "5FRRh26iFVBRemg3NjqXrB8QmrBGnxHJENZM17wQ3cQGJw5o",
+                "im_online": "5HGRYtrcPu8DV3BaLESXapgevkd1SPvDxJi15N98yDgMNBcb",
+                "para_assignment": "5Cw8EKRN5j1LK34y8qVJyzrFS356Scesr8EnBKREP2qgPZ5S",
+                "para_validator": "5HTpgBqRysLYHjqDXdtXLNCv5PQ3aLiCZcrEFM3rPTzwMAP6"
+              }
+            ],
+            [
+              "0x7f3f3222bf0ab9db116fbfbb3cc140a28e8a22b9",
+              "0x6056f158410daaf9da13b3999b033018e1f92ca2",
+              {
+                "authority_discovery": "5GixmacZXacChe6krsossiDXx42LufwyEtzG3pNi8diVGBfV",
+                "babe": "5GvJnyhKp3bLxSwE2sontUgHTFL83Yjzfg5QGjHVeJvFeTKQ",
+                "beefy": "KW4xWr1mRKd3A5MKtNb1Rb398P1G9CVQp8tcBMVb44FqzeQVt",
+                "grandpa": "5DWgmW7SAuTg2itMwBcV5V5UJrFGvebA25Y2tBYRHaMQTQph",
+                "im_online": "5DcsXKrupvsdL1homWfNiKbeH17JUu3eFM7WxQysPxKpZg3S",
+                "para_assignment": "5Dw7kAc434gSAoeN95iGgTHXDfZgJvRtzVitjXYJATXbEc5y",
+                "para_validator": "5FnJbLyXBXknUzRtHFQV1Wxm5asp82mKf7gUPmaAMmj4AZvE"
+              }
+            ],
+            [
+              "0x18b802e55e5fa859416fe1a307afd843a9939688",
+              "0x81b303f80ef2b326480533ceb3ff632a9eeaa08c",
+              {
+                "authority_discovery": "5DhQWHLUQZ6bQs4TJ6uRdFpzEXKeVgyZKMvquzCGgUBFvsbp",
+                "babe": "5GMrzcc3A5Msh9QYbNGaJ4pcHzcquNHBxFTqVvWmDSH7uMD6",
+                "beefy": "KWBJ7g5dtRAxYytVB61yAyGgowWCKxmykdg9T1RBCS5mBLYyX",
+                "grandpa": "5HC92Ruxj5Ti4PRRwR1R3aWGN1NateSxywP8h7BLU2EtffSx",
+                "im_online": "5DPkdaLovQAL9MmNe5urKNVcpJj6GeSeq9a9ZPpDoDxHTrgd",
+                "para_assignment": "5CqVUTMCjAPjmU6b1pnYxHjW2iFw17q6t2u8oD7bMNCo13St",
+                "para_validator": "5Fh4WfR7VBfGHD7TJDbwW3jPhiEUj834oMgP711vc8E2aRci"
+              }
+            ],
+            [
+              "0x402e7930b88872347005bb04ee6f3ece26c2d2f5",
+              "0xf6b6ee195405cba3b2561c10a77d7c2a05833566",
+              {
+                "authority_discovery": "5Ci2eR2GsxkDjeBfA8Euvxea33LCaF5YAEM1QryJicFia3EP",
+                "babe": "5FX7Y9V7SNh9vgFHbqcE65sDPMSr2LEdRxMEYpPuJQPXd1zq",
+                "beefy": "KW9hmdLNx3QFdBnTDqdCZ1DycpLEeM2wy3cGPhXLMfi1kpMoD",
+                "grandpa": "5HoxWEdeNQDZp5VKpMgpoKdYHTuriuepdUmqqHJR8Ko3LRFY",
+                "im_online": "5GvLxqXLkFrfRXtAnD8P45y8YcM8B7XoXkGy3g1dDVVgGSSw",
+                "para_assignment": "5DWgvJaaRvpAPvZDjN4MtNAu3DRqrmFdmUkf2K5QhZdC2t3k",
+                "para_validator": "5DrDyauBjrLatR69ew3xqzSFbP7pSYR5Tj9tRaKKfqBb6VJJ"
+              }
+            ],
+            [
+              "0xecd7b020af9b13773a8feb3a08b031e6f7831c18",
+              "0x19118738bad99b84168059a85d37feb0845a374f",
+              {
+                "authority_discovery": "5FjpJZhNsezYVDNAJSGoi4QGhxLu9YHPukz1htu9zLxJecMH",
+                "babe": "5HgYt8io4MohhG9GJDnrFYdo3tzVcVRhkZV8KXwHs7bHYvwY",
+                "beefy": "KW4wBnZg5VYnMJ3cwgfXCcRJX87mf6YA6JfcAyrnidGAHN1Hv",
+                "grandpa": "5HMFiEbJwY6R9h45Frgo9LeqM9xJc1tmxU4jC6XC8j1VsDcx",
+                "im_online": "5FTVX3tEvJL8uAWauGqVsDwC2LN7RMfCGZnJN79p8rqdrcfc",
+                "para_assignment": "5DFucmvLZekrzUU5RHNk4TXBnBfZFDnxMvXNV6e1Qh66z7kT",
+                "para_validator": "5CBCL222XmmQq8nyFGnknpSSdVrn5KpSeHCrHWa4eoL1D4ed"
+              }
+            ],
+            [
+              "0xb23fa8b8050d213204991b9723ac57e8667b2a9a",
+              "0x8b4838c2f9b0589f339b582509ce23fee2a3a342",
+              {
+                "authority_discovery": "5DUyxPjffaHRNEBHBUJaRzN482rTyxgJcJN1gsprq8CCqCkH",
+                "babe": "5HmgwbbR7P7fRASWtfm7U7eEyEoFHkY4u9crq8DF8gFaRMgt",
+                "beefy": "KWAvuEKVCRH2gWWZRBcZp1T12GXuwcABkkciJfiYbXFKkeudq",
+                "grandpa": "5HRjds1GLuf2SP43waogdZragY1NR383RFndWXELuk6gkzTd",
+                "im_online": "5FTTVgm7ht7xAirGAgudmXFb9yC2ZjgJvvUYGLiWdnfCanJA",
+                "para_assignment": "5CQ5CdtWfbeMDDJrrX3AmK7r99p9CNuN3Gcgq2JcbUsTb2ZX",
+                "para_validator": "5EsUz45GHt4Zvd2XQqfdxUaUfrkxD2eEJNkR3AdooYtYqDH8"
+              }
+            ],
+            [
+              "0x50035d01bdd01dba568fff42f20332aa5d4d4129",
+              "0x75be8bc4f649040abf0384fd28517f7d23baecbe",
+              {
+                "authority_discovery": "5Gc9nozcRvKrzmbz18HvHUDSsrzakQG8iYxeRNTeXyT5aEQi",
+                "babe": "5HmVxWmaK6BTLbGRUwkbGet9NkrCpREMA7QmnATfAnnf4p5t",
+                "beefy": "KW6GcRDYnCTY9RJHn4KMvFH82Bu3GhnY6NqDdc7dCHVRD2wzG",
+                "grandpa": "5CLy7ciNFZ2Yt1FdpLLw78oj5fWSpqGfWrccDJFW8i8n3dek",
+                "im_online": "5HEPkUq5tkVA4xBctEwpudbiERDr4oTEZFvPwNgifTRdato1",
+                "para_assignment": "5Cw8h8rqA9rewKrgpFqqwB7ga9SgaaB8SBfjg4X7sap7pc9T",
+                "para_validator": "5HN2UNBGgq9W6ZCBCscuNeAyS1W6jjkj48e3CpKdwUfYPiww"
+              }
+            ],
+            [
+              "0xbea9a57046110e7cbb4e34c6053ecb4cb7494f87",
+              "0x558665a3a35dc6ca649b02a7259de9a5b78cb058",
+              {
+                "authority_discovery": "5GuYWfe4ZjcefzGCQyGS1MEJ8WJVgiN3wKQRogbuk57EtmeP",
+                "babe": "5E4H1m9eg39p24PZ7zDkrma2YZZDoLQmsdkXCqS2As97S96Z",
+                "beefy": "KWCWqxMgEGRRFitfdo9Sq2hJLgchkT7bAq6tXqbnrYkpYxPYj",
+                "grandpa": "5Fc7f8L8rJscwhPMnDbRqwr7hLZwbHATKKNDwyhSW3aWDtUq",
+                "im_online": "5D5ZxNc4AXN71AWBvL3Uv4PqU3CKEvyAqbu1B3dsgeaAcftd",
+                "para_assignment": "5HdiA7yEbuqGN4FVa87iFStU9WcNgNooNwKoSkiG6yif6KyJ",
+                "para_validator": "5CXvihxQAFFeA28sJ9oGgGQAF4ubA3PomnFLfs8yxcfFSqGP"
+              }
+            ],
+            [
+              "0xb08322a32cfef1a3210663177d85c79ab3c5a746",
+              "0x265e0660f3c2279e156f266ce83ce76133e312f3",
+              {
+                "authority_discovery": "5CFzy442xtvUbieVrg9Ve8stg5hNuK9p1FHeN6HQadrcwvKM",
+                "babe": "5CUsqenRHd6HYTT6tmyNfpQ9JNZchenCPvfmFBfNoakJq7fX",
+                "beefy": "KW3KSetj4V1yhFHYaUKcMPywoHcHhVDtits9MnkKZao6sKRG5",
+                "grandpa": "5ENjdFjn8W675YK3zCYfrsXTnbjuvcDNCVLDhwcxZGiQ1y3K",
+                "im_online": "5HNdqRmBt8LRNouvBgmjgx6HjChJV6nyHjEDTYbvtJeDsRpK",
+                "para_assignment": "5GYkmW5dXbyPs37R2EWhh8RwfE8J9JvNzWo6RqG599VMCpDA",
+                "para_validator": "5Eq1f7E7L5LTabmArxrh7eb1gT5wjGkyjL1qvaiWUNucf2QG"
+              }
+            ],
+            [
+              "0xc21f897c6bcbbe29d5547bd6e42efe986353b339",
+              "0xf6d98aa3d28f85403c24280c4d558d8ad19eeb74",
+              {
+                "authority_discovery": "5EeaHQ4J7yVPsVnX43yc88Mqn41GbhxbhRVGHNpgAKFT6Myr",
+                "babe": "5E2XmCRbQSty3BiVnTLvS8T6h49EzKPuFW3PTCxNcztUixfj",
+                "beefy": "KWCfKgoLgk6dUaEZmLq9tvmcGasCvmTgimERjE6gnTBBomEpt",
+                "grandpa": "5HUacp4JjDdqfbxkJeyvwcKyQ1R1bcpUcWEEitaL1pQVDuKu",
+                "im_online": "5Gq8qEU6z6myuuxb8EmcMbERC51WDbjZrjfHkjZ696pwzakA",
+                "para_assignment": "5FErHWqfTFaLMnjBEznr9jNmcoBaQzNUsizLGGQp15jjbVyo",
+                "para_validator": "5HdcXA5yxf1VgKWHVc7yCzx8vuK4M8d2hLfMVfpQZpCpeHQZ"
+              }
+            ],
+            [
+              "0xcbc48ac780166901fa1e0435c990a7a91b439ef1",
+              "0x8a9224cf588d7c4754cb265228ff050815da29f3",
+              {
+                "authority_discovery": "5Do25VUrYspJafYeRKSjLhPQqSqFgCfw3Uz7KrqDWrs3u563",
+                "babe": "5Ff9aEu33GvUPWJX8fvnXefazLfuk9aAUihvAYJNHkm1BBpn",
+                "beefy": "KWDFR6j71jjGftV3UFZFmiwgjmYuvgTLVZuGyDSP42LtPCJd5",
+                "grandpa": "5EY6f7vWXZBjvLVgbJrkhfdpHmm8CidFxSKiyQLezv17kwMa",
+                "im_online": "5EkcPx1dA7Cb6g7szZ9DFXn4R1XarKqC4wcVTgQ4dYeaiy8S",
+                "para_assignment": "5EnyPsn1VLSQMGXtikiHgMLHceWvSH8dkoCsDFX2fjzhU2aH",
+                "para_validator": "5CdTHNkn7CdZFKp7u5VfT5C9ZzX4Yw1GBTCMyiD5yYWecb2X"
               }
             ]
           ]
@@ -239,40 +445,124 @@
           "canceledPayout": 0,
           "forceEra": "NotForcing",
           "invulnerables": [
-            "0x04d1191600fa259ddd2b5bed9f81015b4b68c014",
-            "0x3619acb32a35eb4cb2604fb5f5fffcee1a690734",
-            "0xa485363fffc08bb2b17286c3c32b33294a28af6a"
+            "0xf4585ff1a4dbaa05a5c13807c301feb30ff982d0",
+            "0x72e2812ebb8fca781286e09b42eb9ec5ff2e6576",
+            "0x5753aee0ce28478e1c76d39f762144aecf7b2635",
+            "0xc3755a655e9408c263830b1637279703ca3aae0d",
+            "0xb4f509853781dab0000312a0e44a30ecf6c69ce6",
+            "0x6056f158410daaf9da13b3999b033018e1f92ca2",
+            "0x81b303f80ef2b326480533ceb3ff632a9eeaa08c",
+            "0xf6b6ee195405cba3b2561c10a77d7c2a05833566",
+            "0x19118738bad99b84168059a85d37feb0845a374f",
+            "0x8b4838c2f9b0589f339b582509ce23fee2a3a342",
+            "0x75be8bc4f649040abf0384fd28517f7d23baecbe",
+            "0x558665a3a35dc6ca649b02a7259de9a5b78cb058",
+            "0x265e0660f3c2279e156f266ce83ce76133e312f3",
+            "0xf6d98aa3d28f85403c24280c4d558d8ad19eeb74",
+            "0x8a9224cf588d7c4754cb265228ff050815da29f3"
           ],
           "maxNominatorCount": null,
           "maxValidatorCount": null,
           "minNominatorBond": 1000000000000000000000,
           "minValidatorBond": 75000000000000000000000,
-          "minimumValidatorCount": 3,
+          "minimumValidatorCount": 15,
           "slashRewardFraction": 50000000,
           "stakers": [
             [
-              "0x04d1191600fa259ddd2b5bed9f81015b4b68c014",
-              "0x05564c8df908539a2e496c7ddb2f41b8b2befcaa",
+              "0xf4585ff1a4dbaa05a5c13807c301feb30ff982d0",
+              "0x629b2b2003fe9762bbddf4bccbc58727687b5f69",
               75000000000000000000000,
               "Validator"
             ],
             [
-              "0x3619acb32a35eb4cb2604fb5f5fffcee1a690734",
-              "0xa5fbd0509079e75c70815a050dc4c0e5f27e3c9b",
+              "0x72e2812ebb8fca781286e09b42eb9ec5ff2e6576",
+              "0xef20c48cad2c3e1a877abb212504fca96414c4b9",
               75000000000000000000000,
               "Validator"
             ],
             [
-              "0xa485363fffc08bb2b17286c3c32b33294a28af6a",
-              "0xc14e277a3c032aa11324b3f44f36b2f8cb04a61e",
+              "0x5753aee0ce28478e1c76d39f762144aecf7b2635",
+              "0x3a15e55f51d7683fa7a74c4af5e796a3198c738b",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0xc3755a655e9408c263830b1637279703ca3aae0d",
+              "0x4c81ab855e1b742d8f77644fc99fcfb198177743",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0xb4f509853781dab0000312a0e44a30ecf6c69ce6",
+              "0xe1e1098d7b37e217c24cff33f0cd12f570069491",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x6056f158410daaf9da13b3999b033018e1f92ca2",
+              "0x7f3f3222bf0ab9db116fbfbb3cc140a28e8a22b9",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x81b303f80ef2b326480533ceb3ff632a9eeaa08c",
+              "0x18b802e55e5fa859416fe1a307afd843a9939688",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0xf6b6ee195405cba3b2561c10a77d7c2a05833566",
+              "0x402e7930b88872347005bb04ee6f3ece26c2d2f5",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x19118738bad99b84168059a85d37feb0845a374f",
+              "0xecd7b020af9b13773a8feb3a08b031e6f7831c18",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x8b4838c2f9b0589f339b582509ce23fee2a3a342",
+              "0xb23fa8b8050d213204991b9723ac57e8667b2a9a",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x75be8bc4f649040abf0384fd28517f7d23baecbe",
+              "0x50035d01bdd01dba568fff42f20332aa5d4d4129",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x558665a3a35dc6ca649b02a7259de9a5b78cb058",
+              "0xbea9a57046110e7cbb4e34c6053ecb4cb7494f87",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x265e0660f3c2279e156f266ce83ce76133e312f3",
+              "0xb08322a32cfef1a3210663177d85c79ab3c5a746",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0xf6d98aa3d28f85403c24280c4d558d8ad19eeb74",
+              "0xc21f897c6bcbbe29d5547bd6e42efe986353b339",
+              75000000000000000000000,
+              "Validator"
+            ],
+            [
+              "0x8a9224cf588d7c4754cb265228ff050815da29f3",
+              "0xcbc48ac780166901fa1e0435c990a7a91b439ef1",
               75000000000000000000000,
               "Validator"
             ]
           ],
-          "validatorCount": 3
+          "validatorCount": 15
         },
         "sudo": {
-          "key": "0x937fecd86668311a03d3cbc6feeed5262d77d112"
+          "key": "0x226e562ca44a997894d4eae15e147b145387dc12"
         },
         "system": {},
         "technicalCommittee": {

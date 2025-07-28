@@ -40,11 +40,11 @@ pub type Result<T> = std::result::Result<T, Error>;
 
 impl SubstrateCli for Cli {
     fn impl_name() -> String {
-        "Atleta Network".into()
+        "Atleta Node".into()
     }
 
     fn impl_version() -> String {
-        env!("SUBSTRATE_CLI_IMPL_VERSION").into()
+        format!("{}-{}", env!("SUBSTRATE_CLI_IMPL_VERSION"), NODE_VERSION)
     }
 
     fn description() -> String {
@@ -67,7 +67,9 @@ impl SubstrateCli for Cli {
         Ok(match id {
             "dev" => Box::new(chain_spec::development_config()),
             "" | "local" => Box::new(chain_spec::local_testnet_config()),
+            "devnet" => Box::new(chain_spec::devnet_config()),
             "testnet" => Box::new(chain_spec::testnet_config()),
+            "stagenet" => Box::new(chain_spec::stagenet_config()),
             "mainnet" => Box::new(chain_spec::mainnet_config()),
             path => {
                 Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?)
@@ -118,7 +120,6 @@ where
             .flatten();
 
         let database_source: DatabaseSource = config.database.clone();
-
         let task_manager = service::build_full(
             config,
             cli.eth,
