@@ -7,7 +7,7 @@ use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
 use pallet_evm_precompile_simple::{ECRecover, ECRecoverPublicKey, Identity, Ripemd160, Sha256};
 
-use pallet_evm_precompile_babe::BabePrecompile;
+
 use pallet_evm_precompile_governance::GovernancePrecompile;
 use pallet_evm_precompile_nomination_pools::NominationPoolsPrecompile;
 use pallet_evm_precompile_preimage::PreimagePrecompile;
@@ -88,7 +88,7 @@ type AtletaPrecompilesAt<R> = (
         NominationPoolsPrecompile<R>,
         (CallableByContract, CallableByPrecompile),
     >,
-    PrecompileAt<AddressU64<2007>, BabePrecompile<R>, (CallableByContract, CallableByPrecompile)>,
+
     PrecompileAt<
         AddressU64<2008>,
         BatchPrecompile<R>,
