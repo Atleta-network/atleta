@@ -1,5 +1,5 @@
-use std::collections::BTreeMap;
 use hex_literal::hex;
+use std::collections::BTreeMap;
 
 use sc_chain_spec::{ChainSpecExtension, ChainType, Properties};
 use serde::{Deserialize, Serialize};
@@ -228,7 +228,7 @@ fn testnet_genesis(
         elections: ElectionsConfig {
             members: endowed_accounts
                 .iter()
-                .take((num_endowed_accounts + 1) / 2)
+                .take(num_endowed_accounts.div_ceil(2))
                 .cloned()
                 .map(|member| (member, STASH))
                 .collect::<Vec<_>>(),
@@ -236,7 +236,7 @@ fn testnet_genesis(
         technical_committee: TechnicalCommitteeConfig {
             members: endowed_accounts
                 .iter()
-                .take((num_endowed_accounts + 1) / 2)
+                .take(num_endowed_accounts.div_ceil(2))
                 .cloned()
                 .collect::<Vec<_>>(),
             ..Default::default()
@@ -248,7 +248,7 @@ fn testnet_genesis(
             ..Default::default()
         },
         #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
-                    faucet: FaucetConfig { initial_balance: 1_000_000 * UNITS },
+        faucet: FaucetConfig { initial_balance: 1_000_000 * UNITS },
         ..Default::default()
     }
 }
@@ -279,9 +279,9 @@ pub fn mainnet_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(mainnet_genesis(
-                            mainnet_genesis::sudo_account(),
-            mainnet_genesis::validators(),
-            mainnet_genesis::prefunded(),
+                mainnet_genesis::sudo_account(),
+                mainnet_genesis::validators(),
+                mainnet_genesis::prefunded(),
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -342,7 +342,7 @@ fn mainnet_genesis(
         elections: ElectionsConfig {
             members: validators_keys
                 .iter()
-                .take((validators_keys.len() + 1) / 2)
+                .take(validators_keys.len().div_ceil(2))
                 .cloned()
                 .map(|member| (member.id, STASH_INITIAL_BALANCE))
                 .collect::<Vec<_>>(),
@@ -391,8 +391,8 @@ mod devnet_keys {
 }
 
 mod testnet_keys {
-    use super::*;
     use super::ValidatorKeys;
+    use super::*;
 
     pub(super) fn lionel() -> AccountId {
         AccountId::from(hex!("08e390762f64ABA6F9F9269589e1A702623e90F1"))

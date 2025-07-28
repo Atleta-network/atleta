@@ -25,8 +25,8 @@ use sp_runtime::{
     generic::{self, Era},
     impl_opaque_keys,
     traits::{
-        self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get, IdentifyAccount,
-        IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
+        self, AccountIdConversion, BlakeTwo256, Block as BlockT, DispatchInfoOf, Dispatchable, Get,
+        IdentifyAccount, IdentityLookup, Keccak256, NumberFor, One, OpaqueKeys, PostDispatchInfoOf,
         SaturatedConversion, UniqueSaturatedInto, Verify,
     },
     transaction_validity::{
@@ -43,6 +43,7 @@ use frame_election_provider_support::{
     bounds::ElectionBoundsBuilder, onchain, BalancingConfig, ElectionDataProvider,
     SequentialPhragmen, VoteWeight,
 };
+
 #[cfg(feature = "with-paritydb-weights")]
 use frame_support::weights::constants::ParityDbWeight as RuntimeDbWeight;
 #[cfg(feature = "with-rocksdb-weights")]
@@ -62,7 +63,6 @@ use frame_support::{
     },
     PalletId,
 };
-use frame_support::traits::tokens::{PayFromAccount, UnityAssetBalanceConversion};
 use pallet_election_provider_multi_phase::SolutionAccuracyOf;
 use pallet_grandpa::AuthorityId as GrandpaId;
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
