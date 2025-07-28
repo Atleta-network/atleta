@@ -1,9 +1,6 @@
+use hex_literal::hex;
 use std::collections::BTreeMap;
 
-// 3rd party imports
-use hex_literal::hex;
-
-// Substrate
 use sc_chain_spec::{ChainSpecExtension, ChainType, Properties};
 use serde::{Deserialize, Serialize};
 use sp_consensus_babe::AuthorityId as BabeId;
@@ -17,17 +14,45 @@ use sp_runtime::{
     Perbill,
 };
 
-// Frontier
 #[cfg(any(feature = "testnet-runtime", feature = "devnet-runtime"))]
 use atleta_runtime::FaucetConfig;
 use atleta_runtime::{
     constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig,
-    Block, ConfigurationConfig, EVMChainIdConfig, MaxNominations, NominationPoolsConfig,
-    RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig,
-    SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY,
+    Block, ConfigurationConfig, EVMChainIdConfig, ElectionsConfig, MaxNominations,
+    NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature,
+    StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG,
+    WASM_BINARY,
 };
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
+
 use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
+
+#[derive(Clone)]
+pub struct ValidatorKeys {
+    pub id: AccountId,
+    pub stash: AccountId,
+    pub babe: BabeId,
+    pub grandpa: GrandpaId,
+    pub im_online: ImOnlineId,
+    pub para_validator: ValidatorId,
+    pub para_assignment: AssignmentId,
+    pub authority_discovery: AuthorityDiscoveryId,
+    pub beefy: BeefyId,
+}
+
+impl From<ValidatorKeys> for SessionKeys {
+    fn from(keys: ValidatorKeys) -> Self {
+        SessionKeys {
+            babe: keys.babe,
+            grandpa: keys.grandpa,
+            im_online: keys.im_online,
+            para_validator: keys.para_validator,
+            para_assignment: keys.para_assignment,
+            authority_discovery: keys.authority_discovery,
+            beefy: keys.beefy,
+        }
+    }
+}
 
 /// Node `ChainSpec` extensions.
 ///
@@ -64,15 +89,10 @@ pub fn development_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(testnet_genesis(
-                // Sudo account (Alith)
                 alith(),
-                // Pre-funded accounts
                 vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
-                // Initial Validators and PoA authorities
                 vec![authority_keys_from_seed("Alice")],
-                // Initial nominators
                 vec![],
-                // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -91,40 +111,10 @@ pub fn devnet_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(testnet_genesis(
-                // Sudo account (Alith)
                 alith(),
-                // Pre-funded accounts
-                vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
-                // Initial Validators and PoA authorities
-                vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
-                // Initial nominators
-                vec![],
-                // Ethereum chain ID
-                SS58Prefix::get() as u64,
-            ))
-            .expect("Invalid genesis config"),
-        )
-        .build()
-}
-
-// Local testnet config
-pub fn local_testnet_config() -> ChainSpec {
-    use devnet_keys::*;
-
-    ChainSpec::builder(WASM_BINARY.expect("WASM not available"), Default::default())
-        .with_name("Local Testnet")
-        .with_id("local")
-        .with_chain_type(ChainType::Local)
-        .with_properties(properties())
-        .with_genesis_config(
-            serde_json::to_value(testnet_genesis(
-                // Sudo account (Alith)
-                alith(),
-                // Pre-funded accounts
                 vec![alith(), baltathar(), charleth(), dorothy(), ethan(), faith(), goliath()],
                 vec![authority_keys_from_seed("Alice"), authority_keys_from_seed("Bob")],
                 vec![],
-                // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -143,9 +133,7 @@ pub fn testnet_config() -> ChainSpec {
         .with_properties(properties())
         .with_genesis_config(
             serde_json::to_value(testnet_genesis(
-                // Sudo account (Alith)
                 lionel(),
-                // Pre-funded accounts
                 vec![
                     lionel(),
                     diego(),
@@ -160,7 +148,6 @@ pub fn testnet_config() -> ChainSpec {
                 ],
                 vec![diego_session_keys(), pele_session_keys(), franz_session_keys()],
                 vec![],
-                // Ethereum chain ID
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -238,10 +225,18 @@ fn testnet_genesis(
             min_validator_bond: 1_000 * UNITS,
             ..Default::default()
         },
+        elections: ElectionsConfig {
+            members: endowed_accounts
+                .iter()
+                .take(num_endowed_accounts.div_ceil(2))
+                .cloned()
+                .map(|member| (member, STASH))
+                .collect::<Vec<_>>(),
+        },
         technical_committee: TechnicalCommitteeConfig {
             members: endowed_accounts
                 .iter()
-                .take((num_endowed_accounts + 1) / 2)
+                .take(num_endowed_accounts.div_ceil(2))
                 .cloned()
                 .collect::<Vec<_>>(),
             ..Default::default()
@@ -286,7 +281,7 @@ pub fn mainnet_config() -> ChainSpec {
             serde_json::to_value(mainnet_genesis(
                 mainnet_genesis::sudo_account(),
                 mainnet_genesis::validators(),
-                mainnet_genesis::technical_allocation(),
+                mainnet_genesis::prefunded(),
                 SS58Prefix::get() as u64,
             ))
             .expect("Invalid genesis config"),
@@ -301,7 +296,7 @@ fn mainnet_genesis(
     chain_id: u64,
 ) -> RuntimeGenesisConfig {
     const VALIDATOR_INITIAL_BALANCE: Balance = 75_000 * UNITS;
-    const STASH_INITIAL_BALANCE: Balance = 75_000 * UNITS;
+    const STASH_INITIAL_BALANCE: Balance = 25_000 * UNITS;
 
     let mut initial_balances = BTreeMap::<AccountId, Balance>::from_iter(initial_balances);
 
@@ -328,7 +323,7 @@ fn mainnet_genesis(
             slash_reward_fraction: Perbill::from_percent(5),
             stakers,
             min_nominator_bond: 1_000 * UNITS,
-            min_validator_bond: 75_000 * UNITS,
+            min_validator_bond: 5_000 * UNITS,
             ..Default::default()
         },
         session: SessionConfig {
@@ -344,9 +339,10 @@ fn mainnet_genesis(
                 .collect::<Vec<_>>(),
         },
         technical_committee: mainnet_genesis::technical_committee_config(),
+
         nomination_pools: NominationPoolsConfig {
             min_join_bond: 100 * UNITS,
-            min_create_bond: 1_000 * UNITS,
+            min_create_bond: 100 * UNITS,
             ..Default::default()
         },
         council: mainnet_genesis::council_config(),
@@ -388,6 +384,7 @@ mod devnet_keys {
 }
 
 mod testnet_keys {
+    use super::ValidatorKeys;
     use super::*;
 
     pub(super) fn lionel() -> AccountId {
@@ -624,12 +621,37 @@ mod stagenet_keys {
 }
 
 #[rustfmt::skip]
+mod technical_addresses {
+    use super::*;
+
+    pub fn treasury() -> AccountId {
+        AccountId::from(hex!("0000000000000000000000000000000000000001"))
+    }
+
+    pub fn liquidity_reserves() -> AccountId {
+        AccountId::from(hex!("0000000000000000000000000000000000000002"))
+    }
+
+    pub fn liquidity() -> AccountId {
+        AccountId::from(hex!("0000000000000000000000000000000000000003"))
+    }
+
+    pub fn staking_rewards() -> AccountId {
+        AccountId::from(hex!("0000000000000000000000000000000000000004"))
+    }
+}
+
+#[rustfmt::skip]
 mod mainnet_genesis {
     use atleta_runtime::CouncilConfig;
     use super::*;
 
     pub fn sudo_account() -> AccountId {
         AccountId::from(hex!("226e562Ca44a997894d4eAe15e147b145387DC12"))
+    }
+
+    pub fn prefunded() -> Vec<(AccountId, Balance)> {
+        technical_allocation()
     }
 
     pub fn technical_allocation() -> Vec<(AccountId, Balance)> {
@@ -901,54 +923,6 @@ mod mainnet_genesis {
     */
 }
 
-mod technical_addresses {
-    use atleta_runtime::AccountId;
-    use sp_runtime::traits::AccountIdConversion;
-
-    pub fn treasury() -> AccountId {
-        atleta_runtime::areas::TreasuryPalletId::get().into_account_truncating()
-    }
-
-    pub fn staking_rewards() -> AccountId {
-        atleta_runtime::areas::StakingRewardsPalletId::get().into_account_truncating()
-    }
-
-    pub fn liquidity() -> AccountId {
-        atleta_runtime::areas::LiquidityPalletId::get().into_account_truncating()
-    }
-
-    pub fn liquidity_reserves() -> AccountId {
-        atleta_runtime::areas::LiquidityReservesPalletId::get().into_account_truncating()
-    }
-}
-
-#[derive(Clone)]
-pub struct ValidatorKeys {
-    pub id: AccountId,
-    pub stash: AccountId,
-    pub babe: BabeId,
-    pub grandpa: GrandpaId,
-    pub im_online: ImOnlineId,
-    pub para_validator: ValidatorId,
-    pub para_assignment: AssignmentId,
-    pub authority_discovery: AuthorityDiscoveryId,
-    pub beefy: BeefyId,
-}
-
-impl From<ValidatorKeys> for SessionKeys {
-    fn from(val: ValidatorKeys) -> SessionKeys {
-        SessionKeys {
-            babe: val.babe,
-            grandpa: val.grandpa,
-            im_online: val.im_online,
-            para_validator: val.para_validator,
-            para_assignment: val.para_assignment,
-            authority_discovery: val.authority_discovery,
-            beefy: val.beefy,
-        }
-    }
-}
-
 /// Generate a crypto pair from seed.
 pub fn get_from_seed<TPublic: Public>(seed: &str) -> <TPublic::Pair as Pair>::Public {
     TPublic::Pair::from_string(&format!("//{}", seed), None)
@@ -981,7 +955,6 @@ pub fn authority_keys_from_seed(s: &str) -> ValidatorKeys {
     }
 }
 
-/// Properties for Atleta network.
 fn properties() -> Properties {
     let mut properties = Properties::new();
     properties.insert("isEthereum".into(), true.into());

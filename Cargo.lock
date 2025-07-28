@@ -816,6 +816,7 @@ dependencies = [
  "fp-evm",
  "fp-rpc",
  "fp-self-contained",
+ "frame-benchmarking",
  "frame-election-provider-support",
  "frame-executive",
  "frame-support",
@@ -843,7 +844,6 @@ dependencies = [
  "pallet-ethereum",
  "pallet-evm",
  "pallet-evm-chain-id",
- "pallet-evm-precompile-babe",
  "pallet-evm-precompile-dispatch",
  "pallet-evm-precompile-governance",
  "pallet-evm-precompile-modexp",
@@ -6689,24 +6689,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-evm-precompile-babe"
-version = "0.0.1"
-dependencies = [
- "environmental",
- "evm",
- "fp-evm",
- "frame-support",
- "frame-system",
- "pallet-babe",
- "pallet-evm",
- "precompile-utils",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
-]
-
-[[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
 source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#34b47ba2c9c64e51faa73847e53408f507887f67"
@@ -6716,25 +6698,6 @@ dependencies = [
  "pallet-evm",
  "parity-scale-codec",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-evm-precompile-faucet"
-version = "0.0.1"
-dependencies = [
- "environmental",
- "evm",
- "fp-evm",
- "frame-support",
- "frame-system",
- "pallet-evm",
- "pallet-faucet",
- "precompile-utils",
- "sp-core",
- "sp-io",
- "sp-runtime",
- "sp-staking",
- "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
 ]
 
 [[package]]
@@ -7211,6 +7174,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-session",
  "parity-scale-codec",
+ "rand_chacha 0.2.2",
  "scale-info",
  "serde",
  "sp-application-crypto",
@@ -8646,6 +8610,7 @@ dependencies = [
  "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
  "staging-xcm",
  "staging-xcm-executor",
+ "static_assertions",
 ]
 
 [[package]]

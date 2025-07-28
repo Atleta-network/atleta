@@ -188,7 +188,7 @@ parameter_types! {
     pub const VotingBondBase: Balance = deposit(1, 64);
     pub const VotingBondFactor: Balance = deposit(0, 32);
     pub const TermDuration: BlockNumber = 356 * DAYS;
-    pub const DesiredMembers: u32 = 5;
+    pub const DesiredMembers: u32 = 4;
     pub const DesiredRunnersUp: u32 = 4;
     pub const MaxVotesPerVoter: u32 = 128;
     pub const MaxVoters: u32 = 2048;
