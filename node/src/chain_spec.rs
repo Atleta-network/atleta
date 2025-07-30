@@ -236,6 +236,8 @@ fn testnet_genesis(
             stakers: stakers.clone(),
             min_nominator_bond: 10 * UNITS,
             min_validator_bond: 1_000 * UNITS,
+            max_nominator_count: Some(100_000),
+            max_validator_count: Some(100),
             ..Default::default()
         },
         technical_committee: TechnicalCommitteeConfig {
@@ -329,6 +331,8 @@ fn mainnet_genesis(
             stakers,
             min_nominator_bond: 1_000 * UNITS,
             min_validator_bond: 75_000 * UNITS,
+            max_nominator_count: Some(100_000),
+            max_validator_count: Some(100),
             ..Default::default()
         },
         session: SessionConfig {
@@ -345,8 +349,11 @@ fn mainnet_genesis(
         },
         technical_committee: mainnet_genesis::technical_committee_config(),
         nomination_pools: NominationPoolsConfig {
-            min_join_bond: 1000 * UNITS,
+            min_join_bond: 1_000 * UNITS,
             min_create_bond: 1_000 * UNITS,
+            max_pools: Some(1_000),
+            max_members_per_pool: Some(10_000),
+            max_members: Some(100_000),
             ..Default::default()
         },
         council: mainnet_genesis::council_config(),
