@@ -345,7 +345,7 @@ fn mainnet_genesis(
         },
         technical_committee: mainnet_genesis::technical_committee_config(),
         nomination_pools: NominationPoolsConfig {
-            min_join_bond: 100 * UNITS,
+            min_join_bond: 1000 * UNITS,
             min_create_bond: 1_000 * UNITS,
             ..Default::default()
         },
