@@ -325,7 +325,7 @@ fn mainnet_genesis(
             slash_reward_fraction: Perbill::from_percent(5),
             stakers,
             min_nominator_bond: 1_000 * UNITS,
-            min_validator_bond: 75_000 * UNITS,
+            min_validator_bond: 5_000 * UNITS,
             max_nominator_count: Some(100_000),
             max_validator_count: Some(15),
             ..Default::default()
