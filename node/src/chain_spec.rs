@@ -23,7 +23,6 @@ use atleta_runtime::{
     StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG,
     WASM_BINARY,
 };
-use atleta_runtime::{constants::currency::*, opaque::SessionKeys, AccountId, BabeConfig, Balance, BalancesConfig, Block, ConfigurationConfig, EVMChainIdConfig, GrandpaConfig, MaxNominations, NominationPoolsConfig, RuntimeGenesisConfig, SS58Prefix, SessionConfig, Signature, StakerStatus, StakingConfig, SudoConfig, TechnicalCommitteeConfig, BABE_GENESIS_EPOCH_CONFIG, WASM_BINARY};
 use pallet_im_online::sr25519::AuthorityId as ImOnlineId;
 
 use polkadot_primitives::{AssignmentId, AuthorityDiscoveryId, ValidatorId};
