@@ -223,6 +223,8 @@ fn testnet_genesis(
             stakers: stakers.clone(),
             min_nominator_bond: 10 * UNITS,
             min_validator_bond: 1_000 * UNITS,
+            max_nominator_count: Some(100_000),
+            max_validator_count: Some(100),
             ..Default::default()
         },
         elections: ElectionsConfig {
@@ -324,6 +326,8 @@ fn mainnet_genesis(
             stakers,
             min_nominator_bond: 1_000 * UNITS,
             min_validator_bond: 5_000 * UNITS,
+            max_nominator_count: Some(100_000),
+            max_validator_count: Some(15),
             ..Default::default()
         },
         session: SessionConfig {
@@ -341,12 +345,16 @@ fn mainnet_genesis(
         technical_committee: mainnet_genesis::technical_committee_config(),
 
         nomination_pools: NominationPoolsConfig {
-            min_join_bond: 100 * UNITS,
-            min_create_bond: 100 * UNITS,
+            min_join_bond: 1_000 * UNITS,
+            min_create_bond: 1_000 * UNITS,
+            max_pools: Some(1_000),
+            max_members_per_pool: Some(10_000),
+            max_members: Some(1_000_000),
+            global_max_commission: None,
             ..Default::default()
         },
         council: mainnet_genesis::council_config(),
-        evm_chain_id: EVMChainIdConfig { chain_id, ..Default::default() },
+        evm_chain_id: EVMChainIdConfig { chain_id, _marker: Default::default() },
         ..Default::default()
     }
 }
@@ -673,10 +681,10 @@ mod mainnet_genesis {
     pub fn council_config() -> CouncilConfig {
          CouncilConfig {
             members: vec![
-                AccountId::from(hex!("85fc1309AcD66a3a6109487980D3e186B5718D51")),
-                AccountId::from(hex!("881fe63dfEE7611CC005e2b0e4577B8c3BF0D478")),
-                AccountId::from(hex!("7c7e63c46e4E1cC71a759f591197A26A98a6146b")),
-                AccountId::from(hex!("226e562Ca44a997894d4eAe15e147b145387DC12")),
+                AccountId::from(hex!("f4585fF1A4DBaa05A5c13807C301feb30fF982D0")),
+                AccountId::from(hex!("72E2812EBB8fCA781286e09B42Eb9EC5fF2E6576")),
+                AccountId::from(hex!("5753aEe0cE28478e1C76d39f762144aECF7B2635")),
+                AccountId::from(hex!("C3755A655e9408C263830b1637279703CA3AAE0d")),
             ],
             ..Default::default()
         }
@@ -685,8 +693,8 @@ mod mainnet_genesis {
     pub fn technical_committee_config() -> TechnicalCommitteeConfig {
         TechnicalCommitteeConfig {
             members: vec![
-                AccountId::from(hex!("d6001f04c993B7962d771E06cADA75Aea7101aA2")),
-                AccountId::from(hex!("6cE795C6029404695E76f873fa2f846335B562aD")),
+                AccountId::from(hex!("629b2b2003FE9762bBdDf4BcCBc58727687B5f69")),
+                AccountId::from(hex!("Ef20c48CAd2c3e1A877aBB212504fca96414C4B9")),
             ],
             ..Default::default()
         }
