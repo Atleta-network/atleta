@@ -16,9 +16,7 @@ repository = "https://github.com/Atleta-network/atleta"
 atleta-runtime = { path = "runtime", default-features = false }
 pallet-faucet = { path = "pallets/faucet", default-features = false }
 pallet-evm-precompile-staking = { path = "precompiles/staking", default-features = false }
-pallet-evm-precompile-faucet = { path = "precompiles/faucet", default-features = false }
 pallet-evm-precompile-nomination-pools = { path = "precompiles/nomination-pools", default-features = false }
-pallet-evm-precompile-babe = { path = "precompiles/babe", default-features = false }
 pallet-evm-precompile-governance = { path = "precompiles/governance", default-features = false }
 pallet-evm-precompile-treasury = { path = "precompiles/treasury", default-features = false }
 pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-features = false }
@@ -35,7 +33,7 @@ evm = { version = "0.41.1", default-features = false }
 futures = "0.3.30"
 hash-db = { version = "0.16.0", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
-hex-literal = "0.4.1"
+hex-literal = { version = "0.4.1", default-features = false }
 impl-serde = { version = "0.4.0", default-features = false }
 impl-trait-for-tuples = "0.2.1"
 jsonrpsee = "0.22.5"

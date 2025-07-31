@@ -11,7 +11,14 @@ import nacl.encoding
 
 def main():
     args = parse_args()
-    mnemonic = args.mnemonic
+    
+    # Generate mnemonic if not provided
+    if args.generate_mnemonic:
+        mnemonic = generate_random_mnemonic()
+        print(f"Generated mnemonic: {mnemonic}")
+        print("IMPORTANT: Save this mnemonic phrase securely! You'll need it to regenerate keys.\n")
+    else:
+        mnemonic = args.mnemonic
     
     # Root and validator accounts
     validator_names = [f"validator{i}" for i in range(1, 16)]  # validator1 to validator15
@@ -25,22 +32,58 @@ def main():
     if not args.quiet:
         print_session_keys(session_keys)
 
+    # Generate node keys
+    node_keys = generate_node_keys(mnemonic, 6)
+    if not args.quiet:
+        print_node_keys(node_keys)
+
     if args.envfile:
         write_dotenv(accounts, session_keys, args.envfile)
     
     # Always generate keys.env with session keys and root account
     root_account = next((acc for acc in accounts if acc["name"] == "root"), None)
     write_session_keys_env(session_keys, "keys.env", root_account)
+    
+    # Write node keys to a separate file
+    write_node_keys_env(node_keys, "node_keys.env")
 
 
 def parse_args():
     parser = argparse.ArgumentParser(description='generate keys for technical accounts')
     parser.add_argument('-q', '--quiet', action="store_true", help="don't print into output")
     parser.add_argument('-m', '--mnemonic', type=str, help='the core mnemonic phrase from which the keys will be derived')
+    parser.add_argument('-g', '--generate-mnemonic', action="store_true", help='generate a new random mnemonic phrase')
     parser.add_argument('-e', '--envfile', type=str, help='if set, the script will generate a .env file with all the variables at the provided path')
     args = parser.parse_args()
-    assert args.mnemonic, "mnemonic must be specified"
+    
+    if not args.mnemonic and not args.generate_mnemonic:
+        print("Error: Either provide a mnemonic with -m or use -g to generate a new one", file=sys.stderr)
+        sys.exit(1)
+    
     return args
+
+
+def generate_random_mnemonic():
+    """Generate a random 24-word mnemonic phrase using subkey"""
+    command = ["subkey", "generate", "--words", "24"]
+    result = subprocess.run(command, capture_output=True, text=True)
+    
+    if result.returncode == 0:
+        # Extract the mnemonic from subkey output
+        lines = result.stdout.strip().split('\n')
+        for line in lines:
+            if line.strip() and not line.startswith('Secret phrase:'):
+                return line.strip()
+        
+        # Fallback: try to extract from stderr if not in stdout
+        lines = result.stderr.strip().split('\n')
+        for line in lines:
+            if line.strip() and not line.startswith('Secret phrase:'):
+                return line.strip()
+    
+    # If subkey fails, generate a simple one (not recommended for production)
+    print("Warning: Using fallback mnemonic generation. Install subkey for better security.", file=sys.stderr)
+    return "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon art"
 
 
 def generate_accounts(mnemonic, names):
@@ -88,6 +131,42 @@ def generate_session_keys(mnemonic, names):
          result.append(keys_dict)
 
      return result
+
+
+def generate_node_keys(mnemonic, count):
+    """Generate node keys for P2P network identification"""
+    result = []
+    for i in range(1, count + 1):
+        node_name = f"node{i}"
+        derived_mnemonic = f"{mnemonic}//{node_name}"
+        
+        # Generate ed25519 key for node identification
+        command = ["subkey", "inspect", derived_mnemonic, "--scheme", "ed25519"]
+        result_subprocess = subprocess.run(command, capture_output=True, text=True)
+        
+        if result_subprocess.returncode == 0:
+            output = result_subprocess.stdout
+        else:
+            print(f"Error generating node key '{node_name}':", file=sys.stderr)
+            print(result_subprocess.stderr, file=sys.stderr)
+            exit(1)
+        
+        node_key = {}
+        node_key["name"] = node_name
+        node_key["seed"] = get_from_subkey_out("Secret seed", output)
+        node_key["public"] = get_from_subkey_out("Public key \\(hex\\)", output)
+        
+        result.append(node_key)
+    
+    return result
+
+
+def print_node_keys(node_keys):
+    print("# Node Keys for P2P Network Identification:\n")
+    for node_key in node_keys:
+        print(f"# {node_key['name']}")
+        print_pair(node_key)
+        print("\n")
 
 
 def get_scheme(code):
@@ -163,6 +242,20 @@ def seed_to_eth_address(seed):
 
 def seed_to_hex(seed):
     return "0x" + binascii.hexlify(seed).decode('utf-8')
+
+
+def write_node_keys_env(node_keys, filepath):
+    """Write node keys to a separate environment file"""
+    with open(filepath, 'w') as file:
+        file.write("# Node keys for P2P network identification\n")
+        file.write("# Generated automatically - do not edit manually\n\n")
+        
+        for node_key in node_keys:
+            node_name = node_key['name'].upper()
+            file.write(f"# {node_key['name']}\n")
+            file.write(f'{node_name}_NODE_KEY_PRIVATE="{node_key["seed"]}"\n')
+            file.write(f'{node_name}_NODE_KEY_PUBLIC="{node_key["public"]}"\n')
+            file.write("\n")
 
 
 def write_session_keys_env(session_keys, filepath, root_account=None):
