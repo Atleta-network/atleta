@@ -545,7 +545,7 @@ parameter_types! {
     pub MaxOnChainElectableTargets: u16 = 1250;
     // The maximum winners that can be elected by the Election pallet which is equivalent to the
     // maximum active validators the staking pallet can have.
-    pub MaxActiveValidators: u32 = 1000;
+    pub MaxActiveValidators: u32 = 1_000;
     pub ElectionBounds: frame_election_provider_support::bounds::ElectionBounds =
         ElectionBoundsBuilder::default().voters_count(MaxElectingVoters::get().into()).build();
 }
@@ -923,9 +923,8 @@ impl pallet_authority_discovery::Config for Runtime {
 // i'm online
 parameter_types! {
     pub const ImOnlineUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
-    pub const MaxKeys: u32 = 10_000;
-    pub const MaxPeerInHeartbeats: u32 = 10_000;
-    pub const MaxPeerDataEncodingSize: u32 = 1_000;
+    pub const MaxKeys: u32 = 1_000;
+    pub const MaxPeerInHeartbeats: u32 = 1_000;
 }
 
 impl<LocalCall> frame_system::offchain::CreateSignedTransaction<LocalCall> for Runtime
@@ -1077,7 +1076,7 @@ impl<F: FindAuthor<u32>> FindAuthor<H160> for FindAuthorTruncated<F> {
 }
 
 const BLOCK_GAS_LIMIT: u64 = 75_000_000;
-const MAX_POV_SIZE: u64 = 5 * 1024 * 1024;
+const MAX_POV_SIZE: u64 = 15 * 1024 * 1024;
 
 parameter_types! {
     pub BlockGasLimit: U256 = U256::from(BLOCK_GAS_LIMIT);
