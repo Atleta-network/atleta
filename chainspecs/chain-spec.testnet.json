@@ -5,7 +5,10 @@
     "Custom": "Testnet"
   },
   "bootNodes": [
-    "/ip4/35.214.231.144/tcp/30333/p2p/12D3KooWGpC8ZED2Zz6mJ7H1E6AwznUA99ATm9KYMm7LGudH1rmf"
+    "/dns/bootnode-01.testnet-v2.atleta.network/tcp/30333/p2p/12D3KooWAXqBYsMxPD9g2ae9T8SS6fxvKCesc9HVEJpngxJ8z6w5",
+    "/dns/bootnode-01.testnet-v2.atleta.network/tcp/30334/ws/p2p/12D3KooWAXqBYsMxPD9g2ae9T8SS6fxvKCesc9HVEJpngxJ8z6w5",
+    "/dns/bootnode-02.testnet-v2.atleta.network/tcp/30333/p2p/12D3KooWGyWnx67fPiRLN3cs1a7o6hPasssKvaouKFPCPeJEzYFP",
+    "/dns/bootnode-02.testnet-v2.atleta.network/tcp/30334/ws/p2p/12D3KooWGyWnx67fPiRLN3cs1a7o6hPasssKvaouKFPCPeJEzYFP"
   ],
   "telemetryEndpoints": [
      ["wss://telemetry.atleta.network/submit", 1]
