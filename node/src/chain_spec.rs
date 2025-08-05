@@ -351,7 +351,6 @@ fn mainnet_genesis(
             max_members_per_pool: Some(10_000),
             max_members: Some(1_000_000),
             global_max_commission: None,
-            ..Default::default()
         },
         council: mainnet_genesis::council_config(),
         evm_chain_id: EVMChainIdConfig { chain_id, _marker: Default::default() },
