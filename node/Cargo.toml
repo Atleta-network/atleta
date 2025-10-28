@@ -212,6 +212,8 @@ with-rocksdb-weights = ["atleta-runtime/with-rocksdb-weights"]
 with-paritydb-weights = ["atleta-runtime/with-paritydb-weights"]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
+# Local feature gate for optional RPC trace wiring (no external feature mapping)
+rpc-trace = []
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
     "frame-benchmarking-cli/runtime-benchmarks",
