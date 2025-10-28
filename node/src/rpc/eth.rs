@@ -148,9 +148,12 @@ where
         pending_create_inherent_data_providers,
     } = deps;
 
-    // Clone arcs needed later to avoid move issues
+    // Debug RPC needs cloned arcs; do this only when feature is enabled
+    #[cfg(feature = "rpc-trace")]
     let frontier_backend_for_debug = frontier_backend.clone();
+    #[cfg(feature = "rpc-trace")]
     let storage_override_for_debug = storage_override.clone();
+    #[cfg(feature = "rpc-trace")]
     let block_data_cache_for_debug = block_data_cache.clone();
 
     let mut signers = Vec::new();
