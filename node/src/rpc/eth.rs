@@ -124,6 +124,8 @@ where
     };
     #[cfg(feature = "txpool")]
     use fc_rpc::{TxPool, TxPoolApiServer};
+    #[cfg(feature = "rpc-trace")]
+    use fc_rpc::{Debug, DebugApiServer};
 
     let EthDeps {
         client,
@@ -145,6 +147,11 @@ where
         forced_parent_hashes,
         pending_create_inherent_data_providers,
     } = deps;
+
+    // Clone arcs needed later to avoid move issues
+    let frontier_backend_for_debug = frontier_backend.clone();
+    let storage_override_for_debug = storage_override.clone();
+    let block_data_cache_for_debug = block_data_cache.clone();
 
     let mut signers = Vec::new();
     if enable_dev_signer {
@@ -178,12 +185,12 @@ where
         io.merge(
             EthFilter::new(
                 client.clone(),
-                frontier_backend,
+                frontier_backend.clone(),
                 graph.clone(),
                 filter_pool,
                 500_usize, // max stored filters
                 max_past_logs,
-                block_data_cache,
+                block_data_cache.clone(),
             )
             .into_rpc(),
         )?;
@@ -214,7 +221,21 @@ where
     io.merge(Web3::new(client.clone()).into_rpc())?;
 
     #[cfg(feature = "txpool")]
-    io.merge(TxPool::new(client, graph).into_rpc())?;
+    io.merge(TxPool::new(client.clone(), graph).into_rpc())?;
+
+    #[cfg(feature = "rpc-trace")]
+    {
+        // Debug RPCs for Ethereum compatibility
+        io.merge(
+            Debug::new(
+                client.clone(),
+                frontier_backend_for_debug,
+                storage_override_for_debug,
+                block_data_cache_for_debug,
+            )
+            .into_rpc(),
+        )?;
+    }
 
     Ok(io)
 }
