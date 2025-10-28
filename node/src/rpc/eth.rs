@@ -118,14 +118,14 @@ where
     CIDP: CreateInherentDataProviders<B, ()> + Send + 'static,
     EC: EthConfig<B, C>,
 {
+    #[cfg(feature = "rpc-trace")]
+    use fc_rpc::{Debug, DebugApiServer};
     use fc_rpc::{
         Eth, EthApiServer, EthDevSigner, EthFilter, EthFilterApiServer, EthPubSub,
         EthPubSubApiServer, EthSigner, Net, NetApiServer, Web3, Web3ApiServer,
     };
     #[cfg(feature = "txpool")]
     use fc_rpc::{TxPool, TxPoolApiServer};
-    #[cfg(feature = "rpc-trace")]
-    use fc_rpc::{Debug, DebugApiServer};
 
     let EthDeps {
         client,
