@@ -1,8 +1,71 @@
 use frame_support::traits::fungible::{Inspect, Mutate};
 use frame_support::traits::tokens::{Fortitude, Precision};
-use sp_core::{H160, U256};
+use frame_support::weights::Weight;
+use pallet_evm::Runner;
+use sp_core::{keccak_256, H160, H256, U256};
 
 use crate::mock::*;
+
+struct PrecompileTesterExt;
+
+impl PrecompileTesterExt {
+    const GAS_LIMIT: u64 = 1_000_000;
+
+    fn selector(signature: &[u8]) -> [u8; 4] {
+        let hash = keccak_256(signature);
+        [hash[0], hash[1], hash[2], hash[3]]
+    }
+
+    fn encode_burn(amount: U256) -> Vec<u8> {
+        let mut calldata = Vec::with_capacity(36);
+        calldata.extend_from_slice(&Self::selector(b"burn(uint256)"));
+        let mut encoded_amount = [0u8; 32];
+        amount.to_big_endian(&mut encoded_amount);
+        calldata.extend_from_slice(&encoded_amount);
+        calldata
+    }
+
+    fn encode_total_issuance() -> Vec<u8> {
+        Self::selector(b"totalIssuance()").to_vec()
+    }
+
+    fn call(caller: H160, input: Vec<u8>) -> pallet_evm::CallInfo {
+        let config = <Runtime as pallet_evm::Config>::config().clone();
+
+        <Runtime as pallet_evm::Config>::Runner::call(
+            caller,
+            PRECOMPILE_ADDRESS,
+            input,
+            U256::zero(),
+            Self::GAS_LIMIT,
+            None,
+            None,
+            None,
+            Vec::new(),
+            false,
+            true,
+            Weight::MAX,
+            0,
+            &config,
+        )
+        .expect("EVM call should execute")
+    }
+
+    fn succeeded(reason: &evm::ExitReason) -> bool {
+        matches!(reason, evm::ExitReason::Succeed(_))
+    }
+
+    fn decode_u256(output: &[u8]) -> U256 {
+        assert_eq!(output.len(), 32);
+        U256::from_big_endian(output)
+    }
+
+    fn topic_for_address(address: H160) -> H256 {
+        let mut topic = [0u8; 32];
+        topic[12..].copy_from_slice(address.as_bytes());
+        H256(topic)
+    }
+}
 
 fn total_issuance() -> Balance {
     <pallet_balances::Pallet<Runtime> as Inspect<AccountId>>::total_issuance()
@@ -139,4 +202,74 @@ fn selector_log_burned_is_correct() {
     use sp_core::keccak_256;
     let expected = keccak_256(b"Burned(address,uint256)");
     assert_eq!(crate::SELECTOR_LOG_BURNED, expected);
+}
+
+#[test]
+fn test_burn_via_precompile() {
+    ExtBuilder::default().build().execute_with(|| {
+        let burn_amount: Balance = 1_000_000_000_000_000_000_000;
+        let initial_balance = free_balance(&ALICE);
+        let initial_issuance = total_issuance();
+
+        let result = PrecompileTesterExt::call(
+            ALICE,
+            PrecompileTesterExt::encode_burn(U256::from(burn_amount)),
+        );
+
+        assert!(PrecompileTesterExt::succeeded(&result.exit_reason));
+        assert_eq!(result.value.len(), 32);
+        assert_eq!(result.value[31], 1);
+        assert_eq!(free_balance(&ALICE), initial_balance - burn_amount);
+        assert_eq!(total_issuance(), initial_issuance - burn_amount);
+    });
+}
+
+#[test]
+fn test_total_issuance_via_precompile() {
+    ExtBuilder::default().build().execute_with(|| {
+        let result = PrecompileTesterExt::call(ALICE, PrecompileTesterExt::encode_total_issuance());
+
+        assert!(PrecompileTesterExt::succeeded(&result.exit_reason));
+        assert_eq!(PrecompileTesterExt::decode_u256(&result.value), U256::from(total_issuance()));
+    });
+}
+
+#[test]
+fn test_burn_emits_log() {
+    ExtBuilder::default().build().execute_with(|| {
+        let burn_amount: Balance = 500_000_000_000_000_000_000;
+
+        let result = PrecompileTesterExt::call(
+            ALICE,
+            PrecompileTesterExt::encode_burn(U256::from(burn_amount)),
+        );
+
+        assert!(PrecompileTesterExt::succeeded(&result.exit_reason));
+        assert_eq!(result.logs.len(), 1);
+
+        let log = &result.logs[0];
+        let mut encoded_amount = [0u8; 32];
+        U256::from(burn_amount).to_big_endian(&mut encoded_amount);
+
+        assert_eq!(log.address, PRECOMPILE_ADDRESS);
+        assert_eq!(log.topics.len(), 2);
+        assert_eq!(log.topics[0], H256::from(crate::SELECTOR_LOG_BURNED));
+        assert_eq!(log.topics[1], PrecompileTesterExt::topic_for_address(ALICE));
+        assert_eq!(log.data, encoded_amount.to_vec());
+    });
+}
+
+#[test]
+fn test_burn_insufficient_balance_reverts() {
+    ExtBuilder::default().build().execute_with(|| {
+        let initial_balance = free_balance(&ALICE);
+        let initial_issuance = total_issuance();
+        let too_much = U256::from(initial_balance) + U256::one();
+
+        let result = PrecompileTesterExt::call(ALICE, PrecompileTesterExt::encode_burn(too_much));
+
+        assert!(!PrecompileTesterExt::succeeded(&result.exit_reason));
+        assert_eq!(free_balance(&ALICE), initial_balance);
+        assert_eq!(total_issuance(), initial_issuance);
+    });
 }
