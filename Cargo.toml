@@ -184,7 +184,7 @@ substrate-test-runtime-client = { git = "https://github.com/atleta-network/polka
 substrate-wasm-builder = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 substrate-state-trie-migration-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
-# Frontier Client
+# Client
 fc-api = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
 fc-cli = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
 fc-consensus = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }

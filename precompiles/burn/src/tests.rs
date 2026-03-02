@@ -44,8 +44,8 @@ impl PrecompileTesterExt {
             Vec::new(),
             false,
             true,
-            Weight::MAX,
-            0,
+            Some(Weight::MAX),
+            Some(0),
             &config,
         )
         .expect("EVM call should execute")

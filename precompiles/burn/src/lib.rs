@@ -5,7 +5,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(missing_docs)]
 
-
 use fp_evm::PrecompileHandle;
 use frame_support::traits::{
     fungible::{Inspect, Mutate},
@@ -53,7 +52,9 @@ where
             Fortitude::Polite,
         )
         .map_err(|_| PrecompileFailure::Error {
-            exit_status: evm::ExitError::Other("burn failed: insufficient balance or locked funds".into()),
+            exit_status: evm::ExitError::Other(
+                "burn failed: insufficient balance or locked funds".into(),
+            ),
         })?;
 
         let event = log2(
