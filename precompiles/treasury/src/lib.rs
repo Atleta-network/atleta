@@ -10,7 +10,7 @@ use pallet_evm::{AddressMapping, PrecompileFailure};
 use precompile_utils::prelude::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::traits::{Dispatchable, StaticLookup};
-use sp_std::marker::PhantomData;
+use sp_std::{marker::PhantomData, vec::Vec};
 
 type BalanceOf<Runtime> = <<Runtime as pallet_treasury::Config>::Currency as Currency<
     <Runtime as frame_system::Config>::AccountId,
@@ -46,6 +46,24 @@ where
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
+    }
+
+    #[precompile::public("proposalCount()")]
+    #[precompile::view]
+    fn proposal_count(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+        Ok(pallet_treasury::Pallet::<Runtime>::proposal_count())
+    }
+
+    #[precompile::public("approvals()")]
+    #[precompile::view]
+    fn approvals(handle: &mut impl PrecompileHandle) -> EvmResult<Vec<u32>> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+        let approvals: Vec<u32> =
+            pallet_treasury::Approvals::<Runtime>::get().into_iter().collect();
+        Ok(approvals)
     }
 
     fn custom_err(reason: &'static str) -> PrecompileFailure {

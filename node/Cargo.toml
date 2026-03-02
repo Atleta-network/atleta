@@ -113,6 +113,7 @@ fp-account = { workspace = true }
 fp-dynamic-fee = { workspace = true, features = ["default"] }
 fp-evm = { workspace = true, features = ["default"] }
 fp-rpc = { workspace = true, features = ["default"] }
+rpc-primitives-debug = { workspace = true, features = ["default"] }
 
 atleta-runtime = { workspace = true, features = ["std"] }
 
@@ -230,4 +231,3 @@ devnet-runtime = [
     "atleta-runtime/devnet-runtime",
 ]
 try-runtime = ["atleta-runtime/try-runtime"]
-

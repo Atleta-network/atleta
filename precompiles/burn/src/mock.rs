@@ -4,11 +4,14 @@ use frame_support::{
     weights::Weight,
 };
 use pallet_evm::{EnsureAddressNever, IdentityAddressMapping};
+use precompile_utils::precompile_set::*;
 use sp_core::{H160, H256, U256};
 use sp_runtime::{
     traits::{BlakeTwo256, IdentityLookup},
     BuildStorage,
 };
+
+use crate::BurnPrecompile;
 
 pub type AccountId = H160;
 pub type Balance = u128;
@@ -75,10 +78,19 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
     pub const WeightPerGas: Weight = Weight::from_parts(1, 0);
     pub BlockGasLimit: U256 = U256::from(u64::MAX);
-    pub PrecompilesValue: () = ();
+    pub PrecompilesValue: BurnPrecompiles<Runtime> = BurnPrecompiles::<_>::new();
     pub const GasLimitPovSizeRatio: u64 = 1;
     pub const SuicideQuickClearLimit: u32 = 0;
 }
+
+type BurnPrecompilesAt<R> = (
+    PrecompileAt<AddressU64<2005>, BurnPrecompile<R>, (CallableByContract, CallableByPrecompile)>,
+);
+
+pub type BurnPrecompiles<R> = PrecompileSetBuilder<
+    R,
+    (PrecompilesInRangeInclusive<(AddressU64<2005>, AddressU64<2005>), BurnPrecompilesAt<R>>,),
+>;
 
 impl pallet_timestamp::Config for Runtime {
     type Moment = u64;
@@ -97,7 +109,7 @@ impl pallet_evm::Config for Runtime {
     type AddressMapping = IdentityAddressMapping;
     type Currency = Balances;
     type RuntimeEvent = RuntimeEvent;
-    type PrecompilesType = ();
+    type PrecompilesType = BurnPrecompiles<Self>;
     type PrecompilesValue = PrecompilesValue;
     type ChainId = ConstU64<2340>;
     type BlockGasLimit = BlockGasLimit;

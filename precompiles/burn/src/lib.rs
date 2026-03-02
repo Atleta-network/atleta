@@ -5,10 +5,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 #![allow(missing_docs)]
 
-extern crate alloc;
-
-use alloc::format;
-
 use fp_evm::PrecompileHandle;
 use frame_support::traits::{
     fungible::{Inspect, Mutate},
@@ -55,8 +51,10 @@ where
             Precision::Exact,
             Fortitude::Polite,
         )
-        .map_err(|e| PrecompileFailure::Error {
-            exit_status: evm::ExitError::Other(format!("burn failed: {:?}", e).into()),
+        .map_err(|_| PrecompileFailure::Error {
+            exit_status: evm::ExitError::Other(
+                "burn failed: insufficient balance or locked funds".into(),
+            ),
         })?;
 
         let event = log2(
