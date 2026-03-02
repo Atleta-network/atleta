@@ -2,6 +2,8 @@ use frame_support::dispatch::{GetDispatchInfo, Pays};
 use sp_std::marker::PhantomData;
 
 use pallet_evm::ExitError;
+use pallet_evm_precompile_blake2::Blake2F;
+use pallet_evm_precompile_bn128::{Bn128Add, Bn128Mul, Bn128Pairing};
 use pallet_evm_precompile_dispatch::{Dispatch, DispatchValidateT};
 use pallet_evm_precompile_modexp::Modexp;
 use pallet_evm_precompile_sha3fips::Sha3FIPS256;
@@ -53,6 +55,10 @@ type AtletaPrecompilesAt<R> = (
     PrecompileAt<AddressU64<3>, Ripemd160, EthereumPrecompilesChecks>,
     PrecompileAt<AddressU64<4>, Identity, EthereumPrecompilesChecks>,
     PrecompileAt<AddressU64<5>, Modexp, EthereumPrecompilesChecks>,
+    PrecompileAt<AddressU64<6>, Bn128Add, EthereumPrecompilesChecks>,
+    PrecompileAt<AddressU64<7>, Bn128Mul, EthereumPrecompilesChecks>,
+    PrecompileAt<AddressU64<8>, Bn128Pairing, EthereumPrecompilesChecks>,
+    PrecompileAt<AddressU64<9>, Blake2F, EthereumPrecompilesChecks>,
     // Non-Frontier specific nor Ethereum precompiles:
     PrecompileAt<AddressU64<1024>, Sha3FIPS256, (CallableByContract, CallableByPrecompile)>,
     PrecompileAt<AddressU64<1025>, ECRecoverPublicKey, (CallableByContract, CallableByPrecompile)>,
@@ -89,10 +95,11 @@ type AtletaPrecompilesAt<R> = (
         NominationPoolsPrecompile<R>,
         (CallableByContract, CallableByPrecompile),
     >,
+    // NOTE: Address 2007 is intentionally skipped (reserved for future use).
     PrecompileAt<
         AddressU64<2008>,
         BatchPrecompile<R>,
-        (SubcallWithMaxNesting<2>, CallableByPrecompile<OnlyFrom<AddressU64<2056>>>),
+        (SubcallWithMaxNesting<2>, CallableByContract, CallableByPrecompile),
     >,
 );
 

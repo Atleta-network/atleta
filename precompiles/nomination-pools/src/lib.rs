@@ -103,8 +103,11 @@ where
 
     #[precompile::public("pendingRewards(address)")]
     #[precompile::view]
-    fn pending_rewards(_: &mut impl PrecompileHandle, who: Address) -> EvmResult<U256> {
-        // TODO: record gas
+    fn pending_rewards(handle: &mut impl PrecompileHandle, who: Address) -> EvmResult<U256> {
+        // api_pending_rewards internally reads PoolMembers, BondedPools, and RewardPools
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let who = Runtime::AddressMapping::into_account_id(who.0);
         let amount = pallet_nomination_pools::Pallet::<Runtime>::api_pending_rewards(who)
             .map(<_>::into)
@@ -112,11 +115,11 @@ where
         Ok(amount)
     }
 
+    /// Returns `(member_counter, points)` for the given pool.
     #[precompile::public("bondedPools(uint32)")]
     #[precompile::view]
-    // TODO: return value is to be discussed
-    fn bonded_pools(_: &mut impl PrecompileHandle, pool_id: u32) -> EvmResult<(u32, U256)> {
-        // TODO: record gas
+    fn bonded_pools(handle: &mut impl PrecompileHandle, pool_id: u32) -> EvmResult<(u32, U256)> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let bonded_pool = pallet_nomination_pools::BondedPool::<Runtime>::get(pool_id)
             .ok_or_else(|| Self::custom_err("Unable to get bonded pool"))?;
         let pallet_nomination_pools::BondedPoolInner { member_counter, points, .. } = *bonded_pool;
@@ -127,9 +130,10 @@ where
     #[precompile::view]
     #[allow(clippy::type_complexity)]
     fn pool_members(
-        _: &mut impl PrecompileHandle,
+        handle: &mut impl PrecompileHandle,
         address: Address,
     ) -> EvmResult<(u32, U256, Vec<(u32, U256)>)> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let address = Runtime::AddressMapping::into_account_id(address.0);
         let pallet_nomination_pools::PoolMember { pool_id, points, unbonding_eras, .. } =
             pallet_nomination_pools::PoolMembers::<Runtime>::get(address)
