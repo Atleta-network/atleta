@@ -93,6 +93,7 @@ fp-account = { workspace = true, features = ["serde"] }
 fp-evm = { workspace = true, features = ["serde"] }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = ["serde"] }
+rpc-primitives-debug = { workspace = true }
 precompile-utils = { workspace = true }
 # Frontier FRAME
 pallet-base-fee = { workspace = true }
@@ -105,6 +106,8 @@ pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-dispatch = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
+pallet-evm-precompile-bn128 = { workspace = true }
+pallet-evm-precompile-blake2 = { workspace = true }
 
 # Atleta Pallets
 pallet-faucet = { workspace = true }
@@ -252,6 +255,7 @@ std = [
     "fp-evm/std",
     "fp-rpc/std",
     "fp-self-contained/std",
+    "rpc-primitives-debug/std",
     "precompile-utils/std",
     # Frontier FRAME
     "pallet-base-fee/std",
@@ -264,6 +268,8 @@ std = [
     "pallet-evm-precompile-simple/std",
     "pallet-evm/std",
     "pallet-hotfix-sufficients/std",
+    "pallet-evm-precompile-bn128/std",
+    "pallet-evm-precompile-blake2/std",
     # Parachains
     "runtime-parachains/std",
     # Polkadot
