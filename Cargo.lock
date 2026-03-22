@@ -2683,6 +2683,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "evm-tracer"
+version = "0.1.0"
+dependencies = [
+ "evm",
+ "evm-gasometer",
+ "evm-runtime 0.41.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "evm-tracing-events",
+ "evm-tracing-ext",
+ "parity-scale-codec",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
 name = "evm-tracing-events"
 version = "0.1.0"
 source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-tracecall-fix#88ad6c3249a6d92ad8059f53c202e0f227f9d1b3"
@@ -2694,6 +2707,16 @@ dependencies = [
  "evm-runtime 0.41.0 (git+https://github.com/moonbeam-foundation/evm?branch=moonbeam-polkadot-stable2407)",
  "parity-scale-codec",
  "sp-runtime-interface 24.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+]
+
+[[package]]
+name = "evm-tracing-ext"
+version = "0.1.0"
+dependencies = [
+ "evm-tracing-events",
+ "parity-scale-codec",
+ "sp-runtime-interface 24.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
+ "sp-std 14.0.0 (git+https://github.com/atleta-network/polkadot-sdk?branch=atleta-polkadot-v1.11.0)",
 ]
 
 [[package]]

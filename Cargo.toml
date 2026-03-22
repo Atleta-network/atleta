@@ -2,8 +2,10 @@
 members = [
     "node",
     "runtime",
+    "runtime/evm-tracer",
     "pallets/*",
     "precompiles/*",
+    "primitives/evm-tracing-ext",
 ]
 resolver = "2"
 
@@ -31,6 +33,8 @@ environmental = { version = "1.1.4", default-features = false }
 ethereum = { version = "0.15.0", default-features = false }
 ethereum-types = { version = "0.14.1", default-features = false }
 evm = { version = "0.41.1", default-features = false }
+evm-gasometer = { version = "0.41.0", default-features = false }
+evm-runtime = { version = "0.41.0", default-features = false }
 futures = "0.3.30"
 hash-db = { version = "0.16.0", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
@@ -202,6 +206,7 @@ fp-evm = { git = "https://github.com/atleta-network/frontier", branch = "atleta-
 fp-rpc = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
 fp-self-contained = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
 fp-storage = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
+evm-tracing-events = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
 rpc-primitives-debug = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
 # Frontier FRAME
 pallet-base-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }

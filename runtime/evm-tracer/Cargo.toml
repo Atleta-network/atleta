@@ -1,0 +1,33 @@
+[package]
+name = "evm-tracer"
+version = "0.1.0"
+authors = { workspace = true }
+edition = "2021"
+publish = false
+repository = { workspace = true }
+
+[dependencies]
+evm = { workspace = true }
+evm-gasometer = { workspace = true }
+evm-runtime = { workspace = true }
+evm-tracing-events = { workspace = true }
+evm-tracing-ext = { path = "../../primitives/evm-tracing-ext", default-features = false }
+parity-scale-codec = { workspace = true }
+sp-std = { workspace = true }
+
+[features]
+default = ["std"]
+std = [
+    "evm/std",
+    "evm-gasometer/std",
+    "evm-runtime/std",
+    "evm-tracing-events/std",
+    "evm-tracing-ext/std",
+    "parity-scale-codec/std",
+    "sp-std/std",
+]
+evm-tracing = [
+    "evm/tracing",
+    "evm-gasometer/tracing",
+    "evm-runtime/tracing",
+]
