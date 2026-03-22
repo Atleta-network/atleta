@@ -114,6 +114,7 @@ fp-dynamic-fee = { workspace = true, features = ["default"] }
 fp-evm = { workspace = true, features = ["default"] }
 fp-rpc = { workspace = true, features = ["default"] }
 rpc-primitives-debug = { workspace = true, features = ["default"] }
+evm-tracing-ext = { workspace = true }
 
 atleta-runtime = { workspace = true, features = ["std"] }
 
@@ -214,7 +215,7 @@ with-paritydb-weights = ["atleta-runtime/with-paritydb-weights"]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
 # Local feature gate for optional RPC trace wiring (no external feature mapping)
-rpc-trace = []
+rpc-trace = ["atleta-runtime/evm-tracing"]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
     "frame-benchmarking-cli/runtime-benchmarks",
