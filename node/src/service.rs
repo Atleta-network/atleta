@@ -48,7 +48,6 @@ use sp_core::{traits::SpawnNamed, U256};
 use sp_runtime::traits::Block as BlockT;
 // Runtime
 use atleta_runtime::{opaque::Block, Hash, RuntimeApi, TransactionConverter};
-use evm_tracing_ext;
 
 pub use crate::eth::{db_config_dir, EthConfiguration};
 use crate::eth::{
@@ -120,10 +119,8 @@ pub type HostFunctions = (
 );
 /// Otherwise we use empty host functions for ext host functions.
 #[cfg(not(feature = "runtime-benchmarks"))]
-pub type HostFunctions = (
-    sp_io::SubstrateHostFunctions,
-    evm_tracing_ext::evm_tracing_ext::HostFunctions,
-);
+pub type HostFunctions =
+    (sp_io::SubstrateHostFunctions, evm_tracing_ext::evm_tracing_ext::HostFunctions);
 /// Full backend.
 pub type FullBackend = sc_service::TFullBackend<Block>;
 /// Full client.

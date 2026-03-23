@@ -1,17 +1,29 @@
+//! EVM tracer that registers as a listener in the EVM environmental and proxies
+//! trace events through host functions to the native side.
+
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use evm_tracing_events::StepEventFilter;
 
+/// Captures EVM execution events and forwards them via host functions.
 pub struct EvmTracer {
     step_event_filter: StepEventFilter,
 }
 
+impl Default for EvmTracer {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EvmTracer {
+    /// Create a new tracer, querying the host for the step event filter.
     pub fn new() -> Self {
         let step_event_filter = evm_tracing_ext::evm_tracing_ext::step_event_filter();
         Self { step_event_filter }
     }
 
+    /// Execute `f` with this tracer registered as the EVM listener.
     #[cfg(feature = "evm-tracing")]
     pub fn trace<R, F: FnOnce() -> R>(self, f: F) -> R {
         use sp_std::{cell::RefCell, rc::Rc};
