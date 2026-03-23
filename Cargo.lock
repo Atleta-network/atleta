@@ -1517,7 +1517,7 @@ checksum = "1462739cb27611015575c0c11df5df7601141071f07518d56fcc1be504cbec97"
 [[package]]
 name = "client-evm-tracing"
 version = "0.1.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum-types",
  "evm-tracing-events",
@@ -2701,7 +2701,7 @@ dependencies = [
 [[package]]
 name = "evm-tracing-events"
 version = "0.1.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "environmental",
  "ethereum",
@@ -2804,7 +2804,7 @@ dependencies = [
 [[package]]
 name = "fc-api"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "async-trait",
  "fp-storage",
@@ -2816,7 +2816,7 @@ dependencies = [
 [[package]]
 name = "fc-cli"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "clap",
  "ethereum-types",
@@ -2834,7 +2834,7 @@ dependencies = [
 [[package]]
 name = "fc-db"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "async-trait",
  "ethereum",
@@ -2864,7 +2864,7 @@ dependencies = [
 [[package]]
 name = "fc-mapping-sync"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fc-db",
  "fc-storage",
@@ -2887,7 +2887,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "client-evm-tracing",
  "ethereum",
@@ -2943,7 +2943,7 @@ dependencies = [
 [[package]]
 name = "fc-rpc-core"
 version = "1.1.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "client-evm-tracing",
  "ethereum",
@@ -2959,7 +2959,7 @@ dependencies = [
 [[package]]
 name = "fc-storage"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3150,7 +3150,7 @@ dependencies = [
 [[package]]
 name = "fp-account"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "hex",
  "impl-serde 0.4.0",
@@ -3168,7 +3168,7 @@ dependencies = [
 [[package]]
 name = "fp-consensus"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum",
  "parity-scale-codec",
@@ -3179,7 +3179,7 @@ dependencies = [
 [[package]]
 name = "fp-dynamic-fee"
 version = "1.0.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "async-trait",
  "sp-core",
@@ -3189,7 +3189,7 @@ dependencies = [
 [[package]]
 name = "fp-ethereum"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3201,7 +3201,7 @@ dependencies = [
 [[package]]
 name = "fp-evm"
 version = "3.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "evm",
  "frame-support",
@@ -3216,7 +3216,7 @@ dependencies = [
 [[package]]
 name = "fp-rpc"
 version = "3.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -3232,7 +3232,7 @@ dependencies = [
 [[package]]
 name = "fp-self-contained"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "frame-support",
  "parity-scale-codec",
@@ -3244,7 +3244,7 @@ dependencies = [
 [[package]]
 name = "fp-storage"
 version = "2.0.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "parity-scale-codec",
  "serde",
@@ -6487,7 +6487,7 @@ dependencies = [
 [[package]]
 name = "pallet-base-fee"
 version = "1.0.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -6655,7 +6655,7 @@ dependencies = [
 [[package]]
 name = "pallet-dynamic-fee"
 version = "4.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-dynamic-fee",
  "fp-evm",
@@ -6726,7 +6726,7 @@ dependencies = [
 [[package]]
 name = "pallet-ethereum"
 version = "4.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "ethereum",
  "ethereum-types",
@@ -6748,7 +6748,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm"
 version = "6.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "environmental",
  "evm",
@@ -6773,7 +6773,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-chain-id"
 version = "1.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "frame-support",
  "frame-system",
@@ -6784,7 +6784,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-blake2"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
 ]
@@ -6792,7 +6792,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-bn128"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "sp-core",
@@ -6824,7 +6824,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-dispatch"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "frame-support",
@@ -6854,7 +6854,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-modexp"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "num",
@@ -6900,7 +6900,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-sha3fips"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "tiny-keccak",
@@ -6909,7 +6909,7 @@ dependencies = [
 [[package]]
 name = "pallet-evm-precompile-simple"
 version = "2.0.0-dev"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "fp-evm",
  "ripemd",
@@ -7032,7 +7032,7 @@ dependencies = [
 [[package]]
 name = "pallet-hotfix-sufficients"
 version = "1.0.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
@@ -9041,7 +9041,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils"
 version = "0.1.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "environmental",
  "evm",
@@ -9065,7 +9065,7 @@ dependencies = [
 [[package]]
 name = "precompile-utils-macro"
 version = "0.1.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "case",
  "num_enum",
@@ -9877,7 +9877,7 @@ dependencies = [
 [[package]]
 name = "rpc-primitives-debug"
 version = "0.1.0"
-source = "git+https://github.com/atleta-network/frontier?branch=atleta-v1.11-debug-trace-full#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
+source = "git+https://github.com/atleta-network/frontier?branch=atleta-polkadot-v1.11.0#23ae30f0b3b84dc5e11efa66ee1600e6336e3d40"
 dependencies = [
  "environmental",
  "ethereum",
