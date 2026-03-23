@@ -8,7 +8,7 @@ use jsonrpsee::RpcModule;
 use sc_client_api::{
     backend::{Backend, StorageProvider},
     client::BlockchainEvents,
-    AuxStore, UsageProvider,
+    AuxStore, BlockBackend, UsageProvider,
 };
 use sc_consensus_manual_seal::rpc::EngineCommand;
 use sc_rpc::SubscriptionTaskExecutor;
@@ -85,7 +85,10 @@ where
     C::Api: fp_rpc::ConvertTransactionRuntimeApi<Block>,
     C::Api: fp_rpc::EthereumRuntimeRPCApi<Block>,
     C::Api: rpc_primitives_debug::DebugRuntimeApi<Block>,
-    C: HeaderBackend<Block> + HeaderMetadata<Block, Error = BlockChainError> + 'static,
+    C: HeaderBackend<Block>
+        + HeaderMetadata<Block, Error = BlockChainError>
+        + BlockBackend<Block>
+        + 'static,
     C: BlockchainEvents<Block> + AuxStore + UsageProvider<Block> + StorageProvider<Block, BE>,
     BE: Backend<Block> + 'static,
     P: TransactionPool<Block = Block> + 'static,

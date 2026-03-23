@@ -121,6 +121,10 @@ pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-utility = { workspace = true }
 pallet-evm-precompile-burn = { workspace = true }
 
+# EVM Tracing
+evm-tracer = { workspace = true, optional = true }
+evm-tracing-ext = { workspace = true, optional = true }
+
 # Parachains
 runtime-parachains = { workspace = true }
 
@@ -138,6 +142,11 @@ with-paritydb-weights = []
 mainnet-runtime = []
 testnet-runtime = []
 devnet-runtime = []
+evm-tracing = [
+    "evm-tracer",
+    "evm-tracer/evm-tracing",
+    "evm-tracing-ext",
+]
 try-runtime = [
     "fp-self-contained/try-runtime",
     "frame-executive/try-runtime",
@@ -257,6 +266,8 @@ std = [
     "fp-self-contained/std",
     "rpc-primitives-debug/std",
     "precompile-utils/std",
+    "evm-tracer?/std",
+    "evm-tracing-ext?/std",
     # Frontier FRAME
     "pallet-base-fee/std",
     "pallet-dynamic-fee/std",

@@ -2,8 +2,10 @@
 members = [
     "node",
     "runtime",
+    "runtime/evm-tracer",
     "pallets/*",
     "precompiles/*",
+    "primitives/evm-tracing-ext",
 ]
 resolver = "2"
 
@@ -22,6 +24,8 @@ pallet-evm-precompile-treasury = { path = "precompiles/treasury", default-featur
 pallet-evm-precompile-preimage = { path = "precompiles/preimage", default-features = false }
 pallet-evm-precompile-utility = { path = "precompiles/utility", default-features = false }
 pallet-evm-precompile-burn = { path = "precompiles/burn", default-features = false }
+evm-tracer = { path = "runtime/evm-tracer", default-features = false }
+evm-tracing-ext = { path = "primitives/evm-tracing-ext", default-features = false }
 
 async-trait = "0.1"
 bn = { package = "substrate-bn", version = "0.6", default-features = false }
@@ -31,6 +35,8 @@ environmental = { version = "1.1.4", default-features = false }
 ethereum = { version = "0.15.0", default-features = false }
 ethereum-types = { version = "0.14.1", default-features = false }
 evm = { version = "0.41.1", default-features = false }
+evm-gasometer = { version = "0.41.0", default-features = false }
+evm-runtime = { version = "0.41.0", default-features = false }
 futures = "0.3.30"
 hash-db = { version = "0.16.0", default-features = false }
 hex = { version = "0.4.3", default-features = false, features = ["alloc"] }
@@ -185,41 +191,42 @@ substrate-wasm-builder = { git = "https://github.com/atleta-network/polkadot-sdk
 substrate-state-trie-migration-rpc = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }
 
 # Client
-fc-api = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
-fc-cli = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fc-consensus = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
-fc-db = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fc-mapping-sync = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fc-rpc = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fc-rpc-core = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
-fc-storage = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
+fc-api = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
+fc-cli = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fc-consensus = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
+fc-db = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fc-mapping-sync = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fc-rpc = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fc-rpc-core = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
+fc-storage = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
 # Frontier Primitive
-fp-account = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-consensus = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-dynamic-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-ethereum = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-evm = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-rpc = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-self-contained = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-fp-storage = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-rpc-primitives-debug = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
+fp-account = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-consensus = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-dynamic-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-ethereum = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-evm = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-rpc = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-self-contained = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+fp-storage = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+evm-tracing-events = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+rpc-primitives-debug = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
 # Frontier FRAME
-pallet-base-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-dynamic-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-ethereum = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-chain-id = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-dispatch = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-modexp = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-sha3fips = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-simple = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-bn128 = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-precompile-blake2 = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
-pallet-evm-test-vector-support = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix" }
-pallet-hotfix-sufficients = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
+pallet-base-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-dynamic-fee = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-ethereum = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-chain-id = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-dispatch = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-modexp = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-sha3fips = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-simple = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-bn128 = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-precompile-blake2 = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
+pallet-evm-test-vector-support = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0" }
+pallet-hotfix-sufficients = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
 
 # Frontier Utility
-precompile-utils = { git = "https://github.com/atleta-network/frontier", branch = "atleta-v1.11-debug-tracecall-fix", default-features = false }
+precompile-utils = { git = "https://github.com/atleta-network/frontier", branch = "atleta-polkadot-v1.11.0", default-features = false }
 
 # Parachains
 polkadot-cli = { git = "https://github.com/atleta-network/polkadot-sdk", branch = "atleta-polkadot-v1.11.0" }

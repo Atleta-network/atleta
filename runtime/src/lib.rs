@@ -213,7 +213,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("atleta"),
     impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
-    spec_version: 110,
+    spec_version: 111,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 3,
@@ -1880,23 +1880,79 @@ impl_runtime_apis! {
 
     impl rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
         fn trace_transaction(
-            _extrinsics: Vec<<Block as BlockT>::Extrinsic>,
-            _transaction: &EthereumTransaction,
-            _header: &<Block as BlockT>::Header,
+            extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+            transaction: &EthereumTransaction,
+            header: &<Block as BlockT>::Header,
         ) -> Result<(), sp_runtime::DispatchError> {
-            Err(sp_runtime::DispatchError::Other(
-                "trace_transaction is not implemented",
-            ))
+            #[cfg(feature = "evm-tracing")]
+            {
+                use evm_tracer::EvmTracer;
+
+                Executive::initialize_block(header);
+
+                let target_hash = transaction.hash();
+
+                for ext in extrinsics.into_iter() {
+                    let is_target = matches!(
+                        &ext.0.function,
+                        RuntimeCall::Ethereum(transact { transaction })
+                            if transaction.hash() == target_hash
+                    );
+
+                    if is_target {
+                        EvmTracer::new().trace(|| {
+                            let _ = Executive::apply_extrinsic(ext);
+                        });
+
+                        return Ok(());
+                    }
+
+                    let _ = Executive::apply_extrinsic(ext);
+                }
+
+                Err(sp_runtime::DispatchError::Other("Transaction not found"))
+            }
+            #[cfg(not(feature = "evm-tracing"))]
+            {
+                let _ = (extrinsics, transaction, header);
+
+                Err(sp_runtime::DispatchError::Other(
+                    "Missing `evm-tracing` compile time feature flag.",
+                ))
+            }
         }
 
         fn trace_block(
-            _extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+            extrinsics: Vec<<Block as BlockT>::Extrinsic>,
             _known_transactions: Vec<H256>,
-            _header: &<Block as BlockT>::Header,
+            header: &<Block as BlockT>::Header,
         ) -> Result<(), sp_runtime::DispatchError> {
-            Err(sp_runtime::DispatchError::Other(
-                "trace_block is not implemented",
-            ))
+            #[cfg(feature = "evm-tracing")]
+            {
+                use evm_tracer::EvmTracer;
+
+                Executive::initialize_block(header);
+
+                for ext in extrinsics.into_iter() {
+                    if matches!(&ext.0.function, RuntimeCall::Ethereum(transact { .. })) {
+                        evm_tracing_ext::evm_tracing_ext::call_list_new();
+                    }
+
+                    EvmTracer::new().trace(|| {
+                        let _ = Executive::apply_extrinsic(ext);
+                    });
+                }
+
+                Ok(())
+            }
+            #[cfg(not(feature = "evm-tracing"))]
+            {
+                let _ = (extrinsics, _known_transactions, header);
+
+                Err(sp_runtime::DispatchError::Other(
+                    "Missing `evm-tracing` compile time feature flag.",
+                ))
+            }
         }
 
         fn trace_call(
