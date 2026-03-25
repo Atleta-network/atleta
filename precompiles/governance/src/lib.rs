@@ -113,6 +113,46 @@ where
         Ok(())
     }
 
+    #[precompile::public("delegate(address,uint8,uint256)")]
+    fn delegate(
+        h: &mut impl PrecompileHandle,
+        to: Address,
+        conviction: u8,
+        balance: U256,
+    ) -> EvmResult<()> {
+        let to = Runtime::AddressMapping::into_account_id(to.0);
+        let conviction = pallet_democracy::Conviction::try_from(conviction)
+            .map_err(|_| Self::custom_err("Unable to parse conviction"))?;
+        let balance = Self::u256_to_amount(balance)?;
+        let call = pallet_democracy::Call::<Runtime>::delegate { to, conviction, balance };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("undelegate()")]
+    fn undelegate(h: &mut impl PrecompileHandle) -> EvmResult<()> {
+        let call = pallet_democracy::Call::<Runtime>::undelegate {};
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("removeOtherVote(address,uint32)")]
+    fn remove_other_vote(
+        h: &mut impl PrecompileHandle,
+        target: Address,
+        index: u32,
+    ) -> EvmResult<()> {
+        let target = Runtime::AddressMapping::into_account_id(target.0);
+        let target = Runtime::Lookup::lookup(target)
+            .map_err(|_| Self::custom_err("Unable to parse target"))?;
+        let call = pallet_democracy::Call::<Runtime>::remove_other_vote { target, index };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
     fn u256_to_amount(value: U256) -> MayRevert<BalanceOf<Runtime>> {
         value
             .try_into()

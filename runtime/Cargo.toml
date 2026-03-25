@@ -93,6 +93,7 @@ fp-account = { workspace = true, features = ["serde"] }
 fp-evm = { workspace = true, features = ["serde"] }
 fp-rpc = { workspace = true }
 fp-self-contained = { workspace = true, features = ["serde"] }
+rpc-primitives-debug = { workspace = true }
 precompile-utils = { workspace = true }
 # Frontier FRAME
 pallet-base-fee = { workspace = true }
@@ -105,6 +106,8 @@ pallet-evm-precompile-sha3fips = { workspace = true }
 pallet-evm-precompile-simple = { workspace = true }
 pallet-evm-precompile-dispatch = { workspace = true }
 pallet-hotfix-sufficients = { workspace = true }
+pallet-evm-precompile-bn128 = { workspace = true }
+pallet-evm-precompile-blake2 = { workspace = true }
 
 # Atleta Pallets
 pallet-faucet = { workspace = true }
@@ -117,6 +120,10 @@ pallet-evm-precompile-treasury = { workspace = true }
 pallet-evm-precompile-preimage = { workspace = true }
 pallet-evm-precompile-utility = { workspace = true }
 pallet-evm-precompile-burn = { workspace = true }
+
+# EVM Tracing
+evm-tracer = { workspace = true, optional = true }
+evm-tracing-ext = { workspace = true, optional = true }
 
 # Parachains
 runtime-parachains = { workspace = true }
@@ -135,6 +142,11 @@ with-paritydb-weights = []
 mainnet-runtime = []
 testnet-runtime = []
 devnet-runtime = []
+evm-tracing = [
+    "evm-tracer",
+    "evm-tracer/evm-tracing",
+    "evm-tracing-ext",
+]
 try-runtime = [
     "fp-self-contained/try-runtime",
     "frame-executive/try-runtime",
@@ -252,7 +264,10 @@ std = [
     "fp-evm/std",
     "fp-rpc/std",
     "fp-self-contained/std",
+    "rpc-primitives-debug/std",
     "precompile-utils/std",
+    "evm-tracer?/std",
+    "evm-tracing-ext?/std",
     # Frontier FRAME
     "pallet-base-fee/std",
     "pallet-dynamic-fee/std",
@@ -264,6 +279,8 @@ std = [
     "pallet-evm-precompile-simple/std",
     "pallet-evm/std",
     "pallet-hotfix-sufficients/std",
+    "pallet-evm-precompile-bn128/std",
+    "pallet-evm-precompile-blake2/std",
     # Parachains
     "runtime-parachains/std",
     # Polkadot

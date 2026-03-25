@@ -113,6 +113,8 @@ fp-account = { workspace = true }
 fp-dynamic-fee = { workspace = true, features = ["default"] }
 fp-evm = { workspace = true, features = ["default"] }
 fp-rpc = { workspace = true, features = ["default"] }
+rpc-primitives-debug = { workspace = true, features = ["default"] }
+evm-tracing-ext = { workspace = true }
 
 atleta-runtime = { workspace = true, features = ["std"] }
 
@@ -172,7 +174,7 @@ polkadot-node-core-approval-voting = { workspace = true, optional = true }
 substrate-build-script-utils = { workspace = true }
 
 [features]
-default = ["full-node", "with-rocksdb-weights", "rocksdb", "sql", "txpool", "mainnet-runtime"]
+default = ["full-node", "with-rocksdb-weights", "rocksdb", "sql", "txpool", "mainnet-runtime", "rpc-trace"]
 rocksdb = [
     "sc-cli/rocksdb",
     "sc-service/rocksdb",
@@ -213,7 +215,7 @@ with-paritydb-weights = ["atleta-runtime/with-paritydb-weights"]
 txpool = ["fc-rpc/txpool"]
 rpc-binary-search-estimate = ["fc-rpc/rpc-binary-search-estimate"]
 # Local feature gate for optional RPC trace wiring (no external feature mapping)
-rpc-trace = []
+rpc-trace = ["atleta-runtime/evm-tracing"]
 runtime-benchmarks = [
     "frame-benchmarking/runtime-benchmarks",
     "frame-benchmarking-cli/runtime-benchmarks",
@@ -230,4 +232,3 @@ devnet-runtime = [
     "atleta-runtime/devnet-runtime",
 ]
 try-runtime = ["atleta-runtime/try-runtime"]
-

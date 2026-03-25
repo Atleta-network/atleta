@@ -5,7 +5,7 @@ use jsonrpsee::RpcModule;
 use sc_client_api::{
     backend::{Backend, StorageProvider},
     client::BlockchainEvents,
-    AuxStore, UsageProvider,
+    AuxStore, BlockBackend, UsageProvider,
 };
 use sc_network::service::traits::NetworkService;
 use sc_network_sync::SyncingService;
@@ -108,8 +108,11 @@ pub fn create_eth<C, BE, P, A, CT, B, CIDP, EC>(
 where
     B: BlockT<Hash = H256>,
     C: CallApiAt<B> + ProvideRuntimeApi<B>,
-    C::Api: BlockBuilderApi<B> + ConvertTransactionRuntimeApi<B> + EthereumRuntimeRPCApi<B>,
-    C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError>,
+    C::Api: BlockBuilderApi<B>
+        + ConvertTransactionRuntimeApi<B>
+        + EthereumRuntimeRPCApi<B>
+        + rpc_primitives_debug::DebugRuntimeApi<B>,
+    C: HeaderBackend<B> + HeaderMetadata<B, Error = BlockChainError> + BlockBackend<B>,
     C: BlockchainEvents<B> + AuxStore + UsageProvider<B> + StorageProvider<B, BE> + 'static,
     BE: Backend<B> + 'static,
     P: TransactionPool<Block = B> + 'static,

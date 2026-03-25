@@ -4,7 +4,7 @@
 use fp_evm::PrecompileHandle;
 use frame_support::{
     dispatch::{GetDispatchInfo, PostDispatchInfo},
-    traits::IsType,
+    traits::{IsType, QueryPreimage},
 };
 use pallet_evm::AddressMapping;
 use precompile_utils::prelude::*;
@@ -31,5 +31,21 @@ where
         let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
         RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
         Ok(())
+    }
+
+    #[precompile::public("unnotePreimage(bytes32)")]
+    fn unnote_preimage(h: &mut impl PrecompileHandle, hash: H256) -> EvmResult<()> {
+        let call = pallet_preimage::Call::<Runtime>::unnote_preimage { hash: hash.into() };
+        let origin = Some(Runtime::AddressMapping::into_account_id(h.context().caller));
+        RuntimeHelper::<Runtime>::try_dispatch(h, origin.into(), call)?;
+        Ok(())
+    }
+
+    #[precompile::public("preimageStatus(bytes32)")]
+    #[precompile::view]
+    fn preimage_status(handle: &mut impl PrecompileHandle, hash: H256) -> EvmResult<bool> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
+
+        Ok(<pallet_preimage::Pallet<Runtime> as QueryPreimage>::is_requested(&hash.into()))
     }
 }

@@ -213,7 +213,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
     spec_name: create_runtime_str!("atleta"),
     impl_name: create_runtime_str!("atleta"),
     authoring_version: 1,
-    spec_version: 110,
+    spec_version: 111,
     impl_version: 1,
     apis: RUNTIME_API_VERSIONS,
     transaction_version: 3,
@@ -386,6 +386,10 @@ impl pallet_timestamp::Config for Runtime {
 
 // balances
 parameter_types! {
+    // WARNING: ExistentialDeposit = 0 combined with `insecure_zero_ed` feature allows
+    // unlimited dust accounts (state bloat). Consider setting a non-zero value
+    // (e.g. 1_000_000_000_000_000 = 0.001 ATLA) via runtime upgrade.
+    // Changing this requires a storage migration to clean up zero-balance accounts.
     pub const ExistentialDeposit: Balance = 0;
     // For weight estimation, we assume that the most locks on an individual account will be 50.
     // This number may need to be adjusted in the future if this assumption no longer holds true.
@@ -1114,7 +1118,7 @@ parameter_types! {
     pub const GasLimitPovSizeRatio: u64 = BLOCK_GAS_LIMIT.saturating_div(MAX_POV_SIZE);
     pub PrecompilesValue: AtletaPrecompiles<Runtime> = AtletaPrecompiles::<_>::new();
     pub WeightPerGas: Weight = Weight::from_parts(weight_per_gas(BLOCK_GAS_LIMIT, NORMAL_DISPATCH_RATIO, WEIGHT_MILLISECS_PER_BLOCK), 0);
-    pub SuicideQuickClearLimit: u32 = 0;
+    pub SuicideQuickClearLimit: u32 = 128;
 }
 
 impl pallet_evm::Config for Runtime {
@@ -1132,7 +1136,9 @@ impl pallet_evm::Config for Runtime {
     type ChainId = EVMChainId;
     type BlockGasLimit = BlockGasLimit;
     type Runner = pallet_evm::runner::stack::Runner<Self>;
-    type OnChargeTransaction = ();
+    // `()` delegates to `EVMFungibleAdapter<Currency, ()>` which charges gas fees
+    // but burns the base fee. Using explicit adapter for clarity.
+    type OnChargeTransaction = pallet_evm::EVMFungibleAdapter<Balances, ()>;
     type OnCreate = ();
     type FindAuthor = FindAuthorTruncated<Babe>;
     type GasLimitPovSizeRatio = GasLimitPovSizeRatio;
@@ -1869,6 +1875,135 @@ impl_runtime_apis! {
 
         fn eras_stakers_page_count(era: sp_staking::EraIndex, account: AccountId) -> sp_staking::Page {
             Staking::api_eras_stakers_page_count(era, account)
+        }
+    }
+
+    impl rpc_primitives_debug::DebugRuntimeApi<Block> for Runtime {
+        fn trace_transaction(
+            extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+            transaction: &EthereumTransaction,
+            header: &<Block as BlockT>::Header,
+        ) -> Result<(), sp_runtime::DispatchError> {
+            #[cfg(feature = "evm-tracing")]
+            {
+                use evm_tracer::EvmTracer;
+
+                Executive::initialize_block(header);
+
+                let target_hash = transaction.hash();
+
+                for ext in extrinsics.into_iter() {
+                    let is_target = matches!(
+                        &ext.0.function,
+                        RuntimeCall::Ethereum(transact { transaction })
+                            if transaction.hash() == target_hash
+                    );
+
+                    if is_target {
+                        EvmTracer::new().trace(|| {
+                            let _ = Executive::apply_extrinsic(ext);
+                        });
+
+                        return Ok(());
+                    }
+
+                    let _ = Executive::apply_extrinsic(ext);
+                }
+
+                Err(sp_runtime::DispatchError::Other("Transaction not found"))
+            }
+            #[cfg(not(feature = "evm-tracing"))]
+            {
+                let _ = (extrinsics, transaction, header);
+
+                Err(sp_runtime::DispatchError::Other(
+                    "Missing `evm-tracing` compile time feature flag.",
+                ))
+            }
+        }
+
+        fn trace_block(
+            extrinsics: Vec<<Block as BlockT>::Extrinsic>,
+            _known_transactions: Vec<H256>,
+            header: &<Block as BlockT>::Header,
+        ) -> Result<(), sp_runtime::DispatchError> {
+            #[cfg(feature = "evm-tracing")]
+            {
+                use evm_tracer::EvmTracer;
+
+                Executive::initialize_block(header);
+
+                for ext in extrinsics.into_iter() {
+                    if matches!(&ext.0.function, RuntimeCall::Ethereum(transact { .. })) {
+                        evm_tracing_ext::evm_tracing_ext::call_list_new();
+                    }
+
+                    EvmTracer::new().trace(|| {
+                        let _ = Executive::apply_extrinsic(ext);
+                    });
+                }
+
+                Ok(())
+            }
+            #[cfg(not(feature = "evm-tracing"))]
+            {
+                let _ = (extrinsics, _known_transactions, header);
+
+                Err(sp_runtime::DispatchError::Other(
+                    "Missing `evm-tracing` compile time feature flag.",
+                ))
+            }
+        }
+
+        fn trace_call(
+            header: &<Block as BlockT>::Header,
+            from: H160,
+            to: H160,
+            data: Vec<u8>,
+            value: U256,
+            gas_limit: U256,
+            max_fee_per_gas: Option<U256>,
+            max_priority_fee_per_gas: Option<U256>,
+            nonce: Option<U256>,
+            access_list: Option<Vec<(H160, Vec<H256>)>>,
+        ) -> Result<(), sp_runtime::DispatchError> {
+            Executive::initialize_block(header);
+
+            let gas_limit = gas_limit.min(u64::MAX.into());
+            let transaction_data = TransactionData::new(
+                TransactionAction::Call(to),
+                data.clone(),
+                nonce.unwrap_or_default(),
+                gas_limit,
+                None,
+                max_fee_per_gas,
+                max_priority_fee_per_gas,
+                value,
+                Some(<Runtime as pallet_evm::Config>::ChainId::get()),
+                access_list.clone().unwrap_or_default(),
+            );
+            let (weight_limit, proof_size_base_cost) =
+                pallet_ethereum::Pallet::<Runtime>::transaction_weight(&transaction_data);
+
+            <Runtime as pallet_evm::Config>::Runner::call(
+                from,
+                to,
+                data,
+                value,
+                gas_limit.unique_saturated_into(),
+                max_fee_per_gas,
+                max_priority_fee_per_gas,
+                nonce,
+                access_list.unwrap_or_default(),
+                false,
+                true,
+                weight_limit,
+                proof_size_base_cost,
+                <Runtime as pallet_evm::Config>::config(),
+            )
+            .map_err(|_| sp_runtime::DispatchError::Other("EVM call failed during tracing"))?;
+
+            Ok(())
         }
     }
 

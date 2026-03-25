@@ -112,11 +112,15 @@ pub const AVAILABILITY_CONFIG: AvailabilityConfig = AvailabilityConfig {
 
 /// Only enable the benchmarking host functions when we actually want to benchmark.
 #[cfg(feature = "runtime-benchmarks")]
-pub type HostFunctions =
-    (sp_io::SubstrateHostFunctions, frame_benchmarking::benchmarking::HostFunctions);
+pub type HostFunctions = (
+    sp_io::SubstrateHostFunctions,
+    frame_benchmarking::benchmarking::HostFunctions,
+    evm_tracing_ext::evm_tracing_ext::HostFunctions,
+);
 /// Otherwise we use empty host functions for ext host functions.
 #[cfg(not(feature = "runtime-benchmarks"))]
-pub type HostFunctions = sp_io::SubstrateHostFunctions;
+pub type HostFunctions =
+    (sp_io::SubstrateHostFunctions, evm_tracing_ext::evm_tracing_ext::HostFunctions);
 /// Full backend.
 pub type FullBackend = sc_service::TFullBackend<Block>;
 /// Full client.

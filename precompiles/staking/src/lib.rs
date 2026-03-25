@@ -29,8 +29,8 @@ where
 {
     #[precompile::public("activeEra()")]
     #[precompile::view]
-    fn active_era(_: &mut impl PrecompileHandle) -> EvmResult<u32> {
-        // TODO: record gas
+    fn active_era(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let era_info = pallet_staking::Pallet::<Runtime>::active_era()
             .ok_or_else(|| Self::custom_err("Unable to get active era"))?;
         Ok(era_info.index)
@@ -38,32 +38,35 @@ where
 
     #[precompile::public("sessionsPerEra()")]
     #[precompile::view]
-    fn sessions_per_era(_: &mut impl PrecompileHandle) -> EvmResult<u32> {
+    fn sessions_per_era(handle: &mut impl PrecompileHandle) -> EvmResult<u32> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         Ok(<Runtime as pallet_staking::Config>::SessionsPerEra::get())
     }
 
     #[precompile::public("slashingSpans(address)")]
     fn slashing_spans(
         _: &mut impl PrecompileHandle,
-        address: Address,
+        _address: Address,
     ) -> EvmResult<(u32, u32, u32, Vec<u32>)> {
-        let addr = Runtime::AddressMapping::into_account_id(address.0);
-        let pallet_staking::slashing::SlashingSpans { .. } =
-            pallet_staking::SlashingSpans::<Runtime>::get(addr)
-                .ok_or_else(|| Self::custom_err("Unable to get slashing spans"))?;
-        // XXX: SlashingSpans fields are private
-        unimplemented!()
+        // SlashingSpans fields are private in the pallet, so this function cannot
+        // be implemented without upstream changes. Return a proper revert instead
+        // of panicking with `unimplemented!()`.
+        Err(PrecompileFailure::Error {
+            exit_status: evm::ExitError::Other("slashing_spans is not implemented".into()),
+        })
     }
 
     #[precompile::public("erasTotalStake(uint32)")]
     #[precompile::view]
-    fn eras_total_stake(_: &mut impl PrecompileHandle, era: u32) -> EvmResult<U256> {
+    fn eras_total_stake(handle: &mut impl PrecompileHandle, era: u32) -> EvmResult<U256> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let total = pallet_staking::ErasTotalStake::<Runtime>::get(era);
         Ok(total.into())
     }
 
     #[precompile::public("erasValidatorReward(uint32)")]
-    fn eras_validator_reward(_: &mut impl PrecompileHandle, era: u32) -> EvmResult<U256> {
+    fn eras_validator_reward(handle: &mut impl PrecompileHandle, era: u32) -> EvmResult<U256> {
+        handle.record_cost(RuntimeHelper::<Runtime>::db_read_gas_cost())?;
         let reward = pallet_staking::ErasValidatorReward::<Runtime>::get(era)
             .ok_or_else(|| Self::custom_err("Unable to get eras validator reward"))?;
         Ok(reward.into())
