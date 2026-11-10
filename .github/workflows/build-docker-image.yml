@@ -30,14 +30,23 @@ jobs:
             echo "Unable to detect build features for '${{ github.ref_name }}'"
             exit 1 ;;
         esac
-            
+
     - name: Build and Push Docker Image
       env:
         build_features: ${{ steps.features.outputs.build_features }}
         image_tag: ${{ github.ref_name }}
       run: |
         TIMESTAMP=$(date +%d%m%y-%H%M%S)
-        docker build --build-arg BUILD_FEATURES=${build_features} --tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} . 
+        cache_args=()
+        for candidate in \
+          /opt/runner-hooks/cargo-cache/client.env \
+          /opt/runner-cache-hooks/cargo-cache/client.env; do
+          if [[ -r "$candidate" ]]; then
+            cache_args+=(--secret "id=cargo_cache_env,src=$candidate")
+            break
+          fi
+        done
+        docker build "${cache_args[@]}" --build-arg BUILD_FEATURES=${build_features} --tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} .
         docker tag docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP} docker.io/atletanetwork/atleta-node:${image_tag}-latest
         docker push docker.io/atletanetwork/atleta-node:${image_tag}-${TIMESTAMP}
         docker push docker.io/atletanetwork/atleta-node:${image_tag}-latest

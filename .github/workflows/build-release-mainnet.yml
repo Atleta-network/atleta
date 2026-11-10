@@ -23,7 +23,16 @@ jobs:
 
     - name: Build and push docker image
       run: |
-          docker build --build-arg BUILD_FEATURES=mainnet-runtime --tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} .
+          cache_args=()
+          for candidate in \
+            /opt/runner-hooks/cargo-cache/client.env \
+            /opt/runner-cache-hooks/cargo-cache/client.env; do
+            if [[ -r "$candidate" ]]; then
+              cache_args+=(--secret "id=cargo_cache_env,src=$candidate")
+              break
+            fi
+          done
+          docker build "${cache_args[@]}" --build-arg BUILD_FEATURES=mainnet-runtime --tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} .
           docker tag docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP} docker.io/atletanetwork/atleta-node:mainnet-latest
           docker push docker.io/atletanetwork/atleta-node:mainnet-${TIMESTAMP}
           docker push docker.io/atletanetwork/atleta-node:mainnet-latest
