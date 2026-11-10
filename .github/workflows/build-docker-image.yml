@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     steps:
     - uses: actions/checkout@v4

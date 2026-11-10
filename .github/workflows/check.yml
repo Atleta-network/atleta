@@ -17,7 +17,7 @@ concurrency:
 jobs:
   rust:
     name: 'cargo check'
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     env:
       CARGO_TERM_COLOR: always
@@ -55,7 +55,7 @@ jobs:
 
   etc:
     name: 'shell scripts'
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     steps:
     - uses: actions/checkout@v4
