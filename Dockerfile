@@ -1,3 +1,4 @@
+# syntax=docker/dockerfile:1.7
 # Stage 1: build
 FROM rust:1.92.0-trixie AS builder
 
@@ -23,9 +24,13 @@ RUN apt-get update -y && \
 RUN rustup target add wasm32-unknown-unknown && \
     rustup component add rustfmt clippy rust-src
 
+COPY tools/ci/install_sccache.sh tools/ci/with_cargo_cache.sh /tmp/cargo-cache/
+RUN sh /tmp/cargo-cache/install_sccache.sh
+
 COPY . .
 
-RUN cargo build --features "$BUILD_FEATURES" --locked --release
+RUN --mount=type=secret,id=cargo_cache_env \
+    sh /tmp/cargo-cache/with_cargo_cache.sh cargo build --features "$BUILD_FEATURES" --locked --release
 
 RUN rm -rf /usr/local/cargo/git /usr/local/cargo/registry
 

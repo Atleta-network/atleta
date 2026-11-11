@@ -14,12 +14,13 @@ permissions:
 
 jobs:
   runtime_release:
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          cache: false
           target: wasm32-unknown-unknown
       - run: |
           sudo apt-get update
