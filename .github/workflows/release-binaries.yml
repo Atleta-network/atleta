@@ -35,6 +35,7 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          cache: false
           target: wasm32-unknown-unknown
           components: rust-src
 
@@ -72,6 +73,7 @@ jobs:
 
       - uses: actions-rust-lang/setup-rust-toolchain@v1
         with:
+          cache: false
           target: wasm32-unknown-unknown
           components: rust-src
 
