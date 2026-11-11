@@ -11,7 +11,7 @@ permissions:
 
 jobs:
   define_vars:
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
     outputs:
       release_name: ${{ steps.vars.outputs.release_name }}
       commit_sha: ${{ steps.vars.outputs.commit_sha }}
@@ -23,7 +23,7 @@ jobs:
           echo "release_name=$(echo ${{ github.ref_name }} | sed 's/^release-//')" >> "$GITHUB_OUTPUT"
 
   linux_build:
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
     needs: define_vars
     outputs:
       artifact: ${{ steps.artifact.outputs.name }}
@@ -59,7 +59,7 @@ jobs:
 
 
   macos_build:
-    runs-on: macos-latest
+    runs-on: {group: Atleta-network, labels: [self-hosted, macOS]}
     needs: define_vars
     outputs:
       artifact: ${{ steps.artifact.outputs.name }}
@@ -95,7 +95,7 @@ jobs:
           if-no-files-found: error
 
   publish_release:
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
     needs: [define_vars, linux_build, macos_build]
 
     steps:
