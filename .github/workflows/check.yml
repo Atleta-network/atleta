@@ -17,7 +17,7 @@ concurrency:
 jobs:
   rust:
     name: 'cargo check'
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     env:
       CARGO_TERM_COLOR: always
@@ -27,6 +27,7 @@ jobs:
 
     - uses: actions-rust-lang/setup-rust-toolchain@v1
       with:
+        cache: false
         target: wasm32-unknown-unknown
         components: rustfmt clippy rust-src
 
@@ -55,7 +56,7 @@ jobs:
 
   etc:
     name: 'shell scripts'
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
 
     steps:
     - uses: actions/checkout@v4

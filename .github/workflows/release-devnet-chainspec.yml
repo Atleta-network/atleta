@@ -15,7 +15,7 @@ jobs:
   maybe_release:
     permissions:
       contents: write
-    runs-on: self-hosted
+    runs-on: {group: Atleta-network, labels: [self-hosted, Linux, X64]}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
